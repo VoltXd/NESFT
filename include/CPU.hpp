@@ -9,8 +9,10 @@ class CPU
 public:
     // *********** External calls *********** //
     void reset(Memory& memory);
-    void execute(dword cycles, Memory& memory);
+    dword execute(dword cycles, Memory& memory);
 
+#ifdef TEST
+    // ******** Accessors ******** //
     // Getters
     inline word getPc() const { return mPc; }
     inline byte getSp() const { return mSp; }
@@ -26,6 +28,23 @@ public:
     inline byte getB() const { return mB; }
     inline byte getV() const { return mV; }
     inline byte getN() const { return mN; }
+    
+    // Setters
+    inline void setPc(word value) { mPc = value; }
+    inline void setSp(byte value) { mSp = value; }
+
+    inline void setA(byte value) { mA = value; }
+    inline void setX(byte value) { mX = value; }
+    inline void setY(byte value) { mY = value; }
+
+    inline void setC(byte value) { mC = value; }
+    inline void setZ(byte value) { mZ = value; }
+    inline void setI(byte value) { mI = value; }
+    inline void setD(byte value) { mD = value; }
+    inline void setB(byte value) { mB = value; }
+    inline void setV(byte value) { mV = value; }
+    inline void setN(byte value) { mN = value; }
+#endif
 
 private:
     // ******** Internal behaviour ******** //
@@ -39,6 +58,7 @@ private:
     void ldaImm(dword& cycles, Memory& memory);
     void ldaZp(dword& cycles, Memory& memory);
     void ldaZpX(dword& cycles, Memory& memory);
+    void ldaAbs(dword& cycles, Memory& memory);
     void ldaUpdateStatus();
 
     // ********** Registers    ********** //

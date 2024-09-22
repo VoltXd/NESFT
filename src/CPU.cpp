@@ -6,7 +6,7 @@ void CPU::reset(Memory& memory)
 {
 	// Reset registers
 	mPc = PC_RESET;
-	mSp = 0xFF;
+	mSp = SP_RESET;
 
 	mA = 0;
 	mX = 0;
@@ -24,35 +24,43 @@ void CPU::reset(Memory& memory)
 	memory.initialise();
 }
 
-void CPU::execute(dword cycles, Memory &memory)
+dword CPU::execute(dword cycles, Memory &memory)
 {
+	dword cyclesRequested = cycles;
 	while (cycles > 0)
 	{
 		// Fetch & Execute an instruction
 		byte instruction = fetchByte(cycles, memory);
 		switch (instruction)
 		{
-		case INS_JSR:
+		case JSR.opcode:
 			jsr(cycles, memory);
 			break;
 
-		case INS_LDA_IMM:
+		case LDA_IMM.opcode:
 			ldaImm(cycles, memory);
 			break;
 
-		case INS_LDA_ZP:
+		case LDA_ZP.opcode:
 			ldaZp(cycles, memory);
 			break;
 		
-		case INS_LDA_ZPX:
+		case LDA_ZPX.opcode:
 			ldaZpX(cycles, memory);
+			break;
+		
+		case LDA_ABS.opcode:
+			ldaAbs(cycles, memory);
 			break;
 
 		default:
 			std::cout << "Instruction not handled: " << std::hex << instruction << std::dec << std::endl;
+			cycles--;
 			break;
 		}
 	}
+
+	return cyclesRequested - cycles;
 }
 
 byte CPU::fetchByte(dword& cycles, Memory &memory)
@@ -142,6 +150,19 @@ void CPU::ldaZpX(dword &cycles, Memory &memory)
 	// Read memory
 	byte data = readByte(cycles, memory, address);
 	mA = data;
+
+	// Update status flags
+	ldaUpdateStatus();
+}
+
+void CPU::ldaAbs(dword &cycles, Memory &memory)
+{
+	// Fetch absolute address
+	word address = fetchWord(cycles, memory);
+
+	// Read value
+	mA = memory[address];
+	cycles--;
 
 	// Update status flags
 	ldaUpdateStatus();

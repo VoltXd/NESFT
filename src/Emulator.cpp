@@ -15,11 +15,11 @@ int Emulator::run()
 	cpu.reset(memory);
 
 	// Fill memory with fake program
-	memory[0xFFFC] = INS_LDA_IMM;
+	memory[0xFFFC] = LDA_IMM.opcode;
 	memory[0xFFFC + 1] = 0x42;
 
 	// Execute
-	cpu.execute(2, memory);
+	cpu.execute(LDA_IMM.cycles, memory);
 
 	return EXIT_SUCCESS;
 }

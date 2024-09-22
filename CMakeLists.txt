@@ -18,6 +18,12 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CM
 # Target the include folder (used to make headers visible in visual studio)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
+# Verbose warnings & warnings are errors
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 
 # *************** Google Test *************** #
 project(simple-nes-emulator-TEST LANGUAGES CXX)
@@ -50,3 +56,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 #define TEST, so that the program starts with Google Test's main
 target_compile_definitions(${PROJECT_NAME} PUBLIC TEST)
+
+# Verbose warnings & warnings are errors
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()

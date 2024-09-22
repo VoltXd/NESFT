@@ -1,5 +1,10 @@
 #pragma once
 
+// Unnecessary define, but allow better IDE informations
+#ifndef TEST
+#define TEST
+#endif
+
 #include "CPU.hpp"
 #include "Memory.hpp"
 #include "gtest/gtest.h"

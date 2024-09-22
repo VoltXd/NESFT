@@ -37,6 +37,8 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration = Release
 - [ ] Emulate the CPU
 - [ ] Learn more about the rest
 	- [ ] PPU ?
+	- [ ] Sound ?
+	- [ ] Controller ?
 	- [ ] Something else ?
 
 ## References

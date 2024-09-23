@@ -3,9 +3,6 @@
 #include "Config.hpp"
 #include "Instruction.hpp"
 
-// ********** Memory ********** //
-constexpr word ZP_START = 0x0000;
-
 // ********** Register ********** //
 constexpr word PC_RESET = 0xFFFC;
 constexpr byte SP_RESET = 0xFF;

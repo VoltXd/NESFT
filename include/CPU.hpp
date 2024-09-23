@@ -9,7 +9,7 @@ class CPU
 public:
     // *********** External calls *********** //
     void reset(Memory& memory);
-    dword execute(dword cycles, Memory& memory);
+    sdword execute(sdword cycles, Memory& memory);
 
 #ifdef TEST
     // ******** Accessors ******** //
@@ -49,24 +49,38 @@ public:
 private:
     // ******** Internal behaviour ******** //
     // Read memory
-    byte fetchByte(dword& cycles, Memory& memory);
-    word fetchWord(dword& cycles, Memory& memory);
-    byte readByte(dword& cycles, Memory& memory, dword address);
-    void stackPush(dword& cycles, Memory& memory, byte value);
+    byte fetchByte(sdword& cycles, Memory& memory);
+    word fetchWord(sdword& cycles, Memory& memory);
+    byte readByte(sdword& cycles, Memory& memory, word address);
+    void stackPush(sdword& cycles, Memory& memory, byte value);
 
+    // *** Addressing modes *** //
+    // Implicit & Accumulator modes does not need implementation...
+    byte fetchImmediate(sdword& cycles, Memory& memory);
+    word fetchAddrZeroPage(sdword& cycles, Memory& memory);
+    word fetchAddrZeroPageX(sdword& cycles, Memory& memory);
+    word fetchAddrZeroPageY(sdword& cycles, Memory& memory);
+    word fetchAddrRelative(sdword& cycles, Memory& memory);
+    word fetchAddrAbsolute(sdword& cycles, Memory& memory);
+    word fetchAddrAbsoluteX(sdword& cycles, Memory& memory);
+    word fetchAddrAbsoluteY(sdword& cycles, Memory& memory);
+    word fetchAddrIndirect(sdword& cycles, Memory& memory);
+    word fetchAddrIndirectX(sdword& cycles, Memory& memory);
+    word fetchAddrIndirectY(sdword& cycles, Memory& memory);
+    
     // *** Instructions *** //
     // JSR
-    void jsr(dword& cycles, Memory& memory);
+    void jsr(sdword& cycles, Memory& memory);
 
     // LDA
-    void ldaImm(dword& cycles, Memory& memory);
-    void ldaZp(dword& cycles, Memory& memory);
-    void ldaZpX(dword& cycles, Memory& memory);
-    void ldaAbs(dword& cycles, Memory& memory);
-    void ldaAbsX(dword& cycles, Memory& memory);
-    void ldaAbsY(dword& cycles, Memory& memory);
-    void ldaIndX(dword& cycles, Memory& memory);
-    void ldaIndY(dword& cycles, Memory& memory);
+    void ldaImm(sdword& cycles, Memory& memory);
+    void ldaZp(sdword& cycles, Memory& memory);
+    void ldaZpX(sdword& cycles, Memory& memory);
+    void ldaAbs(sdword& cycles, Memory& memory);
+    void ldaAbsX(sdword& cycles, Memory& memory);
+    void ldaAbsY(sdword& cycles, Memory& memory);
+    void ldaIndX(sdword& cycles, Memory& memory);
+    void ldaIndY(sdword& cycles, Memory& memory);
     void ldaUpdateStatus();
 
     // ********** Registers    ********** //

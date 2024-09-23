@@ -7,13 +7,13 @@ TEST_F(CPUTests, jsrWorks)
 	constexpr word targetAddress = 0x425D;
 	constexpr byte targetLsb = 0x5D;
 	constexpr byte targetMsb = 0x42;
-	constexpr dword targetCycles = JSR.cycles;
+	constexpr sdword targetCycles = JSR.cycles;
 
 	// Run program
 	memory[PC_RESET] = JSR.opcode;
 	memory[PC_RESET + 1] = targetLsb;
 	memory[PC_RESET + 2] = targetMsb;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 2);

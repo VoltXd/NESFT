@@ -40,6 +40,8 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration = Release
 	- [ ] Sound ?
 	- [ ] Controller ?
 	- [ ] Something else ?
+- [ ] Set Up OpenGL for graphics rendering
+- [ ] Use OpenAL for audio ?
 
 ## References
 ### Inspiration

@@ -16,12 +16,12 @@ TEST_F(CPUTests, ldaImmPosWorks)
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_IMM.cycles;
+	constexpr sdword targetCycles = LDA_IMM.cycles;
 
 	// Load to A
 	memory[PC_RESET] = LDA_IMM.opcode;
 	memory[PC_RESET + 1] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -37,12 +37,12 @@ TEST_F(CPUTests, ldaImmNegWorks)
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_IMM.cycles;
+	constexpr sdword targetCycles = LDA_IMM.cycles;
 
 	// Load to A, negative value
 	memory[PC_RESET] = LDA_IMM.opcode;
 	memory[PC_RESET + 1] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -58,12 +58,12 @@ TEST_F(CPUTests, ldaImmNullWorks)
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_IMM.cycles;
+	constexpr sdword targetCycles = LDA_IMM.cycles;
 
 	// Load to A, null value
 	memory[PC_RESET] = LDA_IMM.opcode;
 	memory[PC_RESET + 1] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -81,13 +81,13 @@ TEST_F(CPUTests, ldaZPPosWorks)
 	const CPU cpuInitialState = cpu;
 	constexpr byte zpAddress = 0x24;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ZP.cycles;
+	constexpr sdword targetCycles = LDA_ZP.cycles;
 
 	// Load to A
 	memory[PC_RESET] = LDA_ZP.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | zpAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[zpAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -104,13 +104,13 @@ TEST_F(CPUTests, ldaZPNegWorks)
 	const CPU cpuInitialState = cpu;
 	constexpr byte zpAddress = 0xF7;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_ZP.cycles;
+	constexpr sdword targetCycles = LDA_ZP.cycles;
 
 	// Load to A, negative value
 	memory[PC_RESET] = LDA_ZP.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | zpAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[zpAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -127,13 +127,13 @@ TEST_F(CPUTests, ldaZPNullWorks)
 	const CPU cpuInitialState = cpu;
 	constexpr byte zpAddress = 0xF7;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_ZP.cycles;
+	constexpr sdword targetCycles = LDA_ZP.cycles;
 
 	// Load to A, null value
 	memory[PC_RESET] = LDA_ZP.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | zpAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[zpAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -153,14 +153,14 @@ TEST_F(CPUTests, ldaZPXPosWorks)
 	constexpr byte xValue = 0x0F;
 	constexpr byte targetAddress = 0x8F;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ZPX.cycles;
+	constexpr sdword targetCycles = LDA_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
 	memory[PC_RESET] = LDA_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[targetAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -179,14 +179,14 @@ TEST_F(CPUTests, ldaZPXWraps)
 	constexpr byte xValue = 0xFF;
 	constexpr byte targetAddress = 0x7F;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ZPX.cycles;
+	constexpr sdword targetCycles = LDA_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
 	memory[PC_RESET] = LDA_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[targetAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -205,14 +205,14 @@ TEST_F(CPUTests, ldaZPXNegWorks)
 	constexpr byte xValue = 0x0F;
 	constexpr byte targetAddress = 0x8F;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_ZPX.cycles;
+	constexpr sdword targetCycles = LDA_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
 	memory[PC_RESET] = LDA_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[targetAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -231,14 +231,14 @@ TEST_F(CPUTests, ldaZPXNullWorks)
 	constexpr byte xValue = 0x0F;
 	constexpr byte targetAddress = 0x8F;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_ZPX.cycles;
+	constexpr sdword targetCycles = LDA_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
 	memory[PC_RESET] = LDA_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[ZP_START | targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	memory[targetAddress] = targetValue;
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -258,14 +258,14 @@ TEST_F(CPUTests, ldaAbsPosWorks)
 	constexpr byte addressMsb = 0x32;
 	constexpr word address = 0x3224;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABS.cycles;
+	constexpr sdword targetCycles = LDA_ABS.cycles;
 
 	// Load to A
 	memory[PC_RESET] = LDA_ABS.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -284,14 +284,14 @@ TEST_F(CPUTests, ldaAbsNegWorks)
 	constexpr byte addressMsb = 0x32;
 	constexpr word address = 0x3224;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_ABS.cycles;
+	constexpr sdword targetCycles = LDA_ABS.cycles;
 
 	// Load to A
 	memory[PC_RESET] = LDA_ABS.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -310,14 +310,14 @@ TEST_F(CPUTests, ldaAbsNullWorks)
 	constexpr byte addressMsb = 0x32;
 	constexpr word address = 0x3224;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_ABS.cycles;
+	constexpr sdword targetCycles = LDA_ABS.cycles;
 
 	// Load to A
 	memory[PC_RESET] = LDA_ABS.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -338,7 +338,7 @@ TEST_F(CPUTests, ldaAbsXPosWorks)
 	constexpr byte xValue = 0x17;
 	constexpr word address = 0x323B;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABSX.cycles;
+	constexpr sdword targetCycles = LDA_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -346,7 +346,7 @@ TEST_F(CPUTests, ldaAbsXPosWorks)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -366,7 +366,7 @@ TEST_F(CPUTests, ldaAbsXCanGoToNextPage)
 	constexpr byte xValue = 0xFF;
 	constexpr word address = 0x3323;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABSX.cycles;
+	constexpr sdword targetCycles = LDA_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -374,7 +374,7 @@ TEST_F(CPUTests, ldaAbsXCanGoToNextPage)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -394,7 +394,7 @@ TEST_F(CPUTests, ldaAbsXCanOverflowToZeroPage)
 	constexpr byte xValue = 0x01;
 	constexpr word address = 0x0000;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABSX.cycles;
+	constexpr sdword targetCycles = LDA_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -402,7 +402,7 @@ TEST_F(CPUTests, ldaAbsXCanOverflowToZeroPage)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -422,7 +422,7 @@ TEST_F(CPUTests, ldaAbsXNegWorks)
 	constexpr byte xValue = 0x17;
 	constexpr word address = 0x323B;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_ABSX.cycles;
+	constexpr sdword targetCycles = LDA_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -430,7 +430,7 @@ TEST_F(CPUTests, ldaAbsXNegWorks)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -450,7 +450,7 @@ TEST_F(CPUTests, ldaAbsXNullWorks)
 	constexpr byte xValue = 0x17;
 	constexpr word address = 0x323B;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_ABSX.cycles;
+	constexpr sdword targetCycles = LDA_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -458,7 +458,7 @@ TEST_F(CPUTests, ldaAbsXNullWorks)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -479,7 +479,7 @@ TEST_F(CPUTests, ldaAbsYPosWorks)
 	constexpr byte yValue = 0x17;
 	constexpr word address = 0x323B;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABSY.cycles;
+	constexpr sdword targetCycles = LDA_ABSY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -487,7 +487,7 @@ TEST_F(CPUTests, ldaAbsYPosWorks)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -507,7 +507,7 @@ TEST_F(CPUTests, ldaAbsYCanGoToNextPage)
 	constexpr byte yValue = 0xFF;
 	constexpr word address = 0x3323;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABSY.cycles;
+	constexpr sdword targetCycles = LDA_ABSY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -515,7 +515,7 @@ TEST_F(CPUTests, ldaAbsYCanGoToNextPage)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -535,7 +535,7 @@ TEST_F(CPUTests, ldaAbsYCanOverflowToZeroPage)
 	constexpr byte yValue = 0x01;
 	constexpr word address = 0x0000;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_ABSY.cycles;
+	constexpr sdword targetCycles = LDA_ABSY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -543,7 +543,7 @@ TEST_F(CPUTests, ldaAbsYCanOverflowToZeroPage)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -563,7 +563,7 @@ TEST_F(CPUTests, ldaAbsYNegWorks)
 	constexpr byte yValue = 0x17;
 	constexpr word address = 0x323B;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_ABSY.cycles;
+	constexpr sdword targetCycles = LDA_ABSY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -571,7 +571,7 @@ TEST_F(CPUTests, ldaAbsYNegWorks)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -591,7 +591,7 @@ TEST_F(CPUTests, ldaAbsYNullWorks)
 	constexpr byte yValue = 0x17;
 	constexpr word address = 0x323B;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_ABSY.cycles;
+	constexpr sdword targetCycles = LDA_ABSY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -599,7 +599,7 @@ TEST_F(CPUTests, ldaAbsYNullWorks)
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
 	memory[address] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -622,7 +622,7 @@ TEST_F(CPUTests, ldaIndXPosWorks)
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_INDX.cycles;
+	constexpr sdword targetCycles = LDA_INDX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -631,7 +631,7 @@ TEST_F(CPUTests, ldaIndXPosWorks)
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -653,7 +653,7 @@ TEST_F(CPUTests, ldaIndXFullyWraps)
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_INDX.cycles;
+	constexpr sdword targetCycles = LDA_INDX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -662,7 +662,7 @@ TEST_F(CPUTests, ldaIndXFullyWraps)
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -684,7 +684,7 @@ TEST_F(CPUTests, ldaIndXHalfWraps)
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_INDX.cycles;
+	constexpr sdword targetCycles = LDA_INDX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -693,7 +693,7 @@ TEST_F(CPUTests, ldaIndXHalfWraps)
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -715,7 +715,7 @@ TEST_F(CPUTests, ldaIndXNegWorks)
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_INDX.cycles;
+	constexpr sdword targetCycles = LDA_INDX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -724,7 +724,7 @@ TEST_F(CPUTests, ldaIndXNegWorks)
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -746,7 +746,7 @@ TEST_F(CPUTests, ldaIndXNullWorks)
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_INDX.cycles;
+	constexpr sdword targetCycles = LDA_INDX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -755,7 +755,7 @@ TEST_F(CPUTests, ldaIndXNullWorks)
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -777,7 +777,7 @@ TEST_F(CPUTests, ldaIndYPosWorks)
 	constexpr byte yValue = 0x1C;
 	constexpr word targetAddress = 0x636B;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_INDY.cycles;
+	constexpr sdword targetCycles = LDA_INDY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -786,7 +786,7 @@ TEST_F(CPUTests, ldaIndYPosWorks)
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -807,7 +807,7 @@ TEST_F(CPUTests, ldaIndYFullyWrapsAndPageCrosses)
 	constexpr byte yValue = 0xFF;
 	constexpr word targetAddress = 0x00FE;
 	constexpr byte targetValue = 0x42;
-	constexpr dword targetCycles = LDA_INDY.cycles;
+	constexpr sdword targetCycles = LDA_INDY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -816,7 +816,7 @@ TEST_F(CPUTests, ldaIndYFullyWrapsAndPageCrosses)
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -837,7 +837,7 @@ TEST_F(CPUTests, ldaIndYNegWorks)
 	constexpr byte yValue = 0x1C;
 	constexpr word targetAddress = 0x636B;
 	constexpr byte targetValue = 0xD8;
-	constexpr dword targetCycles = LDA_INDY.cycles;
+	constexpr sdword targetCycles = LDA_INDY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -846,7 +846,7 @@ TEST_F(CPUTests, ldaIndYNegWorks)
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -867,7 +867,7 @@ TEST_F(CPUTests, ldaIndYNullWorks)
 	constexpr byte yValue = 0x1C;
 	constexpr word targetAddress = 0x636B;
 	constexpr byte targetValue = 0x00;
-	constexpr dword targetCycles = LDA_INDY.cycles;
+	constexpr sdword targetCycles = LDA_INDY.cycles;
 
 	// Load to A
 	cpu.setY(yValue);
@@ -876,7 +876,7 @@ TEST_F(CPUTests, ldaIndYNullWorks)
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
-	dword elapsedCycles = cpu.execute(targetCycles, memory);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);

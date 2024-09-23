@@ -184,7 +184,7 @@ word CPU::fetchAddrAbsolute(sdword &cycles, Memory &memory)
 	return address;
 }
 
-word CPU::fetchAddrAbsoluteX(sdword &cycles, Memory &memory)
+word CPU::fetchAddrAbsoluteX(sdword &cycles, Memory &memory, bool& hasPageCrossed)
 {
 	// Fetch absolute address
 	word address = fetchWord(cycles, memory);
@@ -194,14 +194,13 @@ word CPU::fetchAddrAbsoluteX(sdword &cycles, Memory &memory)
 	address = ((uint32_t)address + mX) & 0x0000FFFFF;
 	byte msb = (address & 0xFF00) >> 8;
 
-	// If we go to the next page, add a cycle
-	if (msb != prevMsb)
-		cycles--;
+	// If we go to the next page, some instruction will add one more cycle
+	hasPageCrossed = msb != prevMsb;
 
 	return address;
 }
 
-word CPU::fetchAddrAbsoluteY(sdword &cycles, Memory &memory)
+word CPU::fetchAddrAbsoluteY(sdword &cycles, Memory &memory, bool& hasPageCrossed)
 {
 	// Fetch absolute address
 	word address = fetchWord(cycles, memory);
@@ -211,9 +210,8 @@ word CPU::fetchAddrAbsoluteY(sdword &cycles, Memory &memory)
 	address = ((uint32_t)address + mY) & 0x0000FFFFF;
 	byte msb = (address & 0xFF00) >> 8;
 
-	// If we go to the next page, add a cycle
-	if (msb != prevMsb)
-		cycles--;
+	// If we go to the next page, some instruction will add one more cycle
+	hasPageCrossed = msb != prevMsb;
 
 	return address;
 }
@@ -258,7 +256,7 @@ word CPU::fetchAddrIndirectX(sdword &cycles, Memory &memory)
 	return targetAddress;
 }
 
-word CPU::fetchAddrIndirectY(sdword &cycles, Memory &memory)
+word CPU::fetchAddrIndirectY(sdword &cycles, Memory &memory, bool& hasPageCrossed)
 {
 	// Fetch zero page address
 	word zpAddress = fetchByte(cycles, memory);
@@ -275,9 +273,8 @@ word CPU::fetchAddrIndirectY(sdword &cycles, Memory &memory)
 	// Add Y to target address
 	targetAddress = ((uint32_t)targetAddress + mY) & 0xFFFF;
 	
-	// If LSB has a carry for MSB, add one cycle
-	if (targetAddressMsb != (targetAddress & 0xFF00) >> 8) 
-		cycles--;
+	// If we go to the next page, some instruction will add one more cycle
+	hasPageCrossed = targetAddressMsb != (targetAddress & 0xFF00) >> 8;
 
 	return targetAddress;
 }
@@ -285,7 +282,7 @@ word CPU::fetchAddrIndirectY(sdword &cycles, Memory &memory)
 void CPU::jsr(sdword &cycles, Memory &memory)
 {
 	// Read subroutine address (2 cycles)
-	word subroutineAddress = fetchWord(cycles, memory);
+	word subroutineAddress = fetchAddrAbsolute(cycles, memory);
 
 	// Push Program counter -1 (return address) to stack (2 cycles)
 	word returnAddress = mPc - 1;
@@ -347,7 +344,10 @@ void CPU::ldaAbs(sdword &cycles, Memory &memory)
 void CPU::ldaAbsX(sdword &cycles, Memory &memory)
 {
 	// Fetch absolute address
-	word address = fetchAddrAbsoluteX(cycles, memory);
+	bool hasPageCrossed;
+	word address = fetchAddrAbsoluteX(cycles, memory, hasPageCrossed);
+	if (hasPageCrossed)
+		cycles--;
 
 	// Read value
 	mA = readByte(cycles, memory, address);
@@ -359,7 +359,10 @@ void CPU::ldaAbsX(sdword &cycles, Memory &memory)
 void CPU::ldaAbsY(sdword &cycles, Memory &memory)
 {
 	// Fetch absolute address
-	word address = fetchAddrAbsoluteY(cycles, memory);
+	bool hasPageCrossed;
+	word address = fetchAddrAbsoluteY(cycles, memory, hasPageCrossed);
+	if (hasPageCrossed)
+		cycles--;
 
 	// Read value
 	mA = readByte(cycles, memory, address);
@@ -383,7 +386,10 @@ void CPU::ldaIndX(sdword &cycles, Memory &memory)
 void CPU::ldaIndY(sdword &cycles, Memory &memory)
 {
 	// Fetch indirectly address
-	word targetAddress = fetchAddrIndirectY(cycles, memory);
+	bool hasPageCrossed;
+	word targetAddress = fetchAddrIndirectY(cycles, memory, hasPageCrossed);
+	if (hasPageCrossed)
+		cycles--;
 
 	// Read value
 	mA = readByte(cycles, memory, targetAddress);

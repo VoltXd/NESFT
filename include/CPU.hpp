@@ -62,11 +62,11 @@ private:
     word fetchAddrZeroPageY(sdword& cycles, Memory& memory);
     word fetchAddrRelative(sdword& cycles, Memory& memory);
     word fetchAddrAbsolute(sdword& cycles, Memory& memory);
-    word fetchAddrAbsoluteX(sdword& cycles, Memory& memory);
-    word fetchAddrAbsoluteY(sdword& cycles, Memory& memory);
+    word fetchAddrAbsoluteX(sdword& cycles, Memory& memory, bool& hasPageCrossed);
+    word fetchAddrAbsoluteY(sdword& cycles, Memory& memory, bool& hasPageCrossed);
     word fetchAddrIndirect(sdword& cycles, Memory& memory);
     word fetchAddrIndirectX(sdword& cycles, Memory& memory);
-    word fetchAddrIndirectY(sdword& cycles, Memory& memory);
+    word fetchAddrIndirectY(sdword& cycles, Memory& memory, bool& hasPageCrossed);
     
     // *** Instructions *** //
     // JSR

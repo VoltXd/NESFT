@@ -9,6 +9,7 @@ constexpr word ZP_START = 0x0000;
 // ********** Register ********** //
 constexpr word PC_RESET = 0xFFFC;
 constexpr byte SP_RESET = 0xFF;
+constexpr word SP_PAGE_OFFSET = 0x0100;
 
 // ********** Instructions (opcode, cycles) ********** //
 constexpr instruction JSR  	   = { 0x20, 6 };

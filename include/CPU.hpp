@@ -52,13 +52,21 @@ private:
     byte fetchByte(dword& cycles, Memory& memory);
     word fetchWord(dword& cycles, Memory& memory);
     byte readByte(dword& cycles, Memory& memory, dword address);
+    void stackPush(dword& cycles, Memory& memory, byte value);
 
-    // Instructions
+    // *** Instructions *** //
+    // JSR
     void jsr(dword& cycles, Memory& memory);
+
+    // LDA
     void ldaImm(dword& cycles, Memory& memory);
     void ldaZp(dword& cycles, Memory& memory);
     void ldaZpX(dword& cycles, Memory& memory);
     void ldaAbs(dword& cycles, Memory& memory);
+    void ldaAbsX(dword& cycles, Memory& memory);
+    void ldaAbsY(dword& cycles, Memory& memory);
+    void ldaIndX(dword& cycles, Memory& memory);
+    void ldaIndY(dword& cycles, Memory& memory);
     void ldaUpdateStatus();
 
     // ********** Registers    ********** //

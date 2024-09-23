@@ -9,10 +9,10 @@ void Memory::initialise()
 
 void Memory::writeWord(word value, word address, dword& cycles)
 {
-	// Little endian => write LSB first
-	data[address] = value & 0x00FF;
-	data[address + 1] = (value & 0xFF00) >> 8;
-
 	// 1 cycle per write
-	cycles -= 2;
+	data[address] = value & 0x00FF;
+	cycles--;
+
+	data[address + 1] = (value & 0xFF00) >> 8;
+	cycles--;
 }

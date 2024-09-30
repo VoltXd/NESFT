@@ -60,11 +60,13 @@ private:
     void executeInstruction(sdword& cycles, Memory& memory, instruction_t instruction, word address, bool hasPageCrossed);
     
     // *** Instructions *** //
+    void adc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
 
     // *** Update status flags *** //
+    void adcUpdateStatus(word newA, byte operand1, byte operand2);
     void ldaUpdateStatus();
 
     // ********** Registers    ********** //

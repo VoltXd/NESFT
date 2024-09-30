@@ -20,7 +20,7 @@ TEST_F(CPUTests, staZPWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ZP.cycles;
 
-	// Load to A
+	// Store A
 	memory[PC_RESET] = STA_ZP.opcode;
 	memory[PC_RESET + 1] = zpAddress;
 	cpu.setA(targetValue);
@@ -44,7 +44,7 @@ TEST_F(CPUTests, staZPXWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ZPX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
@@ -70,7 +70,7 @@ TEST_F(CPUTests, staZPXWraps)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ZPX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
@@ -96,7 +96,7 @@ TEST_F(CPUTests, staAbsWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABS.cycles;
 
-	// Load to A
+	// Store A
 	memory[PC_RESET] = STA_ABS.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
@@ -123,7 +123,7 @@ TEST_F(CPUTests, staAbsXWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABSX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_ABSX.opcode;
 	memory[PC_RESET + 1] = addressLsb;
@@ -151,7 +151,7 @@ TEST_F(CPUTests, staAbsXCanGoToNextPage)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABSX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_ABSX.opcode;
 	memory[PC_RESET + 1] = addressLsb;
@@ -179,7 +179,7 @@ TEST_F(CPUTests, staAbsXCanOverflowToZeroPage)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABSX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_ABSX.opcode;
 	memory[PC_RESET + 1] = addressLsb;
@@ -207,7 +207,7 @@ TEST_F(CPUTests, staAbsYPosWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABSY.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setY(yValue);
 	memory[PC_RESET] = STA_ABSY.opcode;
 	memory[PC_RESET + 1] = addressLsb;
@@ -235,7 +235,7 @@ TEST_F(CPUTests, staAbsYCanGoToNextPage)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABSY.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setY(yValue);
 	memory[PC_RESET] = STA_ABSY.opcode;
 	memory[PC_RESET + 1] = addressLsb;
@@ -263,7 +263,7 @@ TEST_F(CPUTests, staAbsYCanOverflowToZeroPage)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_ABSY.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setY(yValue);
 	memory[PC_RESET] = STA_ABSY.opcode;
 	memory[PC_RESET + 1] = addressLsb;
@@ -293,7 +293,7 @@ TEST_F(CPUTests, staIndXPosWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_INDX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_INDX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
@@ -324,7 +324,7 @@ TEST_F(CPUTests, staIndXFullyWraps)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_INDX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_INDX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
@@ -355,7 +355,7 @@ TEST_F(CPUTests, staIndXHalfWraps)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_INDX.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setX(xValue);
 	memory[PC_RESET] = STA_INDX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
@@ -385,7 +385,7 @@ TEST_F(CPUTests, staIndYPosWorks)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_INDY.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setY(yValue);
 	memory[PC_RESET] = STA_INDY.opcode;
 	memory[PC_RESET + 1] = zpAddress;
@@ -415,7 +415,7 @@ TEST_F(CPUTests, staIndYFullyWrapsAndPageCrosses)
 	constexpr byte targetValue = 0x42;
 	constexpr sdword targetCycles = STA_INDY.cycles;
 
-	// Load to A
+	// Store A
 	cpu.setY(yValue);
 	memory[PC_RESET] = STA_INDY.opcode;
 	memory[PC_RESET + 1] = zpAddress;

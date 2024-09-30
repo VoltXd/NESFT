@@ -273,6 +273,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 
 	switch (operation)
 	{
+	case Operation::ADC:
+		adc(cycles, memory, address, hasPageCrossed);
+		break;
+
 	case Operation::JSR:
 		jsr(cycles, memory, address);
 		break;
@@ -290,6 +294,26 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		cycles--;
 		break;
 	}
+}
+
+void CPU::adc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Save previous Accumulator state, for status update
+	byte previousA = mA;
+
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform add with carry
+	word newA = mA + memValue + mC;
+	mA = newA & 0x00FF;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+	
+	// Update status flags
+	adcUpdateStatus(newA, previousA, memValue);
 }
 
 void CPU::jsr(sdword &cycles, Memory &memory, word subroutineAddress)
@@ -331,12 +355,19 @@ void CPU::sta(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 		cycles--;
 }
 
+void CPU::adcUpdateStatus(word newA, byte operand1, byte operand2)
+{
+	// Update C, Z, V, N
+	mC = (newA & 0x0100) != 0    ? 1 : 0;
+	mZ = mA == 0                 ? 1 : 0;
+	mV = (operand1 ^ mA) &
+	     (operand2 ^ mA) & 0x80  ? 1 : 0;
+    mN = (mA & 0b1000'0000) != 0 ? 1 : 0;
+}
+
 void CPU::ldaUpdateStatus()
 {
 	// Only Z & N flags need to be updated
-	if (mA == 0)
-		mZ = 1;
-
-	if (mA & 0b1000'0000)
-		mN = 1;
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
 }

@@ -2,180 +2,255 @@
 
 static void verifyUnmodifiedStatusFlagsFromLDA(const CPU& cpu, const CPU& cpuInitialState)
 {
-	EXPECT_EQ(cpu.getC(), cpuInitialState.getC());
 	EXPECT_EQ(cpu.getI(), cpuInitialState.getI());
 	EXPECT_EQ(cpu.getD(), cpuInitialState.getD());
 	EXPECT_EQ(cpu.getB(), cpuInitialState.getB());
-	EXPECT_EQ(cpu.getV(), cpuInitialState.getV());
 }
 
 // ******************** Immediate ******************** //
 // ********** Positive test ********** //
-TEST_F(CPUTests, ldaImmPosWorks)
+TEST_F(CPUTests, adcImmPosWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_IMM.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_IMM.cycles;
 
-	// Load to A
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetValue;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_IMM.opcode;
+	memory[PC_RESET + 1] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
-// ********** Negative test ********** //
-TEST_F(CPUTests, ldaImmNegWorks)
+// ********** Negative & overflow & carry test ********** //
+TEST_F(CPUTests, adcImmNegOveCarWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0xD8;
-	constexpr sdword targetCycles = LDA_IMM.cycles;
+	constexpr byte memValue = 0xFF;
+	constexpr byte aValue = 0x80;
+	constexpr byte cValue = 0;
+	constexpr byte targetValue = 0x7F;
+	constexpr sdword targetCycles = ADC_IMM.cycles;
 
-	// Load to A, negative value
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetValue;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_IMM.opcode;
+	memory[PC_RESET + 1] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_TRUE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_TRUE(cpu.getV());
+	EXPECT_FALSE(cpu.getN());
+	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
+	EXPECT_EQ(elapsedCycles, targetCycles);
+}
+
+// ********** 2nd overflow test ********** //
+TEST_F(CPUTests, adcImmOveWorks)
+{
+	// Target values
+	const CPU cpuInitialState = cpu;
+	constexpr byte memValue = 0x7F;
+	constexpr byte aValue = 0x00;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x80;
+	constexpr sdword targetCycles = ADC_IMM.cycles;
+
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_IMM.opcode;
+	memory[PC_RESET + 1] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+
+	// Verify
+	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
+	EXPECT_FALSE(cpu.getZ());
+	EXPECT_TRUE(cpu.getV());
 	EXPECT_TRUE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Null test ********** //
-TEST_F(CPUTests, ldaImmNullWorks)
+TEST_F(CPUTests, adcImmNullWorks)
 {	
 	// Target values
 	const CPU cpuInitialState = cpu;
+	constexpr byte memValue = 0x00;
+	constexpr byte aValue = 0x00;
+	constexpr byte cValue = 0;
 	constexpr byte targetValue = 0x00;
-	constexpr sdword targetCycles = LDA_IMM.cycles;
+	constexpr sdword targetCycles = ADC_IMM.cycles;
 
-	// Load to A, null value
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetValue;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_IMM.opcode;
+	memory[PC_RESET + 1] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_TRUE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ******************** Zero Page ******************** //
-TEST_F(CPUTests, ldaZPWorks)
+TEST_F(CPUTests, adcZPWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte zpAddress = 0x24;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ZP.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ZP.cycles;
 
-	// Load to A
-	memory[PC_RESET] = LDA_ZP.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ZP.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[zpAddress] = targetValue;
+	memory[zpAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ******************** Zero Page, X ******************** //
-TEST_F(CPUTests, ldaZPXWorks)
+TEST_F(CPUTests, adcZPXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte zpAddress = 0x80;
 	constexpr byte xValue = 0x0F;
 	constexpr byte targetAddress = 0x8F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ZPX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ZPX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ZPX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Wrap test ********** //
-TEST_F(CPUTests, ldaZPXWraps)
+TEST_F(CPUTests, adcZPXWraps)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte zpAddress = 0x80;
 	constexpr byte xValue = 0xFF;
 	constexpr byte targetAddress = 0x7F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ZPX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ZPX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ZPX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ZPX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ******************** Absolute ******************** //
-TEST_F(CPUTests, ldaAbsWorks)
+TEST_F(CPUTests, adcAbsWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
 	constexpr byte addressLsb = 0x24;
 	constexpr byte addressMsb = 0x32;
 	constexpr word address = 0x3224;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABS.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABS.cycles;
 
-	// Load to A
-	memory[PC_RESET] = LDA_ABS.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABS.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ******************** Absolute, X ******************** //
-TEST_F(CPUTests, ldaAbsXWorks)
+TEST_F(CPUTests, adcAbsXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -183,27 +258,34 @@ TEST_F(CPUTests, ldaAbsXWorks)
 	constexpr byte addressMsb = 0x32;
 	constexpr byte xValue = 0x17;
 	constexpr word address = 0x323B;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABSX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABSX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ABSX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABSX.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Next Page test ********** //
-TEST_F(CPUTests, ldaAbsXCanGoToNextPage)
+TEST_F(CPUTests, adcAbsXCanGoToNextPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -211,27 +293,34 @@ TEST_F(CPUTests, ldaAbsXCanGoToNextPage)
 	constexpr byte addressMsb = 0x32;
 	constexpr byte xValue = 0xFF;
 	constexpr word address = 0x3323;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABSX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABSX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ABSX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABSX.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles + 1);
 }
 
 // ********** Overflow to Zero Page test ********** //
-TEST_F(CPUTests, ldaAbsXCanOverflowToZeroPage)
+TEST_F(CPUTests, adcAbsXCanOverflowToZeroPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -239,27 +328,34 @@ TEST_F(CPUTests, ldaAbsXCanOverflowToZeroPage)
 	constexpr byte addressMsb = 0xFF;
 	constexpr byte xValue = 0x01;
 	constexpr word address = 0x0000;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABSX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABSX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ABSX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABSX.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles + 1);
 }
 
 // ******************** Absolute, Y ******************** //
-TEST_F(CPUTests, ldaAbsYWorks)
+TEST_F(CPUTests, adcAbsYWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -267,27 +363,34 @@ TEST_F(CPUTests, ldaAbsYWorks)
 	constexpr byte addressMsb = 0x32;
 	constexpr byte yValue = 0x17;
 	constexpr word address = 0x323B;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABSY.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABSY.cycles;
 
-	// Load to A
-	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_ABSY.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABSY.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Next Page test ********** //
-TEST_F(CPUTests, ldaAbsYCanGoToNextPage)
+TEST_F(CPUTests, adcAbsYCanGoToNextPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -295,27 +398,34 @@ TEST_F(CPUTests, ldaAbsYCanGoToNextPage)
 	constexpr byte addressMsb = 0x32;
 	constexpr byte yValue = 0xFF;
 	constexpr word address = 0x3323;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABSY.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABSY.cycles;
 
-	// Load to A
-	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_ABSY.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABSY.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles + 1);
 }
 
 // ********** Overflow to Zero Page test ********** //
-TEST_F(CPUTests, ldaAbsYCanOverflowToZeroPage)
+TEST_F(CPUTests, adcAbsYCanOverflowToZeroPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -323,27 +433,34 @@ TEST_F(CPUTests, ldaAbsYCanOverflowToZeroPage)
 	constexpr byte addressMsb = 0xFF;
 	constexpr byte yValue = 0x01;
 	constexpr word address = 0x0000;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_ABSY.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_ABSY.cycles;
 
-	// Load to A
-	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_ABSY.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_ABSY.opcode;
 	memory[PC_RESET + 1] = addressLsb;
 	memory[PC_RESET + 2] = addressMsb;
-	memory[address] = targetValue;
+	memory[address] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles + 1);
 }
 
 // ******************** (Indirect, X) ******************** //
-TEST_F(CPUTests, ldaIndXWorks)
+TEST_F(CPUTests, adcIndXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -353,28 +470,35 @@ TEST_F(CPUTests, ldaIndXWorks)
 	constexpr byte targetAddressLsb = 0x4F;
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_INDX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_INDX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_INDX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_INDX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Full wrap test ********** //
-TEST_F(CPUTests, ldaIndXFullyWraps)
+TEST_F(CPUTests, adcIndXFullyWraps)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -384,28 +508,35 @@ TEST_F(CPUTests, ldaIndXFullyWraps)
 	constexpr byte targetAddressLsb = 0x4F;
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_INDX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_INDX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_INDX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_INDX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Half wrap test ********** //
-TEST_F(CPUTests, ldaIndXHalfWraps)
+TEST_F(CPUTests, adcIndXHalfWraps)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -415,28 +546,35 @@ TEST_F(CPUTests, ldaIndXHalfWraps)
 	constexpr byte targetAddressLsb = 0x4F;
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr word targetAddress = 0x634F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_INDX.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_INDX.cycles;
 
-	// Load to A
-	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_INDX.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_INDX.opcode;
 	memory[PC_RESET + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0] = targetAddressMsb;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setX(xValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ******************** (Indirect), Y ******************** //
-TEST_F(CPUTests, ldaIndYWorks)
+TEST_F(CPUTests, adcIndYWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -445,28 +583,35 @@ TEST_F(CPUTests, ldaIndYWorks)
 	constexpr byte targetAddressMsb = 0x63;
 	constexpr byte yValue = 0x1C;
 	constexpr word targetAddress = 0x636B;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_INDY.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_INDY.cycles;
 
-	// Load to A
-	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_INDY.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_INDY.opcode;
 	memory[PC_RESET + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
 // ********** Wrap & Page cross test ********** //
-TEST_F(CPUTests, ldaIndYFullyWrapsAndPageCrosses)
+TEST_F(CPUTests, adcIndYFullyWrapsAndPageCrosses)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
@@ -475,21 +620,28 @@ TEST_F(CPUTests, ldaIndYFullyWrapsAndPageCrosses)
 	constexpr byte targetAddressMsb = 0xFF;
 	constexpr byte yValue = 0xFF;
 	constexpr word targetAddress = 0x00FE;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDA_INDY.cycles;
+	constexpr byte memValue = 0x42;
+	constexpr byte aValue = 0x12;
+	constexpr byte cValue = 1;
+	constexpr byte targetValue = 0x55;
+	constexpr sdword targetCycles = ADC_INDY.cycles;
 
-	// Load to A
-	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_INDY.opcode;
+	// Set up CPU & execute
+	memory[PC_RESET] = ADC_INDY.opcode;
 	memory[PC_RESET + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
-	memory[targetAddress] = targetValue;
+	memory[targetAddress] = memValue;
+	cpu.setA(aValue);
+	cpu.setC(cValue);
+	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
+	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
+	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 	verifyUnmodifiedStatusFlagsFromLDA(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles + 1);

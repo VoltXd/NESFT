@@ -2,7 +2,7 @@
 
 #include "Config.hpp"
 #include "Memory.hpp"
-#include "RegisterConstants.hpp"
+#include "CPUConstants.hpp"
 
 class CPU
 {
@@ -54,33 +54,15 @@ private:
     byte readByte(sdword& cycles, Memory& memory, word address);
     void stackPush(sdword& cycles, Memory& memory, byte value);
 
-    // *** Addressing modes *** //
-    // Implicit & Accumulator modes does not need implementation...
-    byte fetchImmediate(sdword& cycles, Memory& memory);
-    word fetchAddrZeroPage(sdword& cycles, Memory& memory);
-    word fetchAddrZeroPageX(sdword& cycles, Memory& memory);
-    word fetchAddrZeroPageY(sdword& cycles, Memory& memory);
-    word fetchAddrRelative(sdword& cycles, Memory& memory);
-    word fetchAddrAbsolute(sdword& cycles, Memory& memory);
-    word fetchAddrAbsoluteX(sdword& cycles, Memory& memory, bool& hasPageCrossed);
-    word fetchAddrAbsoluteY(sdword& cycles, Memory& memory, bool& hasPageCrossed);
-    word fetchAddrIndirect(sdword& cycles, Memory& memory);
-    word fetchAddrIndirectX(sdword& cycles, Memory& memory);
-    word fetchAddrIndirectY(sdword& cycles, Memory& memory, bool& hasPageCrossed);
+    // *** Instruction execution *** //
+    word fetchAddr(sdword& cycles, Memory& memory, AddressingMode addrMode, bool& hasPageCrossed);
+    void executeInstruction(sdword& cycles, Memory& memory, Operation operation, word address, bool hasPageCrossed);
     
     // *** Instructions *** //
-    // JSR
-    void jsr(sdword& cycles, Memory& memory);
+    void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
+    void lda(sdword& cycles, Memory& memory, word address);
 
-    // LDA
-    void ldaImm(sdword& cycles, Memory& memory);
-    void ldaZp(sdword& cycles, Memory& memory);
-    void ldaZpX(sdword& cycles, Memory& memory);
-    void ldaAbs(sdword& cycles, Memory& memory);
-    void ldaAbsX(sdword& cycles, Memory& memory);
-    void ldaAbsY(sdword& cycles, Memory& memory);
-    void ldaIndX(sdword& cycles, Memory& memory);
-    void ldaIndY(sdword& cycles, Memory& memory);
+    // *** Update status flags *** //
     void ldaUpdateStatus();
 
     // ********** Registers    ********** //

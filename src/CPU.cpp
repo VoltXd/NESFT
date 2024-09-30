@@ -38,7 +38,7 @@ sdword CPU::execute(sdword cycles, Memory &memory)
 		word address = fetchAddr(cycles, memory, instruction.addrMode, hasPageCrossed);
 		
 		// Execute
-		executeInstruction(cycles, memory, instruction.operation, address, hasPageCrossed);
+		executeInstruction(cycles, memory, instruction, address, hasPageCrossed);
 	}
 
 	return cyclesRequested - cycles;
@@ -79,6 +79,13 @@ byte CPU::readByte(sdword &cycles, Memory &memory, word address)
 	cycles--;
 
 	return data;
+}
+
+void CPU::writeByte(sdword &cycles, Memory &memory, word address, byte value)
+{
+	// Write value into memory & decrement cycles counter
+	memory[address] = value;
+	cycles--;
 }
 
 void CPU::stackPush(sdword &cycles, Memory &memory, byte value)
@@ -258,8 +265,12 @@ word CPU::fetchAddr(sdword &cycles, Memory &memory, AddressingMode addrMode, boo
 	return address;
 }
 
-void CPU::executeInstruction(sdword &cycles, Memory &memory, Operation operation, word address, bool hasPageCrossed)
+void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instruction, word address, bool hasPageCrossed)
 {
+	Operation operation = instruction.operation;
+	AddressingMode addrMode = instruction.addrMode;
+	byte opcode = instruction.opcode;
+
 	switch (operation)
 	{
 	case Operation::JSR:
@@ -267,13 +278,15 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, Operation operation
 		break;
 
 	case Operation::LDA:
-		lda(cycles, memory, address);
-		if (hasPageCrossed)
-			cycles--;
+		lda(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::STA:
+		sta(cycles, memory, address, addrMode);
 		break;
 
 	default:
-		std::cout << "Instruction not handled: 0x" << std::hex << (int)operation << std::dec << std::endl;
+		std::cout << "Operation not handled: 0x" << std::hex << std::uppercase << (int)opcode << std::dec << std::endl;
 		cycles--;
 		break;
 	}
@@ -293,13 +306,29 @@ void CPU::jsr(sdword &cycles, Memory &memory, word subroutineAddress)
 	cycles--;
 }
 
-void CPU::lda(sdword &cycles, Memory &memory, word address)
+void CPU::lda(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 {
 	// Read memory
 	mA = readByte(cycles, memory, address);
+	
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
 
 	// Update status flags
 	ldaUpdateStatus();
+}
+
+void CPU::sta(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// A -> mem[addr]
+	writeByte(cycles, memory, address, mA);	
+
+	// Dummy cycle for (abs.X, abs.Y, ind.Y)
+	if (addrMode == AddressingMode::AbsoluteX ||
+		addrMode == AddressingMode::AbsoluteY ||
+		addrMode == AddressingMode::IndirectY)
+		cycles--;
 }
 
 void CPU::ldaUpdateStatus()

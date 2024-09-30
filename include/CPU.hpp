@@ -48,19 +48,21 @@ public:
 
 private:
     // ******** Internal behaviour ******** //
-    // Read memory
+    // Read/Write memory
     byte fetchByte(sdword& cycles, Memory& memory);
     word fetchWord(sdword& cycles, Memory& memory);
     byte readByte(sdword& cycles, Memory& memory, word address);
+    void writeByte(sdword& cycles, Memory& memory, word address, byte value);
     void stackPush(sdword& cycles, Memory& memory, byte value);
 
     // *** Instruction execution *** //
     word fetchAddr(sdword& cycles, Memory& memory, AddressingMode addrMode, bool& hasPageCrossed);
-    void executeInstruction(sdword& cycles, Memory& memory, Operation operation, word address, bool hasPageCrossed);
+    void executeInstruction(sdword& cycles, Memory& memory, instruction_t instruction, word address, bool hasPageCrossed);
     
     // *** Instructions *** //
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
-    void lda(sdword& cycles, Memory& memory, word address);
+    void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
 
     // *** Update status flags *** //
     void ldaUpdateStatus();

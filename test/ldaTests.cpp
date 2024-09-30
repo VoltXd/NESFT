@@ -765,7 +765,7 @@ TEST_F(CPUTests, ldaIndXNullWorks)
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }
 
-// ******************** (Indirect), Y ******************** // // TODO: folefer
+// ******************** (Indirect), Y ******************** //
 // ********** Positive test ********** //
 TEST_F(CPUTests, ldaIndYPosWorks)
 {

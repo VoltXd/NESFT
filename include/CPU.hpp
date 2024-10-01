@@ -63,12 +63,18 @@ private:
     void adc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void ldx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void ldy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void sbc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
+    void stx(sdword& cycles, Memory& memory, word address);
+    void sty(sdword& cycles, Memory& memory, word address);
 
     // *** Update status flags *** //
     void adcUpdateStatus(word newA, byte operandA, byte operandM);
     void ldaUpdateStatus();
+    void ldxUpdateStatus();
+    void ldyUpdateStatus();
     void sbcUpdateStatus(word newA, byte operandA, byte operandM);
 
     // ********** Registers    ********** //

@@ -285,12 +285,28 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		lda(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::LDX:
+		ldx(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::LDY:
+		ldy(cycles, memory, address, hasPageCrossed);
+		break;
+
 	case Operation::SBC:
 		sbc(cycles, memory, address, hasPageCrossed);
 		break;
 
 	case Operation::STA:
 		sta(cycles, memory, address, addrMode);
+		break;
+
+	case Operation::STX:
+		stx(cycles, memory, address);
+		break;
+
+	case Operation::STY:
+		sty(cycles, memory, address);
 		break;
 
 	default:
@@ -347,6 +363,32 @@ void CPU::lda(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	ldaUpdateStatus();
 }
 
+void CPU::ldx(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read memory
+	mX = readByte(cycles, memory, address);
+	
+	// Decrement cycles count if page crossing (abs.Y)
+	if (hasPageCrossed)
+		cycles--;
+
+	// Update status flags
+	ldxUpdateStatus();
+}
+
+void CPU::ldy(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read memory
+	mY = readByte(cycles, memory, address);
+	
+	// Decrement cycles count if page crossing (abs.Y)
+	if (hasPageCrossed)
+		cycles--;
+
+	// Update status flags
+	ldyUpdateStatus();
+}
+
 void CPU::sbc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 {
 	// Save previous Accumulator state, for status update
@@ -379,6 +421,18 @@ void CPU::sta(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 		cycles--;
 }
 
+void CPU::stx(sdword &cycles, Memory &memory, word address)
+{
+	// X -> mem[addr]
+	writeByte(cycles, memory, address, mX);	
+}
+
+void CPU::sty(sdword &cycles, Memory &memory, word address)
+{
+	// Y -> mem[addr]
+	writeByte(cycles, memory, address, mY);	
+}
+
 void CPU::adcUpdateStatus(word newA, byte operandA, byte operandM)
 {
 	// Update C, Z, V, N
@@ -394,6 +448,20 @@ void CPU::ldaUpdateStatus()
 	// Only Z & N flags need to be updated
 	mZ = mA == 0          ? 1 : 0;
     mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::ldxUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mX == 0          ? 1 : 0;
+    mN = mX & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::ldyUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mY == 0          ? 1 : 0;
+    mN = mY & 0b1000'0000 ? 1 : 0;
 }
 
 void CPU::sbcUpdateStatus(word newA, byte operandA, byte operandM)

@@ -285,6 +285,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		lda(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::SBC:
+		sbc(cycles, memory, address, hasPageCrossed);
+		break;
+
 	case Operation::STA:
 		sta(cycles, memory, address, addrMode);
 		break;
@@ -343,6 +347,26 @@ void CPU::lda(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	ldaUpdateStatus();
 }
 
+void CPU::sbc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Save previous Accumulator state, for status update
+	byte previousA = mA;
+
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform substract with carry
+	word newA = mA - memValue - ((word)1 - mC);
+	mA = newA & 0x00FF;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+	
+	// Update status flags
+	sbcUpdateStatus(newA, previousA, memValue);
+}
+
 void CPU::sta(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
 {
 	// A -> mem[addr]
@@ -355,13 +379,13 @@ void CPU::sta(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 		cycles--;
 }
 
-void CPU::adcUpdateStatus(word newA, byte operand1, byte operand2)
+void CPU::adcUpdateStatus(word newA, byte operandA, byte operandM)
 {
 	// Update C, Z, V, N
 	mC = (newA & 0x0100) != 0    ? 1 : 0;
 	mZ = mA == 0                 ? 1 : 0;
-	mV = (operand1 ^ mA) &
-	     (operand2 ^ mA) & 0x80  ? 1 : 0;
+	mV = (operandA ^ mA) &
+	     (operandM ^ mA) & 0x80  ? 1 : 0;
     mN = (mA & 0b1000'0000) != 0 ? 1 : 0;
 }
 
@@ -370,4 +394,14 @@ void CPU::ldaUpdateStatus()
 	// Only Z & N flags need to be updated
 	mZ = mA == 0          ? 1 : 0;
     mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::sbcUpdateStatus(word newA, byte operandA, byte operandM)
+{
+	// Update C, Z, V, N
+	mC = (newA & 0x0100) != 0    ? 0 : 1;
+	mZ = mA == 0                 ? 1 : 0;
+	mV = ( operandA ^ mA) &
+	     (~operandM ^ mA) & 0x80 ? 1 : 0;
+    mN = (mA & 0b1000'0000) != 0 ? 1 : 0;
 }

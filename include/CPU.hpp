@@ -62,10 +62,14 @@ private:
     
     // *** Instructions *** //
     void adc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void and_(sdword& cycles, Memory& memory, word address, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
+    void bit(sdword& cycles, Memory& memory, word address);
+    void eor(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void ldx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void ldy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void ora(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void pha(sdword& cycles, Memory& memory);
     void php(sdword& cycles, Memory& memory);
     void pla(sdword& cycles, Memory& memory);
@@ -86,9 +90,12 @@ private:
     void setProcessorStatus(byte processorStatus);
     
     void adcUpdateStatus(word newA, byte operandA, byte operandM);
+    void andUpdateStatus();
+    void eorUpdateStatus();
     void ldaUpdateStatus();
     void ldxUpdateStatus();
     void ldyUpdateStatus();
+    void oraUpdateStatus();
     void plaUpdateStatus();
     void sbcUpdateStatus(word newA, byte operandA, byte operandM);
     void taxUpdateStatus();

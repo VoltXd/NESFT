@@ -291,6 +291,18 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		adc(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::AND:
+		and_(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::BIT:
+		bit(cycles, memory, address);
+		break;
+
+	case Operation::EOR:
+		eor(cycles, memory, address, hasPageCrossed);
+		break;
+
 	case Operation::JSR:
 		jsr(cycles, memory, address);
 		break;
@@ -305,6 +317,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 
 	case Operation::LDY:
 		ldy(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::ORA:
+		ora(cycles, memory, address, hasPageCrossed);
 		break;
 
 	case Operation::PHA:
@@ -390,6 +406,49 @@ void CPU::adc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	adcUpdateStatus(newA, previousA, memValue);
 }
 
+void CPU::and_(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform '&' mask
+	mA &= memValue;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+
+	// Update status flags
+	andUpdateStatus();
+}
+
+void CPU::bit(sdword &cycles, Memory &memory, word address)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Bit tests
+	mZ = (mA & memValue) == 0          ? 1 : 0;
+	mV = (memValue & 0b0100'0000) != 0 ? 1 : 0;
+	mN = (memValue & 0b1000'0000) != 0 ? 1 : 0;
+}
+
+void CPU::eor(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform '^' mask
+	mA ^= memValue;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+
+	// Update status flags
+	eorUpdateStatus();
+}
+
 void CPU::jsr(sdword &cycles, Memory &memory, word subroutineAddress)
 {
 	// Push Program counter -1 (return address) to stack (2 cycles)
@@ -441,6 +500,22 @@ void CPU::ldy(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 
 	// Update status flags
 	ldyUpdateStatus();
+}
+
+void CPU::ora(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform '|' mask
+	mA |= memValue;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+
+	// Update status flags
+	oraUpdateStatus();
 }
 
 void CPU::pha(sdword &cycles, Memory& memory)
@@ -615,6 +690,20 @@ void CPU::adcUpdateStatus(word newA, byte operandA, byte operandM)
     mN = (mA & 0b1000'0000) != 0 ? 1 : 0;
 }
 
+void CPU::andUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::eorUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
 void CPU::ldaUpdateStatus()
 {
 	// Only Z & N flags need to be updated
@@ -634,6 +723,13 @@ void CPU::ldyUpdateStatus()
 	// Only Z & N flags need to be updated
 	mZ = mY == 0          ? 1 : 0;
     mN = mY & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::oraUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
 }
 
 void CPU::plaUpdateStatus()

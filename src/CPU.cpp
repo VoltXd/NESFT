@@ -16,7 +16,8 @@ void CPU::reset(Memory& memory)
 	mZ = 0;
 	mI = 0;
 	mD = 0;
-	mB = 0;
+	mB = 1; // Assumed to be 1, handled by operations
+	mU = 1;
 	mV = 0;
 	mN = 0;
 
@@ -96,6 +97,19 @@ void CPU::stackPush(sdword &cycles, Memory &memory, byte value)
 	// Decrement stack pointer & cycles count
 	mSp--;
 	cycles--;
+}
+
+byte CPU::stackPull(sdword &cycles, Memory &memory)
+{
+	// Increment stack pointer & cycles count
+	mSp++;
+	cycles--;
+
+	// Load value from the stack pointer's position
+	byte value = memory[SP_PAGE_OFFSET | mSp];
+	cycles--;
+
+	return value;
 }
 
 word CPU::fetchAddr(sdword &cycles, Memory &memory, AddressingMode addrMode, bool &hasPageCrossed)
@@ -293,6 +307,22 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		ldy(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::PHA:
+		pha(cycles, memory);
+		break;
+
+	case Operation::PHP:
+		php(cycles, memory);
+		break;
+
+	case Operation::PLA:
+		pla(cycles, memory);
+		break;
+
+	case Operation::PLP:
+		plp(cycles, memory);
+		break;
+
 	case Operation::SBC:
 		sbc(cycles, memory, address, hasPageCrossed);
 		break;
@@ -413,6 +443,42 @@ void CPU::ldy(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	ldyUpdateStatus();
 }
 
+void CPU::pha(sdword &cycles, Memory& memory)
+{
+	// Push A to Stack (simulate A read with a clock cycle)
+	cycles--;
+	stackPush(cycles, memory, mA);
+}
+
+void CPU::php(sdword &cycles, Memory &memory)
+{
+	// Push processor status to stack (simulate PStatus read with a clock cycle)
+	byte status = getProcessorStatus();
+	cycles--;
+
+	stackPush(cycles, memory, status);
+}
+
+void CPU::pla(sdword &cycles, Memory &memory)
+{
+	// Pull A (+ 1 dead cycle, can't figure out why...)
+	mA = stackPull(cycles, memory);
+	cycles--;
+
+	// Update status flags
+	plaUpdateStatus();
+}
+
+void CPU::plp(sdword &cycles, Memory &memory)
+{
+	// Pull Processor status (+ 1 dead cycle, can't figure out why...)
+	byte processorStatus = stackPull(cycles, memory);
+	cycles--;
+
+	// Update status flags
+	setProcessorStatus(processorStatus);
+}
+
 void CPU::sbc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 {
 	// Save previous Accumulator state, for status update
@@ -514,6 +580,31 @@ void CPU::tya(sdword &cycles)
 	tyaUpdateStatus();
 }
 
+byte CPU::getProcessorStatus() const
+{
+	byte processorStatus = 0x00;
+	processorStatus |= (mC & 0x01) << 0 |
+	                   (mZ & 0x01) << 1 |
+	                   (mI & 0x01) << 2 |
+	                   (mD & 0x01) << 3 |
+	                   (mB & 0x01) << 4 |
+	                   (mU & 0x01) << 5 |
+	                   (mV & 0x01) << 6 |
+	                   (mN & 0x01) << 7;
+
+	return processorStatus;
+}
+
+void CPU::setProcessorStatus(byte processorStatus)
+{
+	mC = (processorStatus >> 0) & 0x01;
+	mZ = (processorStatus >> 1) & 0x01;
+	mI = (processorStatus >> 2) & 0x01;
+	mD = (processorStatus >> 3) & 0x01;
+	mV = (processorStatus >> 6) & 0x01;
+	mN = (processorStatus >> 7) & 0x01;
+}
+
 void CPU::adcUpdateStatus(word newA, byte operandA, byte operandM)
 {
 	// Update C, Z, V, N
@@ -543,6 +634,13 @@ void CPU::ldyUpdateStatus()
 	// Only Z & N flags need to be updated
 	mZ = mY == 0          ? 1 : 0;
     mN = mY & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::plaUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
 }
 
 void CPU::sbcUpdateStatus(word newA, byte operandA, byte operandM)

@@ -153,9 +153,9 @@ constexpr instruction_t PHA       = { Operation::PHA, AddressingMode::Implicit, 
 
 constexpr instruction_t PHP       = { Operation::PHP, AddressingMode::Implicit,    3, 0x08 };
 
-constexpr instruction_t PLA       = { Operation::PLA, AddressingMode::Implicit,    3, 0x68 };
+constexpr instruction_t PLA       = { Operation::PLA, AddressingMode::Implicit,    4, 0x68 };
 
-constexpr instruction_t PLP       = { Operation::PLP, AddressingMode::Implicit,    3, 0x28 };
+constexpr instruction_t PLP       = { Operation::PLP, AddressingMode::Implicit,    4, 0x28 };
 
 constexpr instruction_t ROL_ACC   = { Operation::ROL, AddressingMode::Accumulator, 2, 0x2A };
 constexpr instruction_t ROL_ZP    = { Operation::ROL, AddressingMode::ZeroPage,    5, 0x26 };

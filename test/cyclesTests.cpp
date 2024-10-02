@@ -20,7 +20,7 @@ TEST_F(CPUTests, cpuDoesNothingWhenWeExecuteZeroCycles)
 	EXPECT_FALSE(cpu.getZ());
 	EXPECT_FALSE(cpu.getI());
 	EXPECT_FALSE(cpu.getD());
-	EXPECT_FALSE(cpu.getB());
+	EXPECT_TRUE(cpu.getB());
 	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 
@@ -51,7 +51,7 @@ TEST_F(CPUTests, cpuCanExecuteMoreCyclesThanRequested)
 	EXPECT_FALSE(cpu.getZ());
 	EXPECT_FALSE(cpu.getI());
 	EXPECT_FALSE(cpu.getD());
-	EXPECT_FALSE(cpu.getB());
+	EXPECT_TRUE(cpu.getB());
 	EXPECT_FALSE(cpu.getV());
 	EXPECT_FALSE(cpu.getN());
 

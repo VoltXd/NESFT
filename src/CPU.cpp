@@ -309,6 +309,30 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		sty(cycles, memory, address);
 		break;
 
+	case Operation::TAX:
+		tax(cycles);
+		break;
+
+	case Operation::TAY:
+		tay(cycles);
+		break;
+
+	case Operation::TSX:
+		tsx(cycles);
+		break;
+
+	case Operation::TXA:
+		txa(cycles);
+		break;
+
+	case Operation::TXS:
+		txs(cycles);
+		break;
+
+	case Operation::TYA:
+		tya(cycles);
+		break;
+
 	default:
 		std::cout << "Operation not handled: 0x" << std::hex << std::uppercase << (int)opcode << std::dec << std::endl;
 		cycles--;
@@ -433,6 +457,63 @@ void CPU::sty(sdword &cycles, Memory &memory, word address)
 	writeByte(cycles, memory, address, mY);	
 }
 
+void CPU::tax(sdword &cycles)
+{
+	// A -> X
+	mX = mA;
+	cycles--;
+
+	// Update status flags
+	taxUpdateStatus();
+}
+
+void CPU::tay(sdword &cycles)
+{
+	// A -> Y
+	mY = mA;
+	cycles--;
+
+	// Update status flags
+	tayUpdateStatus();
+}
+
+void CPU::tsx(sdword &cycles)
+{
+	// SP -> X
+	mX = mSp;
+	cycles--;
+
+	// Update status flags
+	tsxUpdateStatus();
+}
+
+void CPU::txa(sdword &cycles)
+{
+	// X -> A
+	mA = mX;
+	cycles--;
+
+	// Update status flags
+	txaUpdateStatus();
+}
+
+void CPU::txs(sdword &cycles)
+{
+	// X -> SP
+	mSp = mX;
+	cycles--;
+}
+
+void CPU::tya(sdword &cycles)
+{
+	// Y -> A
+	mA = mY;
+	cycles--;
+
+	// Update status flags
+	tyaUpdateStatus();
+}
+
 void CPU::adcUpdateStatus(word newA, byte operandA, byte operandM)
 {
 	// Update C, Z, V, N
@@ -472,4 +553,39 @@ void CPU::sbcUpdateStatus(word newA, byte operandA, byte operandM)
 	mV = ( operandA ^ mA) &
 	     (~operandM ^ mA) & 0x80 ? 1 : 0;
     mN = (mA & 0b1000'0000) != 0 ? 1 : 0;
+}
+
+void CPU::taxUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mX == 0          ? 1 : 0;
+    mN = mX & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::tayUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mY == 0          ? 1 : 0;
+    mN = mY & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::tsxUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mX == 0          ? 1 : 0;
+    mN = mX & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::txaUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::tyaUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mA == 0          ? 1 : 0;
+    mN = mA & 0b1000'0000 ? 1 : 0;
 }

@@ -69,6 +69,12 @@ private:
     void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void stx(sdword& cycles, Memory& memory, word address);
     void sty(sdword& cycles, Memory& memory, word address);
+    void tax(sdword& cycles);
+    void tay(sdword& cycles);
+    void tsx(sdword& cycles);
+    void txa(sdword& cycles);
+    void txs(sdword& cycles);
+    void tya(sdword& cycles);
 
     // *** Update status flags *** //
     void adcUpdateStatus(word newA, byte operandA, byte operandM);
@@ -76,6 +82,11 @@ private:
     void ldxUpdateStatus();
     void ldyUpdateStatus();
     void sbcUpdateStatus(word newA, byte operandA, byte operandM);
+    void taxUpdateStatus();
+    void tayUpdateStatus();
+    void tsxUpdateStatus();
+    void txaUpdateStatus();
+    void tyaUpdateStatus();
 
     // ********** Registers    ********** //
     word mPc;       // Program Counter

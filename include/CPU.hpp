@@ -64,6 +64,9 @@ private:
     void adc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void and_(sdword& cycles, Memory& memory, word address, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
     void bit(sdword& cycles, Memory& memory, word address);
+    void cmp(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void cpx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void cpy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void eor(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);

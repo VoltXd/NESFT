@@ -299,6 +299,18 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		bit(cycles, memory, address);
 		break;
 
+	case Operation::CMP:
+		cmp(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::CPX:
+		cpx(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::CPY:
+		cpy(cycles, memory, address, hasPageCrossed);
+		break;
+
 	case Operation::EOR:
 		eor(cycles, memory, address, hasPageCrossed);
 		break;
@@ -447,6 +459,54 @@ void CPU::eor(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 
 	// Update status flags
 	eorUpdateStatus();
+}
+
+void CPU::cmp(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform substract to compare & update flags
+	word comparisonValue = mA - memValue;
+	mC = (comparisonValue & 0xFF00) == 0 ? 1 : 0;
+	mZ = comparisonValue == 0            ? 1 : 0;
+	mN = (comparisonValue & 0x0080) != 0 ? 1 : 0;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+}
+
+void CPU::cpx(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform substract to compare & update flags
+	word comparisonValue = mX - memValue;
+	mC = (comparisonValue & 0xFF00) == 0 ? 1 : 0;
+	mZ = comparisonValue == 0            ? 1 : 0;
+	mN = (comparisonValue & 0x0080) != 0 ? 1 : 0;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+}
+
+void CPU::cpy(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform substract to compare & update flags
+	word comparisonValue = mY - memValue;
+	mC = (comparisonValue & 0xFF00) == 0 ? 1 : 0;
+	mZ = comparisonValue == 0            ? 1 : 0;
+	mN = (comparisonValue & 0x0080) != 0 ? 1 : 0;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
 }
 
 void CPU::jsr(sdword &cycles, Memory &memory, word subroutineAddress)

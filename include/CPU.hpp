@@ -63,6 +63,7 @@ private:
     // *** Instructions *** //
     void adc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void and_(sdword& cycles, Memory& memory, word address, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
+    void asl(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void bit(sdword& cycles, Memory& memory, word address);
     void cmp(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void cpx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
@@ -78,11 +79,14 @@ private:
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void ldx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void ldy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void lsr(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void ora(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void pha(sdword& cycles, Memory& memory);
     void php(sdword& cycles, Memory& memory);
     void pla(sdword& cycles, Memory& memory);
     void plp(sdword& cycles, Memory& memory);
+    void rol(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
+    void ror(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void sbc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void stx(sdword& cycles, Memory& memory, word address);
@@ -100,6 +104,7 @@ private:
     
     void adcUpdateStatus(word newA, byte operandA, byte operandM);
     void andUpdateStatus();
+    void aslUpdateStatus(byte previousValue, byte newValue);
     void decUpdateStatus(byte memValue);
     void dexUpdateStatus();
     void deyUpdateStatus();
@@ -110,8 +115,11 @@ private:
     void ldaUpdateStatus();
     void ldxUpdateStatus();
     void ldyUpdateStatus();
+    void lsrUpdateStatus(byte previousValue, byte newValue);
     void oraUpdateStatus();
     void plaUpdateStatus();
+    void rolUpdateStatus(byte previousValue, byte newValue);
+    void rorUpdateStatus(byte previousValue, byte newValue);
     void sbcUpdateStatus(word newA, byte operandA, byte operandM);
     void taxUpdateStatus();
     void tayUpdateStatus();

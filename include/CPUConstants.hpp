@@ -27,11 +27,11 @@ constexpr instruction_t AND_ABSY  = { Operation::AND, AddressingMode::AbsoluteY,
 constexpr instruction_t AND_INDX  = { Operation::AND, AddressingMode::IndirectX,   6, 0x21 };
 constexpr instruction_t AND_INDY  = { Operation::AND, AddressingMode::IndirectY,   5, 0x31 };
 
-constexpr instruction_t ASL_ACC   = { Operation::ASL, AddressingMode::Accumulator, 1, 0x0A };
-constexpr instruction_t ASL_ZP    = { Operation::ASL, AddressingMode::ZeroPage,    2, 0x06 };
-constexpr instruction_t ASL_ZPX   = { Operation::ASL, AddressingMode::ZeroPageX,   2, 0x16 };
-constexpr instruction_t ASL_ABS   = { Operation::ASL, AddressingMode::Absolute,    3, 0x0E };
-constexpr instruction_t ASL_ABSX  = { Operation::ASL, AddressingMode::AbsoluteX,   3, 0x1E };
+constexpr instruction_t ASL_ACC   = { Operation::ASL, AddressingMode::Accumulator, 2, 0x0A };
+constexpr instruction_t ASL_ZP    = { Operation::ASL, AddressingMode::ZeroPage,    5, 0x06 };
+constexpr instruction_t ASL_ZPX   = { Operation::ASL, AddressingMode::ZeroPageX,   6, 0x16 };
+constexpr instruction_t ASL_ABS   = { Operation::ASL, AddressingMode::Absolute,    6, 0x0E };
+constexpr instruction_t ASL_ABSX  = { Operation::ASL, AddressingMode::AbsoluteX,   7, 0x1E };
 
 constexpr instruction_t BCC  	    = { Operation::BCC, AddressingMode::Relative,    2, 0x90 };
 

@@ -295,6 +295,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		and_(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::ASL:
+		asl(cycles, memory, address, addrMode);
+		break;
+
 	case Operation::BIT:
 		bit(cycles, memory, address);
 		break;
@@ -355,6 +359,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		ldy(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::LSR:
+		lsr(cycles, memory, address, addrMode);
+		break;
+
 	case Operation::ORA:
 		ora(cycles, memory, address, hasPageCrossed);
 		break;
@@ -373,6 +381,14 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 
 	case Operation::PLP:
 		plp(cycles, memory);
+		break;
+
+	case Operation::ROL:
+		rol(cycles, memory, address, addrMode);
+		break;
+
+	case Operation::ROR:
+		ror(cycles, memory, address, addrMode);
 		break;
 
 	case Operation::SBC:
@@ -456,6 +472,33 @@ void CPU::and_(sdword &cycles, Memory &memory, word address, bool hasPageCrossed
 
 	// Update status flags
 	andUpdateStatus();
+}
+
+void CPU::asl(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// Read value from memory or accumulator
+	byte previousValue;
+	if (addrMode == AddressingMode::Accumulator)
+		previousValue = mA;
+	else
+		previousValue = readByte(cycles, memory, address);
+
+	// Shift bytes
+	byte newValue = previousValue << 1;
+	cycles--;
+
+	// Write back value where it belongs
+	if (addrMode == AddressingMode::Accumulator)
+		mA = newValue;
+	else
+		writeByte(cycles, memory, address, newValue);
+
+	// Dummy cycle on Abs.X writing
+	if (addrMode == AddressingMode::AbsoluteX)
+		cycles--;
+
+	// Update status flags
+	aslUpdateStatus(previousValue, newValue);
 }
 
 void CPU::bit(sdword &cycles, Memory &memory, word address)
@@ -666,6 +709,33 @@ void CPU::ldy(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	ldyUpdateStatus();
 }
 
+void CPU::lsr(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// Read value from memory or accumulator
+	byte previousValue;
+	if (addrMode == AddressingMode::Accumulator)
+		previousValue = mA;
+	else
+		previousValue = readByte(cycles, memory, address);
+
+	// Shift bytes
+	byte newValue = previousValue >> 1;
+	cycles--;
+
+	// Write back value where it belongs
+	if (addrMode == AddressingMode::Accumulator)
+		mA = newValue;
+	else
+		writeByte(cycles, memory, address, newValue);
+
+	// Dummy cycle on Abs.X writing
+	if (addrMode == AddressingMode::AbsoluteX)
+		cycles--;
+
+	// Update status flags
+	lsrUpdateStatus(previousValue, newValue);
+}
+
 void CPU::ora(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 {
 	// Read value from memory
@@ -716,6 +786,60 @@ void CPU::plp(sdword &cycles, Memory &memory)
 
 	// Update status flags
 	setProcessorStatus(processorStatus);
+}
+
+void CPU::rol(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// Read value from memory or accumulator
+	byte previousValue;
+	if (addrMode == AddressingMode::Accumulator)
+		previousValue = mA;
+	else
+		previousValue = readByte(cycles, memory, address);
+
+	// Shift bytes
+	byte newValue = (previousValue << 1) | mC;
+	cycles--;
+
+	// Write back value where it belongs
+	if (addrMode == AddressingMode::Accumulator)
+		mA = newValue;
+	else
+		writeByte(cycles, memory, address, newValue);
+
+	// Dummy cycle on Abs.X writing
+	if (addrMode == AddressingMode::AbsoluteX)
+		cycles--;
+
+	// Update status flags
+	rolUpdateStatus(previousValue, newValue);
+}
+
+void CPU::ror(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// Read value from memory or accumulator
+	byte previousValue;
+	if (addrMode == AddressingMode::Accumulator)
+		previousValue = mA;
+	else
+		previousValue = readByte(cycles, memory, address);
+
+	// Shift bytes
+	byte newValue = (previousValue >> 1) | (mC << 7);
+	cycles--;
+
+	// Write back value where it belongs
+	if (addrMode == AddressingMode::Accumulator)
+		mA = newValue;
+	else
+		writeByte(cycles, memory, address, newValue);
+
+	// Dummy cycle on Abs.X writing
+	if (addrMode == AddressingMode::AbsoluteX)
+		cycles--;
+
+	// Update status flags
+	rorUpdateStatus(previousValue, newValue);
 }
 
 void CPU::sbc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
@@ -861,6 +985,13 @@ void CPU::andUpdateStatus()
     mN = mA & 0b1000'0000 ? 1 : 0;
 }
 
+void CPU::aslUpdateStatus(byte previousValue, byte newValue)
+{
+	mC = (previousValue & 0x80) != 0 ? 1 : 0;
+	mZ = newValue == 0               ? 1 : 0;
+	mN = (newValue & 0x80) != 0      ? 1 : 0;
+}
+
 void CPU::decUpdateStatus(byte memValue)
 {
 	// Only Z & N flags need to be updated
@@ -931,6 +1062,13 @@ void CPU::ldyUpdateStatus()
     mN = mY & 0b1000'0000 ? 1 : 0;
 }
 
+void CPU::lsrUpdateStatus(byte previousValue, byte newValue)
+{
+	mC = (previousValue & 0x01) != 0 ? 1 : 0;
+	mZ = newValue == 0               ? 1 : 0;
+	mN = 0;
+}
+
 void CPU::oraUpdateStatus()
 {
 	// Only Z & N flags need to be updated
@@ -943,6 +1081,20 @@ void CPU::plaUpdateStatus()
 	// Only Z & N flags need to be updated
 	mZ = mA == 0          ? 1 : 0;
     mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::rolUpdateStatus(byte previousValue, byte newValue)
+{
+	mC = (previousValue & 0x80) != 0 ? 1 : 0;
+	mZ = newValue == 0               ? 1 : 0;
+	mN = (newValue & 0x80) != 0      ? 1 : 0;
+}
+
+void CPU::rorUpdateStatus(byte previousValue, byte newValue)
+{
+	mC = (previousValue & 0x01) != 0 ? 1 : 0;
+	mZ = newValue == 0               ? 1 : 0;
+	mN = (newValue & 0x80) != 0      ? 1 : 0;
 }
 
 void CPU::sbcUpdateStatus(word newA, byte operandA, byte operandM)

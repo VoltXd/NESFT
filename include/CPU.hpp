@@ -75,6 +75,7 @@ private:
     void inc(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void inx(sdword& cycles);
     void iny(sdword& cycles);
+    void jmp(word address);
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void ldx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
@@ -87,6 +88,7 @@ private:
     void plp(sdword& cycles, Memory& memory);
     void rol(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void ror(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
+    void rts(sdword& cycles, Memory& memory);
     void sbc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void stx(sdword& cycles, Memory& memory, word address);

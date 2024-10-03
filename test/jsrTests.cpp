@@ -18,7 +18,7 @@ TEST_F(CPUTests, jsrWorks)
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 2);
 	EXPECT_EQ(cpu.getPc(), targetAddress);
-	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFF], ((PC_RESET + 2) & 0xFF00) >> 8);
 	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFE], (PC_RESET + 2) & 0x00FF);
+	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFF], ((PC_RESET + 2) & 0xFF00) >> 8);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

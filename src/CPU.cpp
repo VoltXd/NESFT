@@ -218,7 +218,7 @@ word CPU::fetchAddr(sdword &cycles, Memory &memory, AddressingMode addrMode, boo
 		// Fetch target address
 		// WARNING: according to https://www.nesdev.org/obelisk-6502-guide/reference.html#JMP,
 		// if indirect address points to a page boundary, the LSB will wrap ($FF -> $00) but
-		// not the MSB.
+		// the MSB is not incremented.
 		word indirectAddressToMsb = ((word)indirectAddressMsb << 8) | ((indirectAddressLsb + 1) & 0x00FF); 
 		byte targetAddressLsb = readByte(cycles, memory, indirectAddress);
 		byte targetAddressMsb = readByte(cycles, memory, indirectAddressToMsb);
@@ -343,6 +343,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		iny(cycles);
 		break;
 
+	case Operation::JMP:
+		jmp(address);
+		break;
+
 	case Operation::JSR:
 		jsr(cycles, memory, address);
 		break;
@@ -389,6 +393,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 
 	case Operation::ROR:
 		ror(cycles, memory, address, addrMode);
+		break;
+
+	case Operation::RTS:
+		rts(cycles, memory);
 		break;
 
 	case Operation::SBC:
@@ -656,6 +664,12 @@ void CPU::iny(sdword &cycles)
 	inyUpdateStatus();
 }
 
+void CPU::jmp(word address)
+{
+	// Jump to location
+	mPc = address;
+}
+
 void CPU::jsr(sdword &cycles, Memory &memory, word subroutineAddress)
 {
 	// Push Program counter -1 (return address) to stack (2 cycles)
@@ -840,6 +854,18 @@ void CPU::ror(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 
 	// Update status flags
 	rorUpdateStatus(previousValue, newValue);
+}
+
+void CPU::rts(sdword &cycles, Memory &memory)
+{
+	// Pull Program counter -1 (return address) to stack (2 cycles)
+	byte returnAddressLsb = stackPull(cycles, memory);
+	byte returnAddressMsb = stackPull(cycles, memory);
+	word returnAddress = ((word)returnAddressMsb << 8) | returnAddressLsb;
+
+	// Set Program counter + 1 (1 cycle)
+	mPc = returnAddress + 1;
+	cycles--;
 }
 
 void CPU::sbc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)

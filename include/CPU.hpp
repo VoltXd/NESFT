@@ -67,7 +67,13 @@ private:
     void cmp(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void cpx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void cpy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void dec(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
+    void dex(sdword& cycles);
+    void dey(sdword& cycles);
     void eor(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void inc(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
+    void inx(sdword& cycles);
+    void iny(sdword& cycles);
     void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
     void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void ldx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
@@ -94,7 +100,13 @@ private:
     
     void adcUpdateStatus(word newA, byte operandA, byte operandM);
     void andUpdateStatus();
+    void decUpdateStatus(byte memValue);
+    void dexUpdateStatus();
+    void deyUpdateStatus();
     void eorUpdateStatus();
+    void incUpdateStatus(byte memValue);
+    void inxUpdateStatus();
+    void inyUpdateStatus();
     void ldaUpdateStatus();
     void ldxUpdateStatus();
     void ldyUpdateStatus();

@@ -311,8 +311,32 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		cpy(cycles, memory, address, hasPageCrossed);
 		break;
 
+	case Operation::DEX:
+		dex(cycles);
+		break;
+
+	case Operation::DEY:
+		dey(cycles);
+		break;
+
+	case Operation::DEC:
+		dec(cycles, memory, address, addrMode);
+		break;
+
 	case Operation::EOR:
 		eor(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::INC:
+		inc(cycles, memory, address, addrMode);
+		break;
+
+	case Operation::INX:
+		inx(cycles);
+		break;
+
+	case Operation::INY:
+		iny(cycles);
 		break;
 
 	case Operation::JSR:
@@ -445,22 +469,6 @@ void CPU::bit(sdword &cycles, Memory &memory, word address)
 	mN = (memValue & 0b1000'0000) != 0 ? 1 : 0;
 }
 
-void CPU::eor(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
-{
-	// Read value from memory
-	byte memValue = readByte(cycles, memory, address);
-
-	// Perform '^' mask
-	mA ^= memValue;
-
-	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
-	if (hasPageCrossed)
-		cycles--;
-
-	// Update status flags
-	eorUpdateStatus();
-}
-
 void CPU::cmp(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 {
 	// Read value from memory
@@ -507,6 +515,102 @@ void CPU::cpy(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
 		cycles--;
+}
+
+void CPU::dec(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Increment value
+	memValue--;
+	cycles--;
+	
+	// Write value to memory
+	writeByte(cycles, memory, address, memValue);
+
+	// Dummy cycle for Abs.X
+	if (addrMode == AddressingMode::AbsoluteX)
+		cycles--;
+
+	// Update status flags
+	decUpdateStatus(memValue);
+}
+
+void CPU::dex(sdword &cycles)
+{
+	// Decrement X register
+	mX--;
+	cycles--;
+
+	// Update status flags
+	dexUpdateStatus();
+}
+
+void CPU::dey(sdword &cycles)
+{
+	// Decrement Y register
+	mY--;
+	cycles--;
+
+	// Update status flags
+	deyUpdateStatus();
+}
+
+void CPU::eor(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Perform '^' mask
+	mA ^= memValue;
+
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		cycles--;
+
+	// Update status flags
+	eorUpdateStatus();
+}
+
+void CPU::inc(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)
+{
+	// Read value from memory
+	byte memValue = readByte(cycles, memory, address);
+
+	// Increment value
+	memValue++;
+	cycles--;
+	
+	// Write value to memory
+	writeByte(cycles, memory, address, memValue);
+
+	// Dummy cycle for Abs.X
+	if (addrMode == AddressingMode::AbsoluteX)
+		cycles--;
+
+	// Update status flags
+	incUpdateStatus(memValue);
+}
+
+void CPU::inx(sdword &cycles)
+{
+	// Increment X register
+	mX++;
+	cycles--;
+
+	// Update status flags
+	inxUpdateStatus();
+}
+
+void CPU::iny(sdword &cycles)
+{
+	// Increment Y register
+	mY++;
+	cycles--;
+
+	// Update status flags
+	inyUpdateStatus();
 }
 
 void CPU::jsr(sdword &cycles, Memory &memory, word subroutineAddress)
@@ -757,11 +861,53 @@ void CPU::andUpdateStatus()
     mN = mA & 0b1000'0000 ? 1 : 0;
 }
 
+void CPU::decUpdateStatus(byte memValue)
+{
+	// Only Z & N flags need to be updated
+	mZ = memValue == 0          ? 1 : 0;
+	mN = memValue & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::dexUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mX == 0          ? 1 : 0;
+	mN = mX & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::deyUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mY == 0          ? 1 : 0;
+	mN = mY & 0b1000'0000 ? 1 : 0;
+}
+
 void CPU::eorUpdateStatus()
 {
 	// Only Z & N flags need to be updated
 	mZ = mA == 0          ? 1 : 0;
     mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::incUpdateStatus(byte memValue)
+{
+	// Only Z & N flags need to be updated
+	mZ = memValue == 0          ? 1 : 0;
+	mN = memValue & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::inxUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mX == 0          ? 1 : 0;
+	mN = mX & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::inyUpdateStatus()
+{
+	// Only Z & N flags need to be updated
+	mZ = mY == 0          ? 1 : 0;
+	mN = mY & 0b1000'0000 ? 1 : 0;
 }
 
 void CPU::ldaUpdateStatus()

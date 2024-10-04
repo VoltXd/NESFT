@@ -338,6 +338,22 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		bvs(cycles, address, hasPageCrossed);
 		break;
 
+	case Operation::CLC:
+		clc(cycles);
+		break;
+
+	case Operation::CLD:
+		cld(cycles);
+		break;
+
+	case Operation::CLI:
+		cli(cycles);
+		break;
+
+	case Operation::CLV:
+		clv(cycles);
+		break;
+
 	case Operation::CMP:
 		cmp(cycles, memory, address, hasPageCrossed);
 		break;
@@ -436,6 +452,18 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 
 	case Operation::SBC:
 		sbc(cycles, memory, address, hasPageCrossed);
+		break;
+
+	case Operation::SEC:
+		sec(cycles);
+		break;
+
+	case Operation::SED:
+		sed(cycles);
+		break;
+
+	case Operation::SEI:
+		sei(cycles);
 		break;
 
 	case Operation::STA:
@@ -657,6 +685,34 @@ void CPU::bvs(sdword &cycles, word address, bool hasPageCrossed)
 		if (hasPageCrossed)
 			cycles--;
 	}
+}
+
+void CPU::clc(sdword &cycles)
+{
+	// Update status
+	mC = 0;
+	cycles--;
+}
+
+void CPU::cld(sdword &cycles)
+{
+	// Update status
+	mD = 0;
+	cycles--;
+}
+
+void CPU::cli(sdword &cycles)
+{
+	// Update status
+	mI = 0;
+	cycles--;
+}
+
+void CPU::clv(sdword &cycles)
+{
+	// Update status
+	mV = 0;
+	cycles--;
 }
 
 void CPU::cmp(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
@@ -1025,6 +1081,27 @@ void CPU::sbc(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 	
 	// Update status flags
 	sbcUpdateStatus(newA, previousA, memValue);
+}
+
+void CPU::sec(sdword &cycles)
+{
+	// Update status
+	mC = 1;
+	cycles--;
+}
+
+void CPU::sed(sdword &cycles)
+{
+	// Update status
+	mD = 1;
+	cycles--;
+}
+
+void CPU::sei(sdword &cycles)
+{
+	// Update status
+	mI = 1;
+	cycles--;
 }
 
 void CPU::sta(sdword &cycles, Memory &memory, word address, AddressingMode addrMode)

@@ -73,6 +73,10 @@ private:
     void bpl(sdword& cycles, word address, bool hasPageCrossed);
     void bvc(sdword& cycles, word address, bool hasPageCrossed);
     void bvs(sdword& cycles, word address, bool hasPageCrossed);
+    void clc(sdword& cycles);
+    void cld(sdword& cycles);
+    void cli(sdword& cycles);
+    void clv(sdword& cycles);
     void cmp(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void cpx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
     void cpy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
@@ -98,6 +102,9 @@ private:
     void ror(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void rts(sdword& cycles, Memory& memory);
     void sbc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
+    void sec(sdword& cycles);
+    void sed(sdword& cycles);
+    void sei(sdword& cycles);
     void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
     void stx(sdword& cycles, Memory& memory, word address);
     void sty(sdword& cycles, Memory& memory, word address);

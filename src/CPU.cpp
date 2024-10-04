@@ -172,6 +172,9 @@ word CPU::fetchAddr(sdword &cycles, Memory &memory, AddressingMode addrMode, boo
 
 		// Calculate relative address
 		address = mPc + signedOffset;
+
+		// Branch to another page => additionnal cycles (XOR magic, too lazy to store MSBs)
+		hasPageCrossed = ((mPc ^ address) & 0xFF00) != 0;
 	} break;
 
 	case AddressingMode::Absolute:
@@ -299,8 +302,40 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		asl(cycles, memory, address, addrMode);
 		break;
 
+	case Operation::BCC:
+		bcc(cycles, address, hasPageCrossed);
+		break;
+
+	case Operation::BCS:
+		bcs(cycles, address, hasPageCrossed);
+		break;
+
+	case Operation::BEQ:
+		beq(cycles, address, hasPageCrossed);
+		break;
+
 	case Operation::BIT:
 		bit(cycles, memory, address);
+		break;
+
+	case Operation::BMI:
+		bmi(cycles, address, hasPageCrossed);
+		break;
+
+	case Operation::BNE:
+		bne(cycles, address, hasPageCrossed);
+		break;
+
+	case Operation::BPL:
+		bpl(cycles, address, hasPageCrossed);
+		break;
+
+	case Operation::BVC:
+		bvc(cycles, address, hasPageCrossed);
+		break;
+
+	case Operation::BVS:
+		bvs(cycles, address, hasPageCrossed);
 		break;
 
 	case Operation::CMP:
@@ -509,6 +544,45 @@ void CPU::asl(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 	aslUpdateStatus(previousValue, newValue);
 }
 
+void CPU::bcc(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (!mC)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
+void CPU::bcs(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (mC)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
+void CPU::beq(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (mZ)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
 void CPU::bit(sdword &cycles, Memory &memory, word address)
 {
 	// Read value from memory
@@ -518,6 +592,71 @@ void CPU::bit(sdword &cycles, Memory &memory, word address)
 	mZ = (mA & memValue) == 0          ? 1 : 0;
 	mV = (memValue & 0b0100'0000) != 0 ? 1 : 0;
 	mN = (memValue & 0b1000'0000) != 0 ? 1 : 0;
+}
+
+void CPU::bmi(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (mN)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
+void CPU::bne(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (!mZ)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
+void CPU::bpl(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (!mN)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
+void CPU::bvc(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (!mV)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
+}
+
+void CPU::bvs(sdword &cycles, word address, bool hasPageCrossed)
+{
+	// Branch condition
+	if (mV)
+	{
+		mPc = address;
+		cycles--;
+
+		if (hasPageCrossed)
+			cycles--;
+	}
 }
 
 void CPU::cmp(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)

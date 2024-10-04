@@ -3,7 +3,9 @@
 #include "Config.hpp"
 #include "Instruction.hpp"
 
-// ********** Register ********** //
+// ********** Memory address ********** //
+constexpr word IRQ_VECTOR_LSB = 0xFFFE;
+constexpr word IRQ_VECTOR_MSB = 0xFFFF;
 constexpr word PC_RESET = 0xFFFC;
 constexpr byte SP_RESET = 0xFF;
 constexpr word SP_PAGE_OFFSET = 0x0100;

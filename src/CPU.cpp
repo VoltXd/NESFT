@@ -318,6 +318,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		bit(cycles, memory, address);
 		break;
 
+	case Operation::BRK:
+		brk(cycles, memory);
+		break;
+
 	case Operation::BMI:
 		bmi(cycles, address, hasPageCrossed);
 		break;
@@ -418,6 +422,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 		lsr(cycles, memory, address, addrMode);
 		break;
 
+	case Operation::NOP:
+		nop(cycles);
+		break;
+
 	case Operation::ORA:
 		ora(cycles, memory, address, hasPageCrossed);
 		break;
@@ -444,6 +452,10 @@ void CPU::executeInstruction(sdword &cycles, Memory &memory, instruction_t instr
 
 	case Operation::ROR:
 		ror(cycles, memory, address, addrMode);
+		break;
+
+	case Operation::RTI:
+		rti(cycles, memory);
 		break;
 
 	case Operation::RTS:
@@ -659,6 +671,29 @@ void CPU::bpl(sdword &cycles, word address, bool hasPageCrossed)
 		if (hasPageCrossed)
 			cycles--;
 	}
+}
+
+void CPU::brk(sdword &cycles, Memory& memory)
+{
+	// Dummy cycle (why would they do that...)
+	mPc++;
+	cycles--;
+
+	// Push program counter & processor status
+	byte pcLsb = mPc & 0x00FF;
+	byte pcMsb = ((word)mPc & 0xFF00) >> 8;
+	mB = 1;
+	byte processorStatus = getProcessorStatus();
+	stackPush(cycles, memory, pcMsb);
+	stackPush(cycles, memory, pcLsb);
+	stackPush(cycles, memory, processorStatus);
+
+	// Fetch interrupt address
+	byte interruptAddressLsb = readByte(cycles, memory, IRQ_VECTOR_LSB); 
+	byte interruptAddressMsb = readByte(cycles, memory, IRQ_VECTOR_MSB); 
+
+	// Program counter update
+	mPc = ((word)interruptAddressMsb << 8) | interruptAddressLsb;
 }
 
 void CPU::bvc(sdword &cycles, word address, bool hasPageCrossed)
@@ -945,6 +980,12 @@ void CPU::lsr(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 	lsrUpdateStatus(previousValue, newValue);
 }
 
+void CPU::nop(sdword &cycles)
+{
+	// Do nothing but a dummy cycle
+	cycles--;
+}
+
 void CPU::ora(sdword &cycles, Memory &memory, word address, bool hasPageCrossed)
 {
 	// Read value from memory
@@ -1051,9 +1092,24 @@ void CPU::ror(sdword &cycles, Memory &memory, word address, AddressingMode addrM
 	rorUpdateStatus(previousValue, newValue);
 }
 
+void CPU::rti(sdword &cycles, Memory &memory)
+{
+	// Pull Processor status & Program counter (return address) to stack (4 cycles)
+	cycles++; // Simulate stack pull internal optimisation
+	byte processorStatus = stackPull(cycles, memory);
+	setProcessorStatus(processorStatus);
+
+	byte returnAddressLsb = stackPull(cycles, memory);
+	byte returnAddressMsb = stackPull(cycles, memory);
+	word returnAddress = ((word)returnAddressMsb << 8) | returnAddressLsb;
+
+	// Set Program counter (1 cycle)
+	mPc = returnAddress;
+}
+
 void CPU::rts(sdword &cycles, Memory &memory)
 {
-	// Pull Program counter -1 (return address) to stack (2 cycles)
+	// Pull Program counter -1 (return address) to stack (4 cycles)
 	byte returnAddressLsb = stackPull(cycles, memory);
 	byte returnAddressMsb = stackPull(cycles, memory);
 	word returnAddress = ((word)returnAddressMsb << 8) | returnAddressLsb;

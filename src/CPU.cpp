@@ -34,6 +34,62 @@ sdword CPU::reset(Memory& memory)
 	return resetCycles;
 }
 
+sdword CPU::irq(Memory &memory)
+{
+	// Cycles variables
+	constexpr sdword interruptCycles = 7;
+	sdword cycles = 7;
+
+	// Ignore interrupt if I flag is set
+	if (mI)
+		return 0;
+
+	// Push program counter & processor status
+	byte pcLsb = mPc & 0x00FF;
+	byte pcMsb = ((word)mPc & 0xFF00) >> 8;
+	mB = 0;
+	byte processorStatus = getProcessorStatus();
+	stackPush(cycles, memory, pcMsb);
+	stackPush(cycles, memory, pcLsb);
+	stackPush(cycles, memory, processorStatus);
+
+	// Fetch interrupt address
+	byte interruptAddressLsb = readByte(cycles, memory, IRQ_VECTOR_LSB); 
+	byte interruptAddressMsb = readByte(cycles, memory, IRQ_VECTOR_MSB); 
+	mI = 1;
+
+	// Program counter update
+	mPc = ((word)interruptAddressMsb << 8) | interruptAddressLsb;
+
+	return interruptCycles;
+}
+
+sdword CPU::nmi(Memory &memory)
+{
+	// Cycles variables
+	constexpr sdword interruptCycles = 7;
+	sdword cycles = 7;
+
+	// Push program counter & processor status
+	byte pcLsb = mPc & 0x00FF;
+	byte pcMsb = ((word)mPc & 0xFF00) >> 8;
+	mB = 0;
+	byte processorStatus = getProcessorStatus();
+	stackPush(cycles, memory, pcMsb);
+	stackPush(cycles, memory, pcLsb);
+	stackPush(cycles, memory, processorStatus);
+
+	// Fetch interrupt address
+	byte interruptAddressLsb = readByte(cycles, memory, NMI_VECTOR_LSB); 
+	byte interruptAddressMsb = readByte(cycles, memory, NMI_VECTOR_MSB); 
+	mI = 1;
+
+	// Program counter update
+	mPc = ((word)interruptAddressMsb << 8) | interruptAddressLsb;
+
+	return interruptCycles;
+}
+
 sdword CPU::execute(sdword cycles, Memory &memory)
 {
 	sdword cyclesRequested = cycles;

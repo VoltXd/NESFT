@@ -8,7 +8,9 @@ class CPU
 {
 public:
     // *********** External calls *********** //
-    void reset(Memory& memory);
+    sdword reset(Memory& memory);
+    sdword irq(Memory& memory);
+    sdword nmi(Memory& memory);
     sdword execute(sdword cycles, Memory& memory);
 
 #ifdef TEST

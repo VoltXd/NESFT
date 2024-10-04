@@ -10,7 +10,7 @@ TEST_F(CPUTests, rtsWorks)
 	constexpr sdword targetCycles = RTS.cycles;
 
 	// Run program
-	memory[PC_RESET] = RTS.opcode;
+	memory[TEST_MAIN_ADDRESS] = RTS.opcode;
 	memory[SP_PAGE_OFFSET | 0xFE] = returnLsb;
 	memory[SP_PAGE_OFFSET | 0xFF] = returnMsb;
 	cpu.setSp(0xFF - 2);

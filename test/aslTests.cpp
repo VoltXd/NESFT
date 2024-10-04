@@ -19,7 +19,7 @@ TEST_F(CPUTests, aslAccWorks)
 	constexpr sdword targetCycles = ASL_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ASL_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ASL_ACC.opcode;
 	cpu.setA(inputValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -42,7 +42,7 @@ TEST_F(CPUTests, aslAccNegWorks)
 	constexpr sdword targetCycles = ASL_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ASL_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ASL_ACC.opcode;
 	cpu.setA(inputValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -65,7 +65,7 @@ TEST_F(CPUTests, aslAccNullCarryWorks)
 	constexpr sdword targetCycles = ASL_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ASL_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ASL_ACC.opcode;
 	cpu.setA(inputValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -89,8 +89,8 @@ TEST_F(CPUTests, aslZPWorks)
 	constexpr sdword targetCycles = ASL_ZP.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ASL_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ASL_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -117,8 +117,8 @@ TEST_F(CPUTests, aslZPXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ASL_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ASL_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -145,8 +145,8 @@ TEST_F(CPUTests, aslZPXWraps)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ASL_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ASL_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -172,9 +172,9 @@ TEST_F(CPUTests, aslAbsWorks)
 	constexpr sdword targetCycles = ASL_ABS.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ASL_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ASL_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -202,9 +202,9 @@ TEST_F(CPUTests, aslAbsXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ASL_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ASL_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -232,9 +232,9 @@ TEST_F(CPUTests, aslAbsXCanGoToNextPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ASL_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ASL_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -262,9 +262,9 @@ TEST_F(CPUTests, aslAbsXCanOverflowToZeroPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ASL_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ASL_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

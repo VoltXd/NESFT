@@ -21,8 +21,8 @@ TEST_F(CPUTests, bitZPNegOveWorks)
 
 	// Test bits
 	cpu.setA(mask);
-	memory[PC_RESET] = BIT_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = BIT_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -46,8 +46,8 @@ TEST_F(CPUTests, bitZPNullWorks)
 
 	// Test bits
 	cpu.setA(mask);
-	memory[PC_RESET] = BIT_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = BIT_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -73,9 +73,9 @@ TEST_F(CPUTests, bitAbsWorks)
 
 	// Test bits
 	cpu.setA(mask);
-	memory[PC_RESET] = BIT_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = BIT_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

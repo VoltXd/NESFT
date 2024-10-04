@@ -18,7 +18,7 @@ TEST_F(CPUTests, tyaPosWorks)
 	constexpr sdword targetCycles = TYA.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TYA.opcode;
+	memory[TEST_MAIN_ADDRESS] = TYA.opcode;
 	cpu.setY(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -39,7 +39,7 @@ TEST_F(CPUTests, tyaNegWorks)
 	constexpr sdword targetCycles = TYA.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TYA.opcode;
+	memory[TEST_MAIN_ADDRESS] = TYA.opcode;
 	cpu.setY(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -60,7 +60,7 @@ TEST_F(CPUTests, tyaNullWorks)
 	constexpr sdword targetCycles = TYA.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TYA.opcode;
+	memory[TEST_MAIN_ADDRESS] = TYA.opcode;
 	cpu.setY(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

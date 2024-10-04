@@ -19,7 +19,7 @@ TEST_F(CPUTests, phaWorks)
 	constexpr sdword targetCycles = PHA.cycles;
 
 	// Push A
-	memory[PC_RESET] = PHA.opcode;
+	memory[TEST_MAIN_ADDRESS] = PHA.opcode;
 	cpu.setA(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

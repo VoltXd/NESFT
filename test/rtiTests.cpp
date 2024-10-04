@@ -18,11 +18,11 @@ TEST_F(CPUTests, rtiWorks)
 	constexpr sdword targetCycles = RTI.cycles;
 
 	// Run program
-	memory[PC_RESET] = RTI.opcode;
-	memory[SP_PAGE_OFFSET | 0xFD] = 0b1111'0001;
-	memory[SP_PAGE_OFFSET | 0xFE] = returnLsb;
-	memory[SP_PAGE_OFFSET | 0xFF] = returnMsb;
-	cpu.setSp(0xFF - 3);
+	memory[TEST_MAIN_ADDRESS] = RTI.opcode;
+	memory[SP_PAGE_OFFSET | 0xFA] = 0b1111'0101;
+	memory[SP_PAGE_OFFSET | 0xFB] = returnLsb;
+	memory[SP_PAGE_OFFSET | 0xFC] = returnMsb;
+	cpu.setSp(0xFF - 6);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -31,7 +31,7 @@ TEST_F(CPUTests, rtiWorks)
 	EXPECT_TRUE(cpu.getB());
 	EXPECT_TRUE(cpu.getV());
 	EXPECT_TRUE(cpu.getN());
-	EXPECT_EQ(cpu.getSp(), 0xFF);
+	EXPECT_EQ(cpu.getSp(), 0xFC);
 	EXPECT_EQ(cpu.getPc(), returnAddress);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

@@ -19,7 +19,7 @@ TEST_F(CPUTests, plaPosWorks)
 
 	// Pull A
 	cpu.setSp(SP_RESET - 1);
-	memory[PC_RESET] = PLA.opcode;
+	memory[TEST_MAIN_ADDRESS] = PLA.opcode;
 	memory[SP_PAGE_OFFSET | SP_RESET] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -41,7 +41,7 @@ TEST_F(CPUTests, plaNegWorks)
 
 	// Pull A
 	cpu.setSp(SP_RESET - 1);
-	memory[PC_RESET] = PLA.opcode;
+	memory[TEST_MAIN_ADDRESS] = PLA.opcode;
 	memory[SP_PAGE_OFFSET | SP_RESET] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -63,7 +63,7 @@ TEST_F(CPUTests, plaNullWorks)
 
 	// Pull A
 	cpu.setSp(SP_RESET - 1);
-	memory[PC_RESET] = PLA.opcode;
+	memory[TEST_MAIN_ADDRESS] = PLA.opcode;
 	memory[SP_PAGE_OFFSET | SP_RESET] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

@@ -22,8 +22,8 @@ TEST_F(CPUTests, eorImmPosWorks)
 
 	// A ^ mem
 	cpu.setA(aValue);
-	memory[PC_RESET] = EOR_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = EOR_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -46,8 +46,8 @@ TEST_F(CPUTests, eorImmNegWorks)
 
 	// A ^ mem, negative value
 	cpu.setA(aValue);
-	memory[PC_RESET] = EOR_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = EOR_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -70,8 +70,8 @@ TEST_F(CPUTests, eorImmNullWorks)
 
 	// A ^ mem, null value
 	cpu.setA(aValue);
-	memory[PC_RESET] = EOR_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = EOR_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -95,8 +95,8 @@ TEST_F(CPUTests, eorZPWorks)
 
 	// A ^ mem
 	cpu.setA(aValue);
-	memory[PC_RESET] = EOR_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -124,8 +124,8 @@ TEST_F(CPUTests, eorZPXWorks)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -153,8 +153,8 @@ TEST_F(CPUTests, eorZPXWraps)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -181,9 +181,9 @@ TEST_F(CPUTests, eorAbsWorks)
 
 	// A ^ mem
 	cpu.setA(aValue);
-	memory[PC_RESET] = EOR_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -212,9 +212,9 @@ TEST_F(CPUTests, eorAbsXWorks)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -243,9 +243,9 @@ TEST_F(CPUTests, eorAbsXCanGoToNextPage)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -274,9 +274,9 @@ TEST_F(CPUTests, eorAbsXCanOverflowToZeroPage)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -305,9 +305,9 @@ TEST_F(CPUTests, eorAbsYWorks)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = EOR_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -336,9 +336,9 @@ TEST_F(CPUTests, eorAbsYCanGoToNextPage)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = EOR_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -367,9 +367,9 @@ TEST_F(CPUTests, eorAbsYCanOverflowToZeroPage)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = EOR_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = EOR_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -400,8 +400,8 @@ TEST_F(CPUTests, eorIndXWorks)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -434,8 +434,8 @@ TEST_F(CPUTests, eorIndXFullyWraps)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -468,8 +468,8 @@ TEST_F(CPUTests, eorIndXHalfWraps)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = EOR_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -501,8 +501,8 @@ TEST_F(CPUTests, eorIndYWorks)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = EOR_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -534,8 +534,8 @@ TEST_F(CPUTests, eorIndYFullyWrapsAndPageCrosses)
 	// A ^ mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = EOR_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = EOR_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;

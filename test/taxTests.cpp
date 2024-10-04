@@ -18,7 +18,7 @@ TEST_F(CPUTests, taxPosWorks)
 	constexpr sdword targetCycles = TAX.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TAX.opcode;
+	memory[TEST_MAIN_ADDRESS] = TAX.opcode;
 	cpu.setA(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -39,7 +39,7 @@ TEST_F(CPUTests, taxNegWorks)
 	constexpr sdword targetCycles = TAX.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TAX.opcode;
+	memory[TEST_MAIN_ADDRESS] = TAX.opcode;
 	cpu.setA(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -60,7 +60,7 @@ TEST_F(CPUTests, taxNullWorks)
 	constexpr sdword targetCycles = TAX.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TAX.opcode;
+	memory[TEST_MAIN_ADDRESS] = TAX.opcode;
 	cpu.setA(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

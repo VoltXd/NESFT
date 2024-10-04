@@ -19,8 +19,8 @@ TEST_F(CPUTests, ldaImmPosWorks)
 	constexpr sdword targetCycles = LDA_IMM.cycles;
 
 	// Load to A
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetValue;
+	memory[TEST_MAIN_ADDRESS] = LDA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -40,8 +40,8 @@ TEST_F(CPUTests, ldaImmNegWorks)
 	constexpr sdword targetCycles = LDA_IMM.cycles;
 
 	// Load to A, negative value
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetValue;
+	memory[TEST_MAIN_ADDRESS] = LDA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -61,8 +61,8 @@ TEST_F(CPUTests, ldaImmNullWorks)
 	constexpr sdword targetCycles = LDA_IMM.cycles;
 
 	// Load to A, null value
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetValue;
+	memory[TEST_MAIN_ADDRESS] = LDA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -83,8 +83,8 @@ TEST_F(CPUTests, ldaZPWorks)
 	constexpr sdword targetCycles = LDA_ZP.cycles;
 
 	// Load to A
-	memory[PC_RESET] = LDA_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -109,8 +109,8 @@ TEST_F(CPUTests, ldaZPXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -135,8 +135,8 @@ TEST_F(CPUTests, ldaZPXWraps)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -160,9 +160,9 @@ TEST_F(CPUTests, ldaAbsWorks)
 	constexpr sdword targetCycles = LDA_ABS.cycles;
 
 	// Load to A
-	memory[PC_RESET] = LDA_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -188,9 +188,9 @@ TEST_F(CPUTests, ldaAbsXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -216,9 +216,9 @@ TEST_F(CPUTests, ldaAbsXCanGoToNextPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -244,9 +244,9 @@ TEST_F(CPUTests, ldaAbsXCanOverflowToZeroPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -272,9 +272,9 @@ TEST_F(CPUTests, ldaAbsYWorks)
 
 	// Load to A
 	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -300,9 +300,9 @@ TEST_F(CPUTests, ldaAbsYCanGoToNextPage)
 
 	// Load to A
 	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -328,9 +328,9 @@ TEST_F(CPUTests, ldaAbsYCanOverflowToZeroPage)
 
 	// Load to A
 	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = LDA_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -358,8 +358,8 @@ TEST_F(CPUTests, ldaIndXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
@@ -389,8 +389,8 @@ TEST_F(CPUTests, ldaIndXFullyWraps)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
@@ -420,8 +420,8 @@ TEST_F(CPUTests, ldaIndXHalfWraps)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = LDA_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
@@ -450,8 +450,8 @@ TEST_F(CPUTests, ldaIndYWorks)
 
 	// Load to A
 	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;
@@ -480,8 +480,8 @@ TEST_F(CPUTests, ldaIndYFullyWrapsAndPageCrosses)
 
 	// Load to A
 	cpu.setY(yValue);
-	memory[PC_RESET] = LDA_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = LDA_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = targetValue;

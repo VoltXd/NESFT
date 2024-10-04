@@ -21,9 +21,9 @@ TEST_F(CPUTests, plpWorks)
 
 	// Pull processor status
 	// NVUB'DIZC = 0b1011'0001
-	cpu.setSp(SP_RESET - 1);
-	memory[PC_RESET] = PLP.opcode;
-	memory[SP_PAGE_OFFSET | SP_RESET] = 0b1011'0001;
+	cpu.setSp(SP_RESET - 4);
+	memory[TEST_MAIN_ADDRESS] = PLP.opcode;
+	memory[SP_PAGE_OFFSET | 0xFC] = 0b1011'0101;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -35,7 +35,7 @@ TEST_F(CPUTests, plpWorks)
 	                       (1          & 0x01) << 5 |
 	                       (cpu.getV() & 0x01) << 6 |
 	                       (cpu.getN() & 0x01) << 7;
-	EXPECT_EQ(processorStatus, 0b1011'0001);
+	EXPECT_EQ(processorStatus, 0b1011'0101);
 	verifyUnmodifiedStatusFlagsFromPLP(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

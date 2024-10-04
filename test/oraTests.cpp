@@ -22,8 +22,8 @@ TEST_F(CPUTests, oraImmPosWorks)
 
 	// A | mem
 	cpu.setA(aValue);
-	memory[PC_RESET] = ORA_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ORA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -46,8 +46,8 @@ TEST_F(CPUTests, oraImmNegWorks)
 
 	// A | mem, negative value
 	cpu.setA(aValue);
-	memory[PC_RESET] = ORA_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ORA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -70,8 +70,8 @@ TEST_F(CPUTests, oraImmNullWorks)
 
 	// A | mem, null value
 	cpu.setA(aValue);
-	memory[PC_RESET] = ORA_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ORA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -95,8 +95,8 @@ TEST_F(CPUTests, oraZPWorks)
 
 	// A | mem
 	cpu.setA(aValue);
-	memory[PC_RESET] = ORA_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -124,8 +124,8 @@ TEST_F(CPUTests, oraZPXWorks)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -153,8 +153,8 @@ TEST_F(CPUTests, oraZPXWraps)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -181,9 +181,9 @@ TEST_F(CPUTests, oraAbsWorks)
 
 	// A | mem
 	cpu.setA(aValue);
-	memory[PC_RESET] = ORA_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -212,9 +212,9 @@ TEST_F(CPUTests, oraAbsXWorks)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -243,9 +243,9 @@ TEST_F(CPUTests, oraAbsXCanGoToNextPage)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -274,9 +274,9 @@ TEST_F(CPUTests, oraAbsXCanOverflowToZeroPage)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -305,9 +305,9 @@ TEST_F(CPUTests, oraAbsYWorks)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = ORA_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -336,9 +336,9 @@ TEST_F(CPUTests, oraAbsYCanGoToNextPage)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = ORA_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -367,9 +367,9 @@ TEST_F(CPUTests, oraAbsYCanOverflowToZeroPage)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = ORA_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ORA_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -400,8 +400,8 @@ TEST_F(CPUTests, oraIndXWorks)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -434,8 +434,8 @@ TEST_F(CPUTests, oraIndXFullyWraps)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -468,8 +468,8 @@ TEST_F(CPUTests, oraIndXHalfWraps)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setX(xValue);
-	memory[PC_RESET] = ORA_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -501,8 +501,8 @@ TEST_F(CPUTests, oraIndYWorks)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = ORA_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -534,8 +534,8 @@ TEST_F(CPUTests, oraIndYFullyWrapsAndPageCrosses)
 	// A | mem
 	cpu.setA(aValue);
 	cpu.setY(yValue);
-	memory[PC_RESET] = ORA_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ORA_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;

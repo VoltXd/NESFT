@@ -8,7 +8,7 @@ TEST_F(CPUTests, secSetUnchange)
 
 	// Run program
 	cpu.setC(1);
-	memory[PC_RESET] = SEC.opcode;
+	memory[TEST_MAIN_ADDRESS] = SEC.opcode;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -24,7 +24,7 @@ TEST_F(CPUTests, secSet)
 
 	// Run program
 	cpu.setC(0);
-	memory[PC_RESET] = SEC.opcode;
+	memory[TEST_MAIN_ADDRESS] = SEC.opcode;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify

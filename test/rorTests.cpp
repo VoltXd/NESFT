@@ -19,7 +19,7 @@ TEST_F(CPUTests, rorAccWorks)
 	constexpr sdword targetCycles = ROR_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROR_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ROR_ACC.opcode;
 	cpu.setA(inputValue);
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -43,7 +43,7 @@ TEST_F(CPUTests, rorAccNegWorks)
 	constexpr sdword targetCycles = ROR_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROR_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ROR_ACC.opcode;
 	cpu.setA(inputValue);
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -67,7 +67,7 @@ TEST_F(CPUTests, rorAccNullCarryWorks)
 	constexpr sdword targetCycles = ROR_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROR_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ROR_ACC.opcode;
 	cpu.setA(inputValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -91,8 +91,8 @@ TEST_F(CPUTests, rorZPWorks)
 	constexpr sdword targetCycles = ROR_ZP.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROR_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ROR_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -120,8 +120,8 @@ TEST_F(CPUTests, rorZPXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROR_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ROR_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -149,8 +149,8 @@ TEST_F(CPUTests, rorZPXWraps)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROR_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ROR_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -177,9 +177,9 @@ TEST_F(CPUTests, rorAbsWorks)
 	constexpr sdword targetCycles = ROR_ABS.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROR_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROR_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -208,9 +208,9 @@ TEST_F(CPUTests, rorAbsXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROR_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROR_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -239,9 +239,9 @@ TEST_F(CPUTests, rorAbsXCanGoToNextPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROR_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROR_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -270,9 +270,9 @@ TEST_F(CPUTests, rorAbsXCanOverflowToZeroPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROR_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROR_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);

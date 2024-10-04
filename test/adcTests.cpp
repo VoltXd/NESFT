@@ -20,8 +20,8 @@ TEST_F(CPUTests, adcImmPosWorks)
 	constexpr sdword targetCycles = ADC_IMM.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ADC_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -48,8 +48,8 @@ TEST_F(CPUTests, adcImmNegOveCarWorks)
 	constexpr sdword targetCycles = ADC_IMM.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ADC_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -76,8 +76,8 @@ TEST_F(CPUTests, adcImmOveWorks)
 	constexpr sdword targetCycles = ADC_IMM.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ADC_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -104,8 +104,8 @@ TEST_F(CPUTests, adcImmNullWorks)
 	constexpr sdword targetCycles = ADC_IMM.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_IMM.opcode;
-	memory[PC_RESET + 1] = memValue;
+	memory[TEST_MAIN_ADDRESS] = ADC_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -133,8 +133,8 @@ TEST_F(CPUTests, adcZPWorks)
 	constexpr sdword targetCycles = ADC_ZP.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -165,8 +165,8 @@ TEST_F(CPUTests, adcZPXWorks)
 	constexpr sdword targetCycles = ADC_ZPX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -198,8 +198,8 @@ TEST_F(CPUTests, adcZPXWraps)
 	constexpr sdword targetCycles = ADC_ZPX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -231,9 +231,9 @@ TEST_F(CPUTests, adcAbsWorks)
 	constexpr sdword targetCycles = ADC_ABS.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -265,9 +265,9 @@ TEST_F(CPUTests, adcAbsXWorks)
 	constexpr sdword targetCycles = ADC_ABSX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -300,9 +300,9 @@ TEST_F(CPUTests, adcAbsXCanGoToNextPage)
 	constexpr sdword targetCycles = ADC_ABSX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -335,9 +335,9 @@ TEST_F(CPUTests, adcAbsXCanOverflowToZeroPage)
 	constexpr sdword targetCycles = ADC_ABSX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -370,9 +370,9 @@ TEST_F(CPUTests, adcAbsYWorks)
 	constexpr sdword targetCycles = ADC_ABSY.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -405,9 +405,9 @@ TEST_F(CPUTests, adcAbsYCanGoToNextPage)
 	constexpr sdword targetCycles = ADC_ABSY.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -440,9 +440,9 @@ TEST_F(CPUTests, adcAbsYCanOverflowToZeroPage)
 	constexpr sdword targetCycles = ADC_ABSY.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_ABSY.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ADC_ABSY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = memValue;
 	cpu.setA(aValue);
 	cpu.setC(cValue);
@@ -477,8 +477,8 @@ TEST_F(CPUTests, adcIndXWorks)
 	constexpr sdword targetCycles = ADC_INDX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -515,8 +515,8 @@ TEST_F(CPUTests, adcIndXFullyWraps)
 	constexpr sdword targetCycles = ADC_INDX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -553,8 +553,8 @@ TEST_F(CPUTests, adcIndXHalfWraps)
 	constexpr sdword targetCycles = ADC_INDX.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_INDX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_INDX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -590,8 +590,8 @@ TEST_F(CPUTests, adcIndYWorks)
 	constexpr sdword targetCycles = ADC_INDY.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;
@@ -627,8 +627,8 @@ TEST_F(CPUTests, adcIndYFullyWrapsAndPageCrosses)
 	constexpr sdword targetCycles = ADC_INDY.cycles;
 
 	// Set up CPU & execute
-	memory[PC_RESET] = ADC_INDY.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ADC_INDY.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetAddressLsb;
 	memory[zpAddress + 1] = targetAddressMsb;
 	memory[targetAddress] = memValue;

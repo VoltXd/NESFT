@@ -19,7 +19,7 @@ TEST_F(CPUTests, rolAccWorks)
 	constexpr sdword targetCycles = ROL_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROL_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ROL_ACC.opcode;
 	cpu.setA(inputValue);
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -43,7 +43,7 @@ TEST_F(CPUTests, rolAccNegWorks)
 	constexpr sdword targetCycles = ROL_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROL_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ROL_ACC.opcode;
 	cpu.setA(inputValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -66,7 +66,7 @@ TEST_F(CPUTests, rolAccNullCarryWorks)
 	constexpr sdword targetCycles = ROL_ACC.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROL_ACC.opcode;
+	memory[TEST_MAIN_ADDRESS] = ROL_ACC.opcode;
 	cpu.setA(inputValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -90,8 +90,8 @@ TEST_F(CPUTests, rolZPWorks)
 	constexpr sdword targetCycles = ROL_ZP.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROL_ZP.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ROL_ZP.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -119,8 +119,8 @@ TEST_F(CPUTests, rolZPXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROL_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ROL_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -148,8 +148,8 @@ TEST_F(CPUTests, rolZPXWraps)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROL_ZPX.opcode;
-	memory[PC_RESET + 1] = zpAddress;
+	memory[TEST_MAIN_ADDRESS] = ROL_ZPX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -176,9 +176,9 @@ TEST_F(CPUTests, rolAbsWorks)
 	constexpr sdword targetCycles = ROL_ABS.cycles;
 
 	// Load to A
-	memory[PC_RESET] = ROL_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROL_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -207,9 +207,9 @@ TEST_F(CPUTests, rolAbsXWorks)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROL_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROL_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -238,9 +238,9 @@ TEST_F(CPUTests, rolAbsXCanGoToNextPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROL_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROL_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -269,9 +269,9 @@ TEST_F(CPUTests, rolAbsXCanOverflowToZeroPage)
 
 	// Load to A
 	cpu.setX(xValue);
-	memory[PC_RESET] = ROL_ABSX.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = ROL_ABSX.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);

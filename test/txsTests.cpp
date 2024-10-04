@@ -20,7 +20,7 @@ TEST_F(CPUTests, txsPosWorks)
 	constexpr sdword targetCycles = TXS.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TXS.opcode;
+	memory[TEST_MAIN_ADDRESS] = TXS.opcode;
 	cpu.setX(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

@@ -23,11 +23,11 @@ TEST_F(CPUTests, nopWorks)
 	constexpr sdword targetCycles = NOP.cycles;
 
 	// Do nothing
-	memory[PC_RESET] = NOP.opcode;
+	memory[TEST_MAIN_ADDRESS] = NOP.opcode;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
-	EXPECT_EQ(cpu.getPc(), PC_RESET + 1);
+	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS + 1);
 	verifyUnmodifiedStatusFlagsFromNOP(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

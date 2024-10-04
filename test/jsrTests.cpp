@@ -10,15 +10,15 @@ TEST_F(CPUTests, jsrWorks)
 	constexpr sdword targetCycles = JSR.cycles;
 
 	// Run program
-	memory[PC_RESET] = JSR.opcode;
-	memory[PC_RESET + 1] = targetLsb;
-	memory[PC_RESET + 2] = targetMsb;
+	memory[TEST_MAIN_ADDRESS] = JSR.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = targetLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = targetMsb;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
-	EXPECT_EQ(cpu.getSp(), 0xFF - 2);
+	EXPECT_EQ(cpu.getSp(), 0xFF - 5);
 	EXPECT_EQ(cpu.getPc(), targetAddress);
-	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFE], (PC_RESET + 2) & 0x00FF);
-	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFF], ((PC_RESET + 2) & 0xFF00) >> 8);
+	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFB], (TEST_MAIN_ADDRESS + 2) & 0x00FF);
+	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFC], ((TEST_MAIN_ADDRESS + 2) & 0xFF00) >> 8);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

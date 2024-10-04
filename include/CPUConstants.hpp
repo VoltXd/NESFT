@@ -4,11 +4,17 @@
 #include "Instruction.hpp"
 
 // ********** Memory address ********** //
+constexpr word NMI_VECTOR_LSB = 0xFFFA;
+constexpr word NMI_VECTOR_MSB = 0xFFFB;
+constexpr word RESET_VECTOR_LSB = 0xFFFC;
+constexpr word RESET_VECTOR_MSB = 0xFFFD;
 constexpr word IRQ_VECTOR_LSB = 0xFFFE;
 constexpr word IRQ_VECTOR_MSB = 0xFFFF;
-constexpr word PC_RESET = 0xFFFC;
 constexpr byte SP_RESET = 0xFF;
 constexpr word SP_PAGE_OFFSET = 0x0100;
+#ifdef TEST
+constexpr word TEST_MAIN_ADDRESS = 0x8000;
+#endif
 
 // ********** Instructions (operation, address mode, cycles, opcode) ********** //
 constexpr instruction_t ADC_IMM   = { Operation::ADC, AddressingMode::Immediate,   2, 0x69 };

@@ -8,7 +8,7 @@ TEST_F(CPUTests, clcClear)
 
 	// Run program
 	cpu.setC(1);
-	memory[PC_RESET] = CLC.opcode;
+	memory[TEST_MAIN_ADDRESS] = CLC.opcode;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -24,7 +24,7 @@ TEST_F(CPUTests, clcClearUnchange)
 
 	// Run program
 	cpu.setC(0);
-	memory[PC_RESET] = CLC.opcode;
+	memory[TEST_MAIN_ADDRESS] = CLC.opcode;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify

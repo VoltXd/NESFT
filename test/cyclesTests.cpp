@@ -9,8 +9,8 @@ TEST_F(CPUTests, cpuDoesNothingWhenWeExecuteZeroCycles)
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
-	EXPECT_EQ(cpu.getPc(), PC_RESET);
-	EXPECT_EQ(cpu.getSp(), SP_RESET);
+	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS);
+	EXPECT_EQ(cpu.getSp(), SP_RESET - 3);
 
 	EXPECT_EQ(cpu.getA(), 0);
 	EXPECT_EQ(cpu.getX(), 0);
@@ -18,7 +18,7 @@ TEST_F(CPUTests, cpuDoesNothingWhenWeExecuteZeroCycles)
 	
 	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
-	EXPECT_FALSE(cpu.getI());
+	EXPECT_TRUE(cpu.getI());
 	EXPECT_FALSE(cpu.getD());
 	EXPECT_TRUE(cpu.getB());
 	EXPECT_FALSE(cpu.getV());
@@ -35,13 +35,13 @@ TEST_F(CPUTests, cpuCanExecuteMoreCyclesThanRequested)
 	constexpr sdword cyclesToExecute = 1;
 
 	// Execute 1 cycles
-	memory[PC_RESET] = LDA_IMM.opcode;
-	memory[PC_RESET + 1] = targetvalue;
+	memory[TEST_MAIN_ADDRESS] = LDA_IMM.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = targetvalue;
 	sdword elapsedCycles = cpu.execute(cyclesToExecute, memory);
 
 	// Verify
-	EXPECT_EQ(cpu.getPc(), PC_RESET + 2);
-	EXPECT_EQ(cpu.getSp(), SP_RESET);
+	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS + 2);
+	EXPECT_EQ(cpu.getSp(), SP_RESET - 3);
 
 	EXPECT_EQ(cpu.getA(), targetvalue);
 	EXPECT_EQ(cpu.getX(), 0);
@@ -49,7 +49,7 @@ TEST_F(CPUTests, cpuCanExecuteMoreCyclesThanRequested)
 	
 	EXPECT_FALSE(cpu.getC());
 	EXPECT_FALSE(cpu.getZ());
-	EXPECT_FALSE(cpu.getI());
+	EXPECT_TRUE(cpu.getI());
 	EXPECT_FALSE(cpu.getD());
 	EXPECT_TRUE(cpu.getB());
 	EXPECT_FALSE(cpu.getV());

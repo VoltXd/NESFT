@@ -22,9 +22,9 @@ TEST_F(CPUTests, jmpAbsWorks)
 	constexpr sdword targetCycles = JMP_ABS.cycles;
 
 	// Test bits
-	memory[PC_RESET] = JMP_ABS.opcode;
-	memory[PC_RESET + 1] = addressLsb;
-	memory[PC_RESET + 2] = addressMsb;
+	memory[TEST_MAIN_ADDRESS] = JMP_ABS.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
@@ -47,9 +47,9 @@ TEST_F(CPUTests, jmpIndWorks)
 	constexpr sdword targetCycles = JMP_IND.cycles;
 
 	// Test bits
-	memory[PC_RESET] = JMP_IND.opcode;
-	memory[PC_RESET + 1] = indirectAddressLsb;
-	memory[PC_RESET + 2] = indirectAddressMsb;
+	memory[TEST_MAIN_ADDRESS] = JMP_IND.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = indirectAddressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = indirectAddressMsb;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
@@ -73,9 +73,9 @@ TEST_F(CPUTests, jmpIndWrapWorks)
 	constexpr sdword targetCycles = JMP_IND.cycles;
 
 	// Test bits
-	memory[PC_RESET] = JMP_IND.opcode;
-	memory[PC_RESET + 1] = indirectAddressLsb;
-	memory[PC_RESET + 2] = indirectAddressMsb;
+	memory[TEST_MAIN_ADDRESS] = JMP_IND.opcode;
+	memory[TEST_MAIN_ADDRESS + 1] = indirectAddressLsb;
+	memory[TEST_MAIN_ADDRESS + 2] = indirectAddressMsb;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0x3200] = targetAddressMsb;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);

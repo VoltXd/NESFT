@@ -18,7 +18,7 @@ TEST_F(CPUTests, txaPosWorks)
 	constexpr sdword targetCycles = TXA.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TXA.opcode;
+	memory[TEST_MAIN_ADDRESS] = TXA.opcode;
 	cpu.setX(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -39,7 +39,7 @@ TEST_F(CPUTests, txaNegWorks)
 	constexpr sdword targetCycles = TXA.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TXA.opcode;
+	memory[TEST_MAIN_ADDRESS] = TXA.opcode;
 	cpu.setX(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -60,7 +60,7 @@ TEST_F(CPUTests, txaNullWorks)
 	constexpr sdword targetCycles = TXA.cycles;
 
 	// Transfert A to X
-	memory[PC_RESET] = TXA.opcode;
+	memory[TEST_MAIN_ADDRESS] = TXA.opcode;
 	cpu.setX(targetValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

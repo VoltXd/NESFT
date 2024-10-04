@@ -20,7 +20,7 @@ TEST_F(CPUTests, inyWorks)
 	constexpr sdword targetCycles = INY.cycles;
 
 	// Load to A
-	memory[PC_RESET] = INY.opcode;
+	memory[TEST_MAIN_ADDRESS] = INY.opcode;
 	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -42,7 +42,7 @@ TEST_F(CPUTests, inyNegWorks)
 	constexpr sdword targetCycles = INY.cycles;
 
 	// Load to A, negative value
-	memory[PC_RESET] = INY.opcode;
+	memory[TEST_MAIN_ADDRESS] = INY.opcode;
 	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
@@ -64,7 +64,7 @@ TEST_F(CPUTests, inyNullWorks)
 	constexpr sdword targetCycles = INY.cycles;
 
 	// Load to A, null value
-	memory[PC_RESET] = INY.opcode;
+	memory[TEST_MAIN_ADDRESS] = INY.opcode;
 	cpu.setY(yValue);
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 

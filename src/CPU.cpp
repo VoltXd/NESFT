@@ -2,10 +2,14 @@
 
 #include <iostream>
 
-void CPU::reset(Memory& memory)
+sdword CPU::reset(Memory& memory)
 {
+	// Cycles variables
+	constexpr sdword resetCycles = 7;
+	sdword cycles = resetCycles;
+
 	// Reset registers
-	mPc = PC_RESET;
+	mPc = RESET_VECTOR_LSB;
 	mSp = SP_RESET;
 
 	mA = 0;
@@ -14,15 +18,20 @@ void CPU::reset(Memory& memory)
 
 	mC = 0;
 	mZ = 0;
-	mI = 0;
+	mI = 1;
 	mD = 0;
 	mB = 1; // Assumed to be 1, handled by operations
 	mU = 1;
 	mV = 0;
 	mN = 0;
 
-	// Reset memory
-	memory.initialise();
+	// Push stack 3 times
+	mSp -= 3;
+
+	// Get first instruction address
+	mPc = fetchWord(cycles, memory);
+
+	return resetCycles;
 }
 
 sdword CPU::execute(sdword cycles, Memory &memory)

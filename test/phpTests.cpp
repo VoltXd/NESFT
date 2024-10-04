@@ -20,12 +20,12 @@ TEST_F(CPUTests, phpWorks)
 	constexpr sdword targetCycles = PHP.cycles;
 
 	// Push Processor status
-	memory[PC_RESET] = PHP.opcode;
+	memory[TEST_MAIN_ADDRESS] = PHP.opcode;
 	sdword elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
-	// NVUB'DIZC = 0b1011'0001
-	EXPECT_EQ(memory[SP_PAGE_OFFSET + cpu.getSp() + 1], 0b1011'0001);
+	// NVUB'DIZC = 0b1011'0101
+	EXPECT_EQ(memory[SP_PAGE_OFFSET + cpu.getSp() + 1], 0b1011'0101);
 	verifyUnmodifiedStatusFlagsFromPHP(cpu, cpuInitialState);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

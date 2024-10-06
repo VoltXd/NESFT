@@ -443,3 +443,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# ************ Projetc related *********** #
+roms

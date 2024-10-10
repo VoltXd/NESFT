@@ -12,7 +12,7 @@ constexpr word IRQ_VECTOR_LSB = 0xFFFE;
 constexpr word IRQ_VECTOR_MSB = 0xFFFF;
 constexpr byte SP_RESET = 0xFF;
 constexpr word SP_PAGE_OFFSET = 0x0100;
-#ifdef TEST
+#ifdef TEST_6502
 constexpr word TEST_MAIN_ADDRESS = 0x8000;
 #endif
 

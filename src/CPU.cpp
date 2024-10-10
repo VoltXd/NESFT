@@ -113,7 +113,7 @@ sdword CPU::execute(sdword cycles, Memory &memory)
 byte CPU::fetchByte(sdword& cycles, Memory &memory)
 {
 	// Get one byte from memory & increment program counter
-	byte data = memory[mPc];
+	byte data = memory.cpuRead(mPc);
 	mPc++;
 
 	// Decrement remaining cycles counter
@@ -126,12 +126,12 @@ word CPU::fetchWord(sdword &cycles, Memory &memory)
 {
 	// 6502 => Little endian => 1st is LSB, 2nd is MSB
 	// Get LSB from memory & increment program counter
-	word data = memory[mPc];
+	word data = memory.cpuRead(mPc);
 	mPc++;
 	cycles--;
 
 	// Get MSB from memory & increment program counter
-	data |= (word)memory[mPc] << 8;
+	data |= (word)memory.cpuRead(mPc) << 8;
 	mPc++;
 	cycles--;
 
@@ -141,7 +141,7 @@ word CPU::fetchWord(sdword &cycles, Memory &memory)
 byte CPU::readByte(sdword &cycles, Memory &memory, word address)
 {
 	// Get one byte from memory & decrement cycles counter
-	byte data = memory[address];
+	byte data = memory.cpuRead(address);
 	cycles--;
 
 	return data;
@@ -150,14 +150,14 @@ byte CPU::readByte(sdword &cycles, Memory &memory, word address)
 void CPU::writeByte(sdword &cycles, Memory &memory, word address, byte value)
 {
 	// Write value into memory & decrement cycles counter
-	memory[address] = value;
+	memory.cpuWrite(address, value);
 	cycles--;
 }
 
 void CPU::stackPush(sdword &cycles, Memory &memory, byte value)
 {
 	// Store value on to the stack pointer's position
-	memory[SP_PAGE_OFFSET | mSp] = value;
+	memory.cpuWrite(SP_PAGE_OFFSET | mSp, value);
 
 	// Decrement stack pointer & cycles count
 	mSp--;
@@ -171,7 +171,7 @@ byte CPU::stackPull(sdword &cycles, Memory &memory)
 	cycles--;
 
 	// Load value from the stack pointer's position
-	byte value = memory[SP_PAGE_OFFSET | mSp];
+	byte value = memory.cpuRead(SP_PAGE_OFFSET | mSp);
 	cycles--;
 
 	return value;

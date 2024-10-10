@@ -50,8 +50,13 @@ Inspired by [Dave Poo](https://www.youtube.com/@DavePoo):\
 [Emulating a CPU in C++ #2 (6502) - Unit Testing
 ](https://youtu.be/L7J1pPokEyw?si=gRlonH_mJQViYa5g)
 
+And [OneLoneCoder](https://www.youtube.com/@javidx9)
+
+### NES Hardware
+[NESdev Wiki](https://www.nesdev.org/wiki/NES_reference_guide)
+
 ### 6502
-[Andrew Jacobs - 6502](https://web.archive.org/web/20210727210256/http://obelisk.me.uk/6502/index.html)\
+[Andrew Jacobs - 6502](https://www.nesdev.org/obelisk-6502-guide/index.html)\
 [C64 Reset Process](https://www.c64-wiki.com/wiki/Reset_(Process)), I need to verify if it is different on the NES...\
 [6502 Overflow flag explained](https://www.righto.com/2012/12/the-6502-overflow-flag-explained.html)
 

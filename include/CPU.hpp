@@ -13,7 +13,6 @@ public:
     sdword nmi(Memory& memory);
     sdword execute(sdword cycles, Memory& memory);
 
-#ifdef TEST
     // ******** Accessors ******** //
     // Getters
     inline word getPc() const { return mPc; }
@@ -31,6 +30,7 @@ public:
     inline byte getV() const { return mV; }
     inline byte getN() const { return mN; }
     
+#ifdef TEST_6502
     // Setters
     inline void setPc(word value) { mPc = value; }
     inline void setSp(byte value) { mSp = value; }

@@ -55,7 +55,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CM
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 #define TEST, so that the program starts with Google Test's main
-target_compile_definitions(${PROJECT_NAME} PUBLIC TEST)
+target_compile_definitions(${PROJECT_NAME} PUBLIC TEST_6502)
 
 # Verbose warnings & warnings are errors
 if(MSVC)

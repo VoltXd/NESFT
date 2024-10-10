@@ -1,16 +1,11 @@
 #pragma once
 
-#include "Config.hpp"
+#ifdef TEST_6502
+#include "Memory6502.hpp"
+using Memory = Memory6502;
 
-class Memory
-{
-public:
-	void initialise();
-	inline byte operator[](word index) const { return data[index]; }
-	inline byte& operator[](word index) { return data[index]; }
-	void writeWord(word value, word address, sdword& cycles);
+#else
+#include "MemoryNES.hpp"
+using Memory = MemoryNES;
 
-private:
-	static constexpr sdword MEM_SIZE = 1024 * 64;
-	byte data[MEM_SIZE];
-};
+#endif

@@ -1,4 +1,4 @@
-#ifdef TEST
+#ifdef TEST_6502
 #include <cstdio>
 
 #include "gtest/gtest.h"
@@ -16,7 +16,13 @@ GTEST_API_ int main(int argc, char **argv) {
 
 int main(int argc, char** argv)
 {
-    Emulator emulator;
+	if (argc != 2)
+	{
+		std::cout << "Error: bad argument number (" << argc << ", must be 2)" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+    Emulator emulator(argv[1]);
     return emulator.run();
 }
 #endif

@@ -3,10 +3,10 @@
 TEST_F(CPUTests, cpuDoesNothingWhenWeExecuteZeroCycles)
 {
 	// Target values
-	constexpr sdword targetCycles = 0;
+	constexpr s32 targetCycles = 0;
 
 	// Execute 0 cycles
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS);
@@ -30,14 +30,14 @@ TEST_F(CPUTests, cpuDoesNothingWhenWeExecuteZeroCycles)
 TEST_F(CPUTests, cpuCanExecuteMoreCyclesThanRequested)
 {
 	// Target values
-	constexpr byte targetvalue = 0x42;
-	constexpr sdword targetCycles = LDA_IMM.cycles;
-	constexpr sdword cyclesToExecute = 1;
+	constexpr u8 targetvalue = 0x42;
+	constexpr s32 targetCycles = LDA_IMM.cycles;
+	constexpr s32 cyclesToExecute = 1;
 
 	// Execute 1 cycles
 	memory[TEST_MAIN_ADDRESS] = LDA_IMM.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = targetvalue;
-	sdword elapsedCycles = cpu.execute(cyclesToExecute, memory);
+	s32 elapsedCycles = cpu.execute(cyclesToExecute, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS + 2);

@@ -4,15 +4,15 @@
 TEST_F(CPUTests, bneCrossesPage)
 {
 	// Target values
-	constexpr byte relAddress = 255 - 15;
-	constexpr word targetPc = TEST_MAIN_ADDRESS - 14;
+	constexpr u8 relAddress = 255 - 15;
+	constexpr u16 targetPc = TEST_MAIN_ADDRESS - 14;
 
-	constexpr sdword targetCycles = BNE.cycles;
+	constexpr s32 targetCycles = BNE.cycles;
 
 	// Run program
 	memory[TEST_MAIN_ADDRESS] = BNE.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = relAddress;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetPc);
@@ -23,16 +23,16 @@ TEST_F(CPUTests, bneCrossesPage)
 TEST_F(CPUTests, bneDoesntBranch)
 {
 	// Target values
-	constexpr byte relAddress = 255 - 15;
-	constexpr word targetPc = TEST_MAIN_ADDRESS + 2;
+	constexpr u8 relAddress = 255 - 15;
+	constexpr u16 targetPc = TEST_MAIN_ADDRESS + 2;
 
-	constexpr sdword targetCycles = BNE.cycles;
+	constexpr s32 targetCycles = BNE.cycles;
 
 	// Run program
 	cpu.setZ(1);
 	memory[TEST_MAIN_ADDRESS] = BNE.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = relAddress;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetPc);
@@ -43,15 +43,15 @@ TEST_F(CPUTests, bneDoesntBranch)
 TEST_F(CPUTests, bneBranches)
 {
 	// Target values
-	constexpr byte relAddress = 0x08;
-	constexpr word targetPc = 0x800A;
+	constexpr u8 relAddress = 0x08;
+	constexpr u16 targetPc = 0x800A;
 
-	constexpr sdword targetCycles = BNE.cycles;
+	constexpr s32 targetCycles = BNE.cycles;
 
 	// Run program
 	memory[TEST_MAIN_ADDRESS] = BNE.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = relAddress;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetPc);

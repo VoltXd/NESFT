@@ -16,16 +16,16 @@ TEST_F(CPUTests, jmpAbsWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr word address = 0x3224;
-	constexpr sdword targetCycles = JMP_ABS.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u16 address = 0x3224;
+	constexpr s32 targetCycles = JMP_ABS.cycles;
 
 	// Test bits
 	memory[TEST_MAIN_ADDRESS] = JMP_ABS.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), address);
@@ -38,13 +38,13 @@ TEST_F(CPUTests, jmpIndWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte indirectAddressLsb = 0x24;
-	constexpr byte indirectAddressMsb = 0x32;
-	constexpr word indirectAddress = 0x3224;
-	constexpr byte targetAddressLsb = 0x4F;
-	constexpr byte targetAddressMsb = 0x87;
-	constexpr word targetAddress = 0x874F;
-	constexpr sdword targetCycles = JMP_IND.cycles;
+	constexpr u8 indirectAddressLsb = 0x24;
+	constexpr u8 indirectAddressMsb = 0x32;
+	constexpr u16 indirectAddress = 0x3224;
+	constexpr u8 targetAddressLsb = 0x4F;
+	constexpr u8 targetAddressMsb = 0x87;
+	constexpr u16 targetAddress = 0x874F;
+	constexpr s32 targetCycles = JMP_IND.cycles;
 
 	// Test bits
 	memory[TEST_MAIN_ADDRESS] = JMP_IND.opcode;
@@ -52,7 +52,7 @@ TEST_F(CPUTests, jmpIndWorks)
 	memory[TEST_MAIN_ADDRESS + 2] = indirectAddressMsb;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[indirectAddress + 1] = targetAddressMsb;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetAddress);
@@ -64,13 +64,13 @@ TEST_F(CPUTests, jmpIndWrapWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte indirectAddressLsb = 0xFF;
-	constexpr byte indirectAddressMsb = 0x32;
-	constexpr word indirectAddress = 0x32FF;
-	constexpr byte targetAddressLsb = 0x4F;
-	constexpr byte targetAddressMsb = 0x87;
-	constexpr word targetAddress = 0x874F;
-	constexpr sdword targetCycles = JMP_IND.cycles;
+	constexpr u8 indirectAddressLsb = 0xFF;
+	constexpr u8 indirectAddressMsb = 0x32;
+	constexpr u16 indirectAddress = 0x32FF;
+	constexpr u8 targetAddressLsb = 0x4F;
+	constexpr u8 targetAddressMsb = 0x87;
+	constexpr u16 targetAddress = 0x874F;
+	constexpr s32 targetCycles = JMP_IND.cycles;
 
 	// Test bits
 	memory[TEST_MAIN_ADDRESS] = JMP_IND.opcode;
@@ -78,7 +78,7 @@ TEST_F(CPUTests, jmpIndWrapWorks)
 	memory[TEST_MAIN_ADDRESS + 2] = indirectAddressMsb;
 	memory[indirectAddress] = targetAddressLsb;
 	memory[0x3200] = targetAddressMsb;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetAddress);

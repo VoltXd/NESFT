@@ -3,10 +3,10 @@
 TEST_F(CPUTests, entersIrq)
 {
 	// Target values
-	constexpr word targetAddress = 0x425D;
-	constexpr byte targetLsb = 0x5D;
-	constexpr byte targetMsb = 0x42;
-	constexpr sdword targetCycles = BRK.cycles;
+	constexpr u16 targetAddress = 0x425D;
+	constexpr u8 targetLsb = 0x5D;
+	constexpr u8 targetMsb = 0x42;
+	constexpr s32 targetCycles = BRK.cycles;
 
 	// Run program
 	cpu.setI(0);
@@ -15,7 +15,7 @@ TEST_F(CPUTests, entersIrq)
 	cpu.setN(1);
 	memory[IRQ_VECTOR_LSB] = targetLsb;
 	memory[IRQ_VECTOR_MSB] = targetMsb;
-	sdword elapsedCycles = cpu.irq(memory);
+	s32 elapsedCycles = cpu.irq(memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 6);
@@ -29,9 +29,9 @@ TEST_F(CPUTests, entersIrq)
 TEST_F(CPUTests, notEntersIrq)
 {
 	// Target values
-	constexpr byte targetLsb = 0x5D;
-	constexpr byte targetMsb = 0x42;
-	constexpr sdword targetCycles = 0;
+	constexpr u8 targetLsb = 0x5D;
+	constexpr u8 targetMsb = 0x42;
+	constexpr s32 targetCycles = 0;
 
 	// Run program
 	cpu.setI(1);
@@ -40,7 +40,7 @@ TEST_F(CPUTests, notEntersIrq)
 	cpu.setN(1);
 	memory[IRQ_VECTOR_LSB] = targetLsb;
 	memory[IRQ_VECTOR_MSB] = targetMsb;
-	sdword elapsedCycles = cpu.irq(memory);
+	s32 elapsedCycles = cpu.irq(memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 3);

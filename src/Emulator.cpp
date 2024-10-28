@@ -24,9 +24,9 @@ int Emulator::run()
 	for (int i = 0; i < PPU_OUTPUT_HEIGHT; i++)
 		for (int j = 0; j < PPU_OUTPUT_WIDTH; j++)
 		{
-			redScreen[i][j][0] = (byte)i;
-			redScreen[i][j][1] = (byte)j;
-			redScreen[i][j][2] = (byte)sqrt(i * j);
+			redScreen[i][j][0] = (u8)i;
+			redScreen[i][j][1] = (u8)j;
+			redScreen[i][j][2] = (u8)sqrt(i * j);
 		}
 	
 		
@@ -42,10 +42,10 @@ int Emulator::run()
 
 void Emulator::runOneCycleAndPrintCPUInfo()
 {
-	word pc = mCpu.getPc();
-	byte instruction = mMemory.cpuRead(pc);
+	u16 pc = mCpu.getPc();
+	u8 instruction = mMemory.cpuRead(pc);
 
-	sdword elapsedCycles = mCpu.execute(1, mMemory);
+	s32 elapsedCycles = mCpu.execute(1, mMemory);
 
 	std::cout << std::uppercase << std::hex 
 	          << "PC: 0x" << pc

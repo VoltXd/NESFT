@@ -15,13 +15,13 @@ TEST_F(CPUTests, ldyImmPosWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_IMM.cycles;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_IMM.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = LDY_IMM.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -36,13 +36,13 @@ TEST_F(CPUTests, ldyImmNegWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0xD8;
-	constexpr sdword targetCycles = LDY_IMM.cycles;
+	constexpr u8 targetValue = 0xD8;
+	constexpr s32 targetCycles = LDY_IMM.cycles;
 
 	// Load to A, negative value
 	memory[TEST_MAIN_ADDRESS] = LDY_IMM.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -57,13 +57,13 @@ TEST_F(CPUTests, ldyImmNullWorks)
 {	
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x00;
-	constexpr sdword targetCycles = LDY_IMM.cycles;
+	constexpr u8 targetValue = 0x00;
+	constexpr s32 targetCycles = LDY_IMM.cycles;
 
 	// Load to A, null value
 	memory[TEST_MAIN_ADDRESS] = LDY_IMM.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -78,15 +78,15 @@ TEST_F(CPUTests, ldyZPWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x24;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ZP.cycles;
+	constexpr u8 zpAddress = 0x24;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ZP.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = LDY_ZP.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -101,18 +101,18 @@ TEST_F(CPUTests, ldyZPXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x80;
-	constexpr byte xValue = 0x0F;
-	constexpr byte targetAddress = 0x8F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ZPX.cycles;
+	constexpr u8 zpAddress = 0x80;
+	constexpr u8 xValue = 0x0F;
+	constexpr u8 targetAddress = 0x8F;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
 	memory[TEST_MAIN_ADDRESS] = LDY_ZPX.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -127,18 +127,18 @@ TEST_F(CPUTests, ldyZPXWraps)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x80;
-	constexpr byte xValue = 0xFF;
-	constexpr byte targetAddress = 0x7F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ZPX.cycles;
+	constexpr u8 zpAddress = 0x80;
+	constexpr u8 xValue = 0xFF;
+	constexpr u8 targetAddress = 0x7F;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
 	memory[TEST_MAIN_ADDRESS] = LDY_ZPX.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -153,18 +153,18 @@ TEST_F(CPUTests, ldyAbsWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr word address = 0x3224;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ABS.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u16 address = 0x3224;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ABS.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = LDY_ABS.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -179,12 +179,12 @@ TEST_F(CPUTests, ldyAbsXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr byte xValue = 0x17;
-	constexpr word address = 0x323B;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ABSX.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u8 xValue = 0x17;
+	constexpr u16 address = 0x323B;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -192,7 +192,7 @@ TEST_F(CPUTests, ldyAbsXWorks)
 	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -207,12 +207,12 @@ TEST_F(CPUTests, ldyAbsXCanGoToNextPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr byte xValue = 0xFF;
-	constexpr word address = 0x3323;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ABSX.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u8 xValue = 0xFF;
+	constexpr u16 address = 0x3323;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -220,7 +220,7 @@ TEST_F(CPUTests, ldyAbsXCanGoToNextPage)
 	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);
@@ -235,12 +235,12 @@ TEST_F(CPUTests, ldyAbsXCanOverflowToZeroPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0xFF;
-	constexpr byte addressMsb = 0xFF;
-	constexpr byte xValue = 0x01;
-	constexpr word address = 0x0000;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = LDY_ABSX.cycles;
+	constexpr u8 addressLsb = 0xFF;
+	constexpr u8 addressMsb = 0xFF;
+	constexpr u8 xValue = 0x01;
+	constexpr u16 address = 0x0000;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = LDY_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -248,7 +248,7 @@ TEST_F(CPUTests, ldyAbsXCanOverflowToZeroPage)
 	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getY(), targetValue);

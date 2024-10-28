@@ -14,15 +14,15 @@ TEST_F(CPUTests, rorAccWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ACC.cycles;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ACC.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = ROR_ACC.opcode;
 	cpu.setA(inputValue);
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -38,15 +38,15 @@ TEST_F(CPUTests, rorAccNegWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte inputValue = 0b0010'0000;
-	constexpr byte targetValue = 0b1001'0000;
-	constexpr sdword targetCycles = ROR_ACC.cycles;
+	constexpr u8 inputValue = 0b0010'0000;
+	constexpr u8 targetValue = 0b1001'0000;
+	constexpr s32 targetCycles = ROR_ACC.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = ROR_ACC.opcode;
 	cpu.setA(inputValue);
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -62,14 +62,14 @@ TEST_F(CPUTests, rorAccNullCarryWorks)
 {	
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte inputValue = 0b0000'0001;
-	constexpr byte targetValue = 0b0000'0000;
-	constexpr sdword targetCycles = ROR_ACC.cycles;
+	constexpr u8 inputValue = 0b0000'0001;
+	constexpr u8 targetValue = 0b0000'0000;
+	constexpr s32 targetCycles = ROR_ACC.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = ROR_ACC.opcode;
 	cpu.setA(inputValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -85,17 +85,17 @@ TEST_F(CPUTests, rorZPWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x24;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ZP.cycles;
+	constexpr u8 zpAddress = 0x24;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ZP.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = ROR_ZP.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[zpAddress] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[zpAddress], targetValue);
@@ -111,12 +111,12 @@ TEST_F(CPUTests, rorZPXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x80;
-	constexpr byte xValue = 0x0F;
-	constexpr byte targetAddress = 0x8F;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ZPX.cycles;
+	constexpr u8 zpAddress = 0x80;
+	constexpr u8 xValue = 0x0F;
+	constexpr u8 targetAddress = 0x8F;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -124,7 +124,7 @@ TEST_F(CPUTests, rorZPXWorks)
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[targetAddress], targetValue);
@@ -140,12 +140,12 @@ TEST_F(CPUTests, rorZPXWraps)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x80;
-	constexpr byte xValue = 0xFF;
-	constexpr byte targetAddress = 0x7F;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ZPX.cycles;
+	constexpr u8 zpAddress = 0x80;
+	constexpr u8 xValue = 0xFF;
+	constexpr u8 targetAddress = 0x7F;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ZPX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -153,7 +153,7 @@ TEST_F(CPUTests, rorZPXWraps)
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	memory[targetAddress] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[targetAddress], targetValue);
@@ -169,12 +169,12 @@ TEST_F(CPUTests, rorAbsWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr word address = 0x3224;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ABS.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u16 address = 0x3224;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ABS.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = ROR_ABS.opcode;
@@ -182,7 +182,7 @@ TEST_F(CPUTests, rorAbsWorks)
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[address], targetValue);
@@ -198,13 +198,13 @@ TEST_F(CPUTests, rorAbsXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr byte xValue = 0x17;
-	constexpr word address = 0x323B;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ABSX.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u8 xValue = 0x17;
+	constexpr u16 address = 0x323B;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -213,7 +213,7 @@ TEST_F(CPUTests, rorAbsXWorks)
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[address], targetValue);
@@ -229,13 +229,13 @@ TEST_F(CPUTests, rorAbsXCanGoToNextPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr byte xValue = 0xFF;
-	constexpr word address = 0x3323;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ABSX.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u8 xValue = 0xFF;
+	constexpr u16 address = 0x3323;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -244,7 +244,7 @@ TEST_F(CPUTests, rorAbsXCanGoToNextPage)
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[address], targetValue);
@@ -260,13 +260,13 @@ TEST_F(CPUTests, rorAbsXCanOverflowToZeroPage)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0xFF;
-	constexpr byte addressMsb = 0xFF;
-	constexpr byte xValue = 0x01;
-	constexpr word address = 0x0000;
-	constexpr byte inputValue = 0b0110'0100;
-	constexpr byte targetValue = 0b1011'0010;
-	constexpr sdword targetCycles = ROR_ABSX.cycles;
+	constexpr u8 addressLsb = 0xFF;
+	constexpr u8 addressMsb = 0xFF;
+	constexpr u8 xValue = 0x01;
+	constexpr u16 address = 0x0000;
+	constexpr u8 inputValue = 0b0110'0100;
+	constexpr u8 targetValue = 0b1011'0010;
+	constexpr s32 targetCycles = ROR_ABSX.cycles;
 
 	// Load to A
 	cpu.setX(xValue);
@@ -275,7 +275,7 @@ TEST_F(CPUTests, rorAbsXCanOverflowToZeroPage)
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	memory[address] = inputValue;
 	cpu.setC(1);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[address], targetValue);

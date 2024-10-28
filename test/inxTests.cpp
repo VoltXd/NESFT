@@ -15,14 +15,14 @@ TEST_F(CPUTests, inxWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte xValue = 0x41;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = INX.cycles;
+	constexpr u8 xValue = 0x41;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = INX.cycles;
 
 	// Load to A
 	memory[TEST_MAIN_ADDRESS] = INX.opcode;
 	cpu.setX(xValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);
@@ -37,14 +37,14 @@ TEST_F(CPUTests, inxNegWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte xValue = 0xD5;
-	constexpr byte targetValue = 0xD6;
-	constexpr sdword targetCycles = INX.cycles;
+	constexpr u8 xValue = 0xD5;
+	constexpr u8 targetValue = 0xD6;
+	constexpr s32 targetCycles = INX.cycles;
 
 	// Load to A, negative value
 	memory[TEST_MAIN_ADDRESS] = INX.opcode;
 	cpu.setX(xValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);
@@ -59,14 +59,14 @@ TEST_F(CPUTests, inxNullWorks)
 {	
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte xValue = 0xFF;
-	constexpr byte targetValue = 0x00;
-	constexpr sdword targetCycles = INX.cycles;
+	constexpr u8 xValue = 0xFF;
+	constexpr u8 targetValue = 0x00;
+	constexpr s32 targetCycles = INX.cycles;
 
 	// Load to A, null value
 	memory[TEST_MAIN_ADDRESS] = INX.opcode;
 	cpu.setX(xValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);

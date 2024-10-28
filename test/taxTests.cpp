@@ -14,13 +14,13 @@ TEST_F(CPUTests, taxPosWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = TAX.cycles;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = TAX.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TAX.opcode;
 	cpu.setA(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);
@@ -35,13 +35,13 @@ TEST_F(CPUTests, taxNegWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0xD8;
-	constexpr sdword targetCycles = TAX.cycles;
+	constexpr u8 targetValue = 0xD8;
+	constexpr s32 targetCycles = TAX.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TAX.opcode;
 	cpu.setA(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);
@@ -56,13 +56,13 @@ TEST_F(CPUTests, taxNullWorks)
 {	
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x00;
-	constexpr sdword targetCycles = TAX.cycles;
+	constexpr u8 targetValue = 0x00;
+	constexpr s32 targetCycles = TAX.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TAX.opcode;
 	cpu.setA(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);

@@ -15,13 +15,13 @@ TEST_F(CPUTests, phaWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = PHA.cycles;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = PHA.cycles;
 
 	// Push A
 	memory[TEST_MAIN_ADDRESS] = PHA.opcode;
 	cpu.setA(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[SP_PAGE_OFFSET + cpu.getSp() + 1], targetValue);

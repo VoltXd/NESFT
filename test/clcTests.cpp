@@ -4,12 +4,12 @@
 TEST_F(CPUTests, clcClear)
 {
 	// Target values
-	constexpr sdword targetCycles = CLC.cycles;
+	constexpr s32 targetCycles = CLC.cycles;
 
 	// Run program
 	cpu.setC(1);
 	memory[TEST_MAIN_ADDRESS] = CLC.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getC(), 0);
@@ -20,12 +20,12 @@ TEST_F(CPUTests, clcClear)
 TEST_F(CPUTests, clcClearUnchange)
 {
 	// Target values
-	constexpr sdword targetCycles = CLC.cycles;
+	constexpr s32 targetCycles = CLC.cycles;
 
 	// Run program
 	cpu.setC(0);
 	memory[TEST_MAIN_ADDRESS] = CLC.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getC(), 0);

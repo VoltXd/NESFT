@@ -4,16 +4,16 @@
 TEST_F(CPUTests, jsrWorks)
 {
 	// Target values
-	constexpr word targetAddress = 0x425D;
-	constexpr byte targetLsb = 0x5D;
-	constexpr byte targetMsb = 0x42;
-	constexpr sdword targetCycles = JSR.cycles;
+	constexpr u16 targetAddress = 0x425D;
+	constexpr u8 targetLsb = 0x5D;
+	constexpr u8 targetMsb = 0x42;
+	constexpr s32 targetCycles = JSR.cycles;
 
 	// Run program
 	memory[TEST_MAIN_ADDRESS] = JSR.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = targetLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = targetMsb;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 5);

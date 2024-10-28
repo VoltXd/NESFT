@@ -15,8 +15,8 @@ public:
 
 	void reset();
 
-	bool readPrg(word cpuAddress, byte& output);
-	bool writePrg(word cpuAddress, byte input);
+	bool readPrg(u16 cpuAddress, u8& output);
+	bool writePrg(u16 cpuAddress, u8 input);
 
 private:
 	enum NametableArrangement
@@ -38,16 +38,16 @@ private:
 						 bool hasPrgRam,
 						 bool hasTrainer,
 						 bool hasAltNtLayout,
-						 byte mapperNum,
+						 u8 mapperNum,
 						 bool isVsUnisystem,
 						 bool isPlaychoice10,
 						 bool isNes2Header,
 						 uint32_t prgRamSize,
 						 TVSystem tvSystem);
 
-	std::vector<byte> mPrgRom;
-	std::vector<byte> mPrgRam;
-	std::vector<byte> mChrRom;
+	std::vector<u8> mPrgRom;
+	std::vector<u8> mPrgRam;
+	std::vector<u8> mChrRom;
 
 	std::shared_ptr<Mapper> mMapper;
 };

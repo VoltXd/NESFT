@@ -4,12 +4,12 @@
 TEST_F(CPUTests, secSetUnchange)
 {
 	// Target values
-	constexpr sdword targetCycles = SEC.cycles;
+	constexpr s32 targetCycles = SEC.cycles;
 
 	// Run program
 	cpu.setC(1);
 	memory[TEST_MAIN_ADDRESS] = SEC.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getC(), 1);
@@ -20,12 +20,12 @@ TEST_F(CPUTests, secSetUnchange)
 TEST_F(CPUTests, secSet)
 {
 	// Target values
-	constexpr sdword targetCycles = SEC.cycles;
+	constexpr s32 targetCycles = SEC.cycles;
 
 	// Run program
 	cpu.setC(0);
 	memory[TEST_MAIN_ADDRESS] = SEC.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getC(), 1);

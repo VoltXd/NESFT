@@ -4,12 +4,12 @@
 TEST_F(CPUTests, cliClear)
 {
 	// Target values
-	constexpr sdword targetCycles = CLI.cycles;
+	constexpr s32 targetCycles = CLI.cycles;
 
 	// Run program
 	cpu.setI(1);
 	memory[TEST_MAIN_ADDRESS] = CLI.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getI(), 0);
@@ -20,12 +20,12 @@ TEST_F(CPUTests, cliClear)
 TEST_F(CPUTests, cliClearUnchange)
 {
 	// Target values
-	constexpr sdword targetCycles = CLI.cycles;
+	constexpr s32 targetCycles = CLI.cycles;
 
 	// Run program
 	cpu.setI(0);
 	memory[TEST_MAIN_ADDRESS] = CLI.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getI(), 0);

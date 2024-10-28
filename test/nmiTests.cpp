@@ -3,10 +3,10 @@
 TEST_F(CPUTests, entersNmi)
 {
 	// Target values
-	constexpr word targetAddress = 0x425D;
-	constexpr byte targetLsb = 0x5D;
-	constexpr byte targetMsb = 0x42;
-	constexpr sdword targetCycles = BRK.cycles;
+	constexpr u16 targetAddress = 0x425D;
+	constexpr u8 targetLsb = 0x5D;
+	constexpr u8 targetMsb = 0x42;
+	constexpr s32 targetCycles = BRK.cycles;
 
 	// Run program
 	cpu.setI(0);
@@ -15,7 +15,7 @@ TEST_F(CPUTests, entersNmi)
 	cpu.setN(1);
 	memory[NMI_VECTOR_LSB] = targetLsb;
 	memory[NMI_VECTOR_MSB] = targetMsb;
-	sdword elapsedCycles = cpu.nmi(memory);
+	s32 elapsedCycles = cpu.nmi(memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 6);
@@ -29,10 +29,10 @@ TEST_F(CPUTests, entersNmi)
 TEST_F(CPUTests, EntersNmiAnyway)
 {
 	// Target values
-	constexpr word targetAddress = 0x425D;
-	constexpr byte targetLsb = 0x5D;
-	constexpr byte targetMsb = 0x42;
-	constexpr sdword targetCycles = 7;
+	constexpr u16 targetAddress = 0x425D;
+	constexpr u8 targetLsb = 0x5D;
+	constexpr u8 targetMsb = 0x42;
+	constexpr s32 targetCycles = 7;
 
 	// Run program
 	cpu.setI(1);
@@ -41,7 +41,7 @@ TEST_F(CPUTests, EntersNmiAnyway)
 	cpu.setN(1);
 	memory[NMI_VECTOR_LSB] = targetLsb;
 	memory[NMI_VECTOR_MSB] = targetMsb;
-	sdword elapsedCycles = cpu.nmi(memory);
+	s32 elapsedCycles = cpu.nmi(memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), 0xFF - 6);

@@ -16,13 +16,13 @@ TEST_F(CPUTests, txsPosWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = TXS.cycles;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = TXS.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TXS.opcode;
 	cpu.setX(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getSp(), targetValue);

@@ -4,16 +4,16 @@
 TEST_F(CPUTests, beqCrossesPage)
 {
 	// Target values
-	constexpr byte relAddress = 255 - 15;
-	constexpr word targetPc = TEST_MAIN_ADDRESS - 14;
+	constexpr u8 relAddress = 255 - 15;
+	constexpr u16 targetPc = TEST_MAIN_ADDRESS - 14;
 
-	constexpr sdword targetCycles = BEQ.cycles;
+	constexpr s32 targetCycles = BEQ.cycles;
 
 	// Run program
 	cpu.setZ(1);
 	memory[TEST_MAIN_ADDRESS] = BEQ.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = relAddress;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetPc);
@@ -24,16 +24,16 @@ TEST_F(CPUTests, beqCrossesPage)
 TEST_F(CPUTests, beqDoesntBranch)
 {
 	// Target values
-	constexpr byte relAddress = 255 - 15;
-	constexpr word targetPc = TEST_MAIN_ADDRESS + 2;
+	constexpr u8 relAddress = 255 - 15;
+	constexpr u16 targetPc = TEST_MAIN_ADDRESS + 2;
 
-	constexpr sdword targetCycles = BEQ.cycles;
+	constexpr s32 targetCycles = BEQ.cycles;
 
 	// Run program
 	cpu.setZ(0);
 	memory[TEST_MAIN_ADDRESS] = BEQ.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = relAddress;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetPc);
@@ -44,16 +44,16 @@ TEST_F(CPUTests, beqDoesntBranch)
 TEST_F(CPUTests, beqBranches)
 {
 	// Target values
-	constexpr byte relAddress = 0x08;
-	constexpr word targetPc = 0x800A;
+	constexpr u8 relAddress = 0x08;
+	constexpr u16 targetPc = 0x800A;
 
-	constexpr sdword targetCycles = BEQ.cycles;
+	constexpr s32 targetCycles = BEQ.cycles;
 
 	// Run program
 	cpu.setZ(1);
 	memory[TEST_MAIN_ADDRESS] = BEQ.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = relAddress;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), targetPc);

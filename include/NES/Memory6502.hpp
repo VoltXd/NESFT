@@ -7,10 +7,10 @@ class Memory6502
 {
 public:
 	void reset();
-	inline byte operator[](word index) const { return data[index]; }
-	inline byte& operator[](word index) { return data[index]; }
+	inline u8 operator[](u16 index) const { return data[index]; }
+	inline u8& operator[](u16 index) { return data[index]; }
 
 private:
-	static constexpr sdword MEM_SIZE = 1024 * 64;
-	byte data[MEM_SIZE];
+	static constexpr s32 MEM_SIZE = 1024 * 64;
+	u8 data[MEM_SIZE];
 };

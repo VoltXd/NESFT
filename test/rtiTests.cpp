@@ -12,10 +12,10 @@ TEST_F(CPUTests, rtiWorks)
 {
 	// Target values
 	CPU cpuInitialState = cpu;
-	constexpr word returnAddress = 0x425D;
-	constexpr byte returnLsb = 0x5D;
-	constexpr byte returnMsb = 0x42;
-	constexpr sdword targetCycles = RTI.cycles;
+	constexpr u16 returnAddress = 0x425D;
+	constexpr u8 returnLsb = 0x5D;
+	constexpr u8 returnMsb = 0x42;
+	constexpr s32 targetCycles = RTI.cycles;
 
 	// Run program
 	memory[TEST_MAIN_ADDRESS] = RTI.opcode;
@@ -23,7 +23,7 @@ TEST_F(CPUTests, rtiWorks)
 	memory[SP_PAGE_OFFSET | 0xFB] = returnLsb;
 	memory[SP_PAGE_OFFSET | 0xFC] = returnMsb;
 	cpu.setSp(0xFF - 6);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	verifyUnmodifiedStatusFlagsFromRTI(cpu, cpuInitialState);

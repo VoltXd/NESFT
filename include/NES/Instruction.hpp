@@ -85,5 +85,5 @@ struct instruction_t
 	Operation operation;
 	AddressingMode addrMode;
 	uint8_t cycles;
-	byte opcode;
+	u8 opcode;
 };

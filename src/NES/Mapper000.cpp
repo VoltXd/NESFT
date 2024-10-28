@@ -5,7 +5,7 @@ void Mapper000::reset()
 	// Nothing to do I guess...
 }
 
-bool Mapper000::mapCpuWrite(word address, uint32_t &mappedAddress)
+bool Mapper000::mapCpuWrite(u16 address, uint32_t &mappedAddress)
 {
 	// ROM -> No CPU write to cartridge
 	// Implemented as CPU read to remove unused-parameter error
@@ -21,7 +21,7 @@ bool Mapper000::mapCpuWrite(word address, uint32_t &mappedAddress)
 	return false;
 }
 
-bool Mapper000::mapCpuRead(word address, uint32_t &mappedAddress)
+bool Mapper000::mapCpuRead(u16 address, uint32_t &mappedAddress)
 {
 	if (0x8000 <= address)
 	{
@@ -36,7 +36,7 @@ bool Mapper000::mapCpuRead(word address, uint32_t &mappedAddress)
 	return false;
 }
 
-bool Mapper000::mapPpuWrite(word address, uint32_t &mappedAddress)
+bool Mapper000::mapPpuWrite(u16 address, uint32_t &mappedAddress)
 {
 	// No mapping required
 	if (address <= 0x1FFF)
@@ -52,7 +52,7 @@ bool Mapper000::mapPpuWrite(word address, uint32_t &mappedAddress)
 	return false;
 }
 
-bool Mapper000::mapPpuRead(word address, uint32_t &mappedAddress)
+bool Mapper000::mapPpuRead(u16 address, uint32_t &mappedAddress)
 {
 	// No mapping required
 	if (address <= 0x1FFF)

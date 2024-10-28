@@ -50,7 +50,7 @@ Cartridge::Cartridge(const std::string& romFilename)
 	bool hasPrgRam = (header.flag6 & 0b0000'0010) != 0;
 	bool hasTrainer = (header.flag6 & 0b0000'0100) != 0;
 	bool hasAltNtLayout = (header.flag6 & 0b0000'1000) != 0;
-	byte mapperNum = (header.flag6 & 0xF0) >> 4;
+	u8 mapperNum = (header.flag6 & 0xF0) >> 4;
 
 	// Flag 7
 	bool isVsUnisystem = (header.flag7 & 0b0000'0001) != 0;
@@ -111,7 +111,7 @@ void Cartridge::reset()
 		mMapper->reset();
 }
 
-bool Cartridge::readPrg(word cpuAddress, byte &output)
+bool Cartridge::readPrg(u16 cpuAddress, u8 &output)
 {
 	uint32_t prgRomAddr;
 	if (!mMapper->mapCpuRead(cpuAddress, prgRomAddr))
@@ -121,7 +121,7 @@ bool Cartridge::readPrg(word cpuAddress, byte &output)
 	return true;
 }
 
-bool Cartridge::writePrg(word cpuAddress, byte input)
+bool Cartridge::writePrg(u16 cpuAddress, u8 input)
 {
 	// Write into the PRG-RAM
 	uint32_t prgRamAddr;
@@ -139,7 +139,7 @@ void Cartridge::printHeaderInfo(bool isINesHeader,
                                 bool hasPrgRam, 
 								bool hasTrainer, 
 								bool hasAltNtLayout, 
-								byte mapperNum,
+								u8 mapperNum,
                                 bool isVsUnisystem, 
 								bool isPlaychoice10, 
 								bool isNes2Header, 

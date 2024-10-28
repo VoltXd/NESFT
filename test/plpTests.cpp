@@ -17,17 +17,17 @@ TEST_F(CPUTests, plpWorks)
 	cpu.setC(1);
 	cpu.setN(1);
 	const CPU cpuInitialState = cpu;
-	constexpr sdword targetCycles = PLP.cycles;
+	constexpr s32 targetCycles = PLP.cycles;
 
 	// Pull processor status
 	// NVUB'DIZC = 0b1011'0001
 	cpu.setSp(SP_RESET - 4);
 	memory[TEST_MAIN_ADDRESS] = PLP.opcode;
 	memory[SP_PAGE_OFFSET | 0xFC] = 0b1011'0101;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
-	byte processorStatus = (cpu.getC() & 0x01) << 0 |
+	u8 processorStatus = (cpu.getC() & 0x01) << 0 |
 	                       (cpu.getZ() & 0x01) << 1 |
 	                       (cpu.getI() & 0x01) << 2 |
 	                       (cpu.getD() & 0x01) << 3 |

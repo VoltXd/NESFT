@@ -10,12 +10,12 @@ class MemoryNES
 public:
 	MemoryNES(const std::string& romFilename);
 	void reset();
-	byte cpuRead(word address);
-	void cpuWrite(word address, byte value);
+	u8 cpuRead(u16 address);
+	void cpuWrite(u16 address, u8 value);
 
 private:
-	static constexpr dword CPU_RAM_SIZE = 1 << 11; // 2 kB
-	byte mCpuRam[CPU_RAM_SIZE];
+	static constexpr u32 CPU_RAM_SIZE = 1 << 11; // 2 kB
+	u8 mCpuRam[CPU_RAM_SIZE];
 
 	Cartridge mCartridge;
 };

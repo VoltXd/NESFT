@@ -20,11 +20,11 @@ TEST_F(CPUTests, nopWorks)
 {
 	// Target values
 	CPU cpuInitialState = cpu;
-	constexpr sdword targetCycles = NOP.cycles;
+	constexpr s32 targetCycles = NOP.cycles;
 
 	// Do nothing
 	memory[TEST_MAIN_ADDRESS] = NOP.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS + 1);

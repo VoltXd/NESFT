@@ -5,14 +5,14 @@
 class Mapper000 : public Mapper
 {
 public:
-	Mapper000(byte prgNumBanks, byte chrNumBanks) : Mapper(prgNumBanks, chrNumBanks) {}
+	Mapper000(u8 prgNumBanks, u8 chrNumBanks) : Mapper(prgNumBanks, chrNumBanks) {}
 
 	void reset() override;
 	
-	bool mapCpuWrite(word address, uint32_t& mappedAddress) override;
-	bool mapCpuRead(word address, uint32_t& mappedAddress) override;
-	bool mapPpuWrite(word address, uint32_t& mappedAddress) override;
-	bool mapPpuRead(word address, uint32_t& mappedAddress) override;
+	bool mapCpuWrite(u16 address, uint32_t& mappedAddress) override;
+	bool mapCpuRead(u16 address, uint32_t& mappedAddress) override;
+	bool mapPpuWrite(u16 address, uint32_t& mappedAddress) override;
+	bool mapPpuRead(u16 address, uint32_t& mappedAddress) override;
 	
 private:
 };

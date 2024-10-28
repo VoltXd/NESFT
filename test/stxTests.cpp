@@ -16,15 +16,15 @@ TEST_F(CPUTests, stxZPWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x24;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = STX_ZP.cycles;
+	constexpr u8 zpAddress = 0x24;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = STX_ZP.cycles;
 
 	// Store A
 	memory[TEST_MAIN_ADDRESS] = STX_ZP.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	cpu.setX(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[zpAddress], targetValue);
@@ -38,18 +38,18 @@ TEST_F(CPUTests, stxZPXWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x80;
-	constexpr byte yValue = 0x0F;
-	constexpr byte targetAddress = 0x8F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = STX_ZPY.cycles;
+	constexpr u8 zpAddress = 0x80;
+	constexpr u8 yValue = 0x0F;
+	constexpr u8 targetAddress = 0x8F;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = STX_ZPY.cycles;
 
 	// Store A
 	cpu.setY(yValue);
 	memory[TEST_MAIN_ADDRESS] = STX_ZPY.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	cpu.setX(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[targetAddress], targetValue);
@@ -64,18 +64,18 @@ TEST_F(CPUTests, stxZPXWraps)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte zpAddress = 0x80;
-	constexpr byte yValue = 0xFF;
-	constexpr byte targetAddress = 0x7F;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = STX_ZPY.cycles;
+	constexpr u8 zpAddress = 0x80;
+	constexpr u8 yValue = 0xFF;
+	constexpr u8 targetAddress = 0x7F;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = STX_ZPY.cycles;
 
 	// Store A
 	cpu.setY(yValue);
 	memory[TEST_MAIN_ADDRESS] = STX_ZPY.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = zpAddress;
 	cpu.setX(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[targetAddress], targetValue);
@@ -90,18 +90,18 @@ TEST_F(CPUTests, stxAbsWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte addressLsb = 0x24;
-	constexpr byte addressMsb = 0x32;
-	constexpr word address = 0x3224;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = STX_ABS.cycles;
+	constexpr u8 addressLsb = 0x24;
+	constexpr u8 addressMsb = 0x32;
+	constexpr u16 address = 0x3224;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = STX_ABS.cycles;
 
 	// Store A
 	memory[TEST_MAIN_ADDRESS] = STX_ABS.opcode;
 	memory[TEST_MAIN_ADDRESS + 1] = addressLsb;
 	memory[TEST_MAIN_ADDRESS + 2] = addressMsb;
 	cpu.setX(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(memory[address], targetValue);

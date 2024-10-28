@@ -14,13 +14,13 @@ TEST_F(CPUTests, tsxPosWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = TSX.cycles;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = TSX.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TSX.opcode;
 	cpu.setSp(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);
@@ -35,13 +35,13 @@ TEST_F(CPUTests, tsxNegWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0xD8;
-	constexpr sdword targetCycles = TSX.cycles;
+	constexpr u8 targetValue = 0xD8;
+	constexpr s32 targetCycles = TSX.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TSX.opcode;
 	cpu.setSp(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);
@@ -56,13 +56,13 @@ TEST_F(CPUTests, tsxNullWorks)
 {	
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x00;
-	constexpr sdword targetCycles = TSX.cycles;
+	constexpr u8 targetValue = 0x00;
+	constexpr s32 targetCycles = TSX.cycles;
 
 	// Transfert A to X
 	memory[TEST_MAIN_ADDRESS] = TSX.opcode;
 	cpu.setSp(targetValue);
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getX(), targetValue);

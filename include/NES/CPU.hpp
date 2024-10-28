@@ -8,27 +8,27 @@ class CPU
 {
 public:
     // *********** External calls *********** //
-    sdword reset(Memory& memory);
-    sdword irq(Memory& memory);
-    sdword nmi(Memory& memory);
-    sdword execute(sdword cycles, Memory& memory);
+    s32 reset(Memory& memory);
+    s32 irq(Memory& memory);
+    s32 nmi(Memory& memory);
+    s32 execute(s32 cycles, Memory& memory);
 
     // ******** Accessors ******** //
     // Getters
-    inline word getPc() const { return mPc; }
-    inline byte getSp() const { return mSp; }
+    inline u16 getPc() const { return mPc; }
+    inline u8 getSp() const { return mSp; }
 
-    inline byte getA() const { return mA; }
-    inline byte getX() const { return mX; }
-    inline byte getY() const { return mY; }
+    inline u8 getA() const { return mA; }
+    inline u8 getX() const { return mX; }
+    inline u8 getY() const { return mY; }
 
-    inline byte getC() const { return mC; }
-    inline byte getZ() const { return mZ; }
-    inline byte getI() const { return mI; }
-    inline byte getD() const { return mD; }
-    inline byte getB() const { return mB; }
-    inline byte getV() const { return mV; }
-    inline byte getN() const { return mN; }
+    inline u8 getC() const { return mC; }
+    inline u8 getZ() const { return mZ; }
+    inline u8 getI() const { return mI; }
+    inline u8 getD() const { return mD; }
+    inline u8 getB() const { return mB; }
+    inline u8 getV() const { return mV; }
+    inline u8 getN() const { return mN; }
     
 #ifdef TEST_6502
     // Setters
@@ -51,98 +51,98 @@ public:
 private:
     // ******** Internal behaviour ******** //
     // Read/Write memory
-    byte fetchByte(sdword& cycles, Memory& memory);
-    word fetchWord(sdword& cycles, Memory& memory);
-    byte readByte(sdword& cycles, Memory& memory, word address);
-    void writeByte(sdword& cycles, Memory& memory, word address, byte value);
-    void stackPush(sdword& cycles, Memory& memory, byte value);
-    byte stackPull(sdword& cycles, Memory& memory);
+    u8 fetchByte(s32& cycles, Memory& memory);
+    u16 fetchWord(s32& cycles, Memory& memory);
+    u8 readByte(s32& cycles, Memory& memory, u16 address);
+    void writeByte(s32& cycles, Memory& memory, u16 address, u8 value);
+    void stackPush(s32& cycles, Memory& memory, u8 value);
+    u8 stackPull(s32& cycles, Memory& memory);
 
     // *** Instruction execution *** //
-    word fetchAddr(sdword& cycles, Memory& memory, AddressingMode addrMode, bool& hasPageCrossed);
-    void executeInstruction(sdword& cycles, Memory& memory, instruction_t instruction, word address, bool hasPageCrossed);
+    u16 fetchAddr(s32& cycles, Memory& memory, AddressingMode addrMode, bool& hasPageCrossed);
+    void executeInstruction(s32& cycles, Memory& memory, instruction_t instruction, u16 address, bool hasPageCrossed);
     
     // *** Instructions *** //
-    void adc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void and_(sdword& cycles, Memory& memory, word address, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
-    void asl(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void bcc(sdword& cycles, word address, bool hasPageCrossed);
-    void bcs(sdword& cycles, word address, bool hasPageCrossed);
-    void beq(sdword& cycles, word address, bool hasPageCrossed);
-    void bit(sdword& cycles, Memory& memory, word address);
-    void bmi(sdword& cycles, word address, bool hasPageCrossed);
-    void bne(sdword& cycles, word address, bool hasPageCrossed);
-    void bpl(sdword& cycles, word address, bool hasPageCrossed);
-    void brk(sdword& cycles, Memory& memory);
-    void bvc(sdword& cycles, word address, bool hasPageCrossed);
-    void bvs(sdword& cycles, word address, bool hasPageCrossed);
-    void clc(sdword& cycles);
-    void cld(sdword& cycles);
-    void cli(sdword& cycles);
-    void clv(sdword& cycles);
-    void cmp(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void cpx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void cpy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void dec(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void dex(sdword& cycles);
-    void dey(sdword& cycles);
-    void eor(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void inc(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void inx(sdword& cycles);
-    void iny(sdword& cycles);
-    void jmp(word address);
-    void jsr(sdword& cycles, Memory& memory, word subroutineAddress);
-    void lda(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void ldx(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void ldy(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void lsr(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void nop(sdword& cycles);
-    void ora(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void pha(sdword& cycles, Memory& memory);
-    void php(sdword& cycles, Memory& memory);
-    void pla(sdword& cycles, Memory& memory);
-    void plp(sdword& cycles, Memory& memory);
-    void rol(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void ror(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void rts(sdword& cycles, Memory& memory);
-    void rti(sdword& cycles, Memory& memory);
-    void sbc(sdword& cycles, Memory& memory, word address, bool hasPageCrossed);
-    void sec(sdword& cycles);
-    void sed(sdword& cycles);
-    void sei(sdword& cycles);
-    void sta(sdword& cycles, Memory& memory, word address, AddressingMode addrMode);
-    void stx(sdword& cycles, Memory& memory, word address);
-    void sty(sdword& cycles, Memory& memory, word address);
-    void tax(sdword& cycles);
-    void tay(sdword& cycles);
-    void tsx(sdword& cycles);
-    void txa(sdword& cycles);
-    void txs(sdword& cycles);
-    void tya(sdword& cycles);
+    void adc(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void and_(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
+    void asl(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void bcc(s32& cycles, u16 address, bool hasPageCrossed);
+    void bcs(s32& cycles, u16 address, bool hasPageCrossed);
+    void beq(s32& cycles, u16 address, bool hasPageCrossed);
+    void bit(s32& cycles, Memory& memory, u16 address);
+    void bmi(s32& cycles, u16 address, bool hasPageCrossed);
+    void bne(s32& cycles, u16 address, bool hasPageCrossed);
+    void bpl(s32& cycles, u16 address, bool hasPageCrossed);
+    void brk(s32& cycles, Memory& memory);
+    void bvc(s32& cycles, u16 address, bool hasPageCrossed);
+    void bvs(s32& cycles, u16 address, bool hasPageCrossed);
+    void clc(s32& cycles);
+    void cld(s32& cycles);
+    void cli(s32& cycles);
+    void clv(s32& cycles);
+    void cmp(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void cpx(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void cpy(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void dec(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void dex(s32& cycles);
+    void dey(s32& cycles);
+    void eor(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void inc(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void inx(s32& cycles);
+    void iny(s32& cycles);
+    void jmp(u16 address);
+    void jsr(s32& cycles, Memory& memory, u16 subroutineAddress);
+    void lda(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void ldx(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void ldy(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void lsr(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void nop(s32& cycles);
+    void ora(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void pha(s32& cycles, Memory& memory);
+    void php(s32& cycles, Memory& memory);
+    void pla(s32& cycles, Memory& memory);
+    void plp(s32& cycles, Memory& memory);
+    void rol(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void ror(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void rts(s32& cycles, Memory& memory);
+    void rti(s32& cycles, Memory& memory);
+    void sbc(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void sec(s32& cycles);
+    void sed(s32& cycles);
+    void sei(s32& cycles);
+    void sta(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void stx(s32& cycles, Memory& memory, u16 address);
+    void sty(s32& cycles, Memory& memory, u16 address);
+    void tax(s32& cycles);
+    void tay(s32& cycles);
+    void tsx(s32& cycles);
+    void txa(s32& cycles);
+    void txs(s32& cycles);
+    void tya(s32& cycles);
 
     // *** Status flags *** //
-    byte getProcessorStatus() const;
-    void setProcessorStatus(byte processorStatus);
+    u8 getProcessorStatus() const;
+    void setProcessorStatus(u8 processorStatus);
     
-    void adcUpdateStatus(word newA, byte operandA, byte operandM);
+    void adcUpdateStatus(u16 newA, u8 operandA, u8 operandM);
     void andUpdateStatus();
-    void aslUpdateStatus(byte previousValue, byte newValue);
-    void decUpdateStatus(byte memValue);
+    void aslUpdateStatus(u8 previousValue, u8 newValue);
+    void decUpdateStatus(u8 memValue);
     void dexUpdateStatus();
     void deyUpdateStatus();
     void eorUpdateStatus();
-    void incUpdateStatus(byte memValue);
+    void incUpdateStatus(u8 memValue);
     void inxUpdateStatus();
     void inyUpdateStatus();
     void ldaUpdateStatus();
     void ldxUpdateStatus();
     void ldyUpdateStatus();
-    void lsrUpdateStatus(byte previousValue, byte newValue);
+    void lsrUpdateStatus(u8 previousValue, u8 newValue);
     void oraUpdateStatus();
     void plaUpdateStatus();
-    void rolUpdateStatus(byte previousValue, byte newValue);
-    void rorUpdateStatus(byte previousValue, byte newValue);
-    void sbcUpdateStatus(word newA, byte operandA, byte operandM);
+    void rolUpdateStatus(u8 previousValue, u8 newValue);
+    void rorUpdateStatus(u8 previousValue, u8 newValue);
+    void sbcUpdateStatus(u16 newA, u8 operandA, u8 operandM);
     void taxUpdateStatus();
     void tayUpdateStatus();
     void tsxUpdateStatus();
@@ -150,20 +150,20 @@ private:
     void tyaUpdateStatus();
 
     // ********** Registers    ********** //
-    word mPc;       // Program Counter
-    byte mSp;       // Stack Pointer
+    u16 mPc;       // Program Counter
+    u8 mSp;       // Stack Pointer
 
-    byte mA;        // Accumulator
-    byte mX;        // X
-    byte mY;        // Y
+    u8 mA;        // Accumulator
+    u8 mX;        // X
+    u8 mY;        // Y
 
     // Processor status flags
-    byte mC : 1;    // Carry
-    byte mZ : 1;    // Zero
-    byte mI : 1;    // Interrupt disable
-    byte mD : 1;    // Decimal
-    byte mB : 1;    // Break
-    byte mU : 1;    // Unused
-    byte mV : 1;    // Overflow
-    byte mN : 1;    // Negative
+    u8 mC : 1;    // Carry
+    u8 mZ : 1;    // Zero
+    u8 mI : 1;    // Interrupt disable
+    u8 mD : 1;    // Decimal
+    u8 mB : 1;    // Break
+    u8 mU : 1;    // Unused
+    u8 mV : 1;    // Overflow
+    u8 mN : 1;    // Negative
 };

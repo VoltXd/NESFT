@@ -8,15 +8,15 @@ MemoryNES::MemoryNES(const std::string &romFilename)
 void MemoryNES::reset()
 {
 	// Set the whole memory to 0
-	for (dword i = 0; i < CPU_RAM_SIZE; i++)
+	for (u32 i = 0; i < CPU_RAM_SIZE; i++)
 		mCpuRam[i] = 0;
 
 	mCartridge.reset();
 }
 
-byte MemoryNES::cpuRead(word address)
+u8 MemoryNES::cpuRead(u16 address)
 {
-	byte value = 0;
+	u8 value = 0;
 	bool isInCartridgeMemory= mCartridge.readPrg(address, value);
 	if (isInCartridgeMemory)
 		return value;
@@ -42,7 +42,7 @@ byte MemoryNES::cpuRead(word address)
 	return value;
 }
 
-void MemoryNES::cpuWrite(word address, byte value)
+void MemoryNES::cpuWrite(u16 address, u8 value)
 {
 	// 0x4020 - 0xFFFF
 	bool isInCartridgeMemory= mCartridge.writePrg(address, value);

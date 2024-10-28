@@ -17,11 +17,11 @@ TEST_F(CPUTests, phpWorks)
 	cpu.setC(1);
 	cpu.setN(1);
 	const CPU cpuInitialState = cpu;
-	constexpr sdword targetCycles = PHP.cycles;
+	constexpr s32 targetCycles = PHP.cycles;
 
 	// Push Processor status
 	memory[TEST_MAIN_ADDRESS] = PHP.opcode;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	// NVUB'DIZC = 0b1011'0101

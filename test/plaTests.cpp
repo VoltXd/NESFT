@@ -14,14 +14,14 @@ TEST_F(CPUTests, plaPosWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x42;
-	constexpr sdword targetCycles = PLA.cycles;
+	constexpr u8 targetValue = 0x42;
+	constexpr s32 targetCycles = PLA.cycles;
 
 	// Pull A
 	cpu.setSp(SP_RESET - 1);
 	memory[TEST_MAIN_ADDRESS] = PLA.opcode;
 	memory[SP_PAGE_OFFSET | SP_RESET] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -36,14 +36,14 @@ TEST_F(CPUTests, plaNegWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x82;
-	constexpr sdword targetCycles = PLA.cycles;
+	constexpr u8 targetValue = 0x82;
+	constexpr s32 targetCycles = PLA.cycles;
 
 	// Pull A
 	cpu.setSp(SP_RESET - 1);
 	memory[TEST_MAIN_ADDRESS] = PLA.opcode;
 	memory[SP_PAGE_OFFSET | SP_RESET] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);
@@ -58,14 +58,14 @@ TEST_F(CPUTests, plaNullWorks)
 {
 	// Target values
 	const CPU cpuInitialState = cpu;
-	constexpr byte targetValue = 0x00;
-	constexpr sdword targetCycles = PLA.cycles;
+	constexpr u8 targetValue = 0x00;
+	constexpr s32 targetCycles = PLA.cycles;
 
 	// Pull A
 	cpu.setSp(SP_RESET - 1);
 	memory[TEST_MAIN_ADDRESS] = PLA.opcode;
 	memory[SP_PAGE_OFFSET | SP_RESET] = targetValue;
-	sdword elapsedCycles = cpu.execute(targetCycles, memory);
+	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
 	EXPECT_EQ(cpu.getA(), targetValue);

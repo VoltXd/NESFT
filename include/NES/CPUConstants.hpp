@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Config.hpp"
-#include "Instruction.hpp"
+#include "NES/Config.hpp"
+#include "NES/Instruction.hpp"
 
 // ********** Memory address ********** //
 constexpr word NMI_VECTOR_LSB = 0xFFFA;

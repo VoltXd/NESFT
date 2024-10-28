@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include "Config.hpp"
-#include "Cartridge.hpp"
+#include "NES/Config.hpp"
+#include "NES/Cartridge.hpp"
 
 /// @brief Memory class for 6502 CPU Tests (RAM is 64 KB, while NES CPU RAM is 2 KB)
 class MemoryNES

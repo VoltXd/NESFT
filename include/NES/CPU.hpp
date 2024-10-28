@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Config.hpp"
-#include "Memory.hpp"
-#include "CPUConstants.hpp"
+#include "NES/Config.hpp"
+#include "NES/Memory.hpp"
+#include "NES/CPUConstants.hpp"
 
 class CPU
 {

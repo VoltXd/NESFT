@@ -29,19 +29,19 @@ make all
 ### Compile on Window (MSVC)
 ```batch
 :: Build targets one-by-one
-MSBuild.exe simple-nes-emulator.vcxproj /property:Configuration = Release
-MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration = Release
+MSBuild.exe simple-nes-emulator.vcxproj /property:Configuration=Release
+MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 ```
 
 ## Plan
 - [x] Emulate the CPU
 - [ ] Learn more about the rest
-	- [ ] PPU ?
-	- [ ] Sound ?
-	- [ ] Controller ?
-	- [ ] Something else ?
-- [ ] Set Up OpenGL for graphics rendering
-- [ ] Use OpenAL for audio ?
+	- [ ] PPU
+		- [x] Rendering with OpenGL
+	- [ ] Controller
+	- [ ] APU
+		- [ ] Stream audio with OpenAL
+	- [ ] More Mappers
 
 ## References
 ### Inspiration

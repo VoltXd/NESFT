@@ -1,4 +1,4 @@
-#include "CPU.hpp"
+#include "NES/CPU.hpp"
 
 #include <iostream>
 

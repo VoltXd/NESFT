@@ -1,4 +1,4 @@
-#include "MemoryNES.hpp"
+#include "NES/MemoryNES.hpp"
 
 MemoryNES::MemoryNES(const std::string &romFilename)
 	: mCartridge(romFilename)
@@ -44,6 +44,7 @@ byte MemoryNES::cpuRead(word address)
 
 void MemoryNES::cpuWrite(word address, byte value)
 {
+	// 0x4020 - 0xFFFF
 	bool isInCartridgeMemory= mCartridge.writePrg(address, value);
 	if (isInCartridgeMemory)
 		return;

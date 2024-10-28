@@ -1,4 +1,4 @@
-#include "Mapper.hpp"
+#include "NES/Mapper.hpp"
 
 Mapper::Mapper(byte prgNumBanks, byte chrNumBanks)
 {

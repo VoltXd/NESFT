@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Mapper.hpp"
+#include "NES/Mapper.hpp"
 
 class Mapper000 : public Mapper
 {

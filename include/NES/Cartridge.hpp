@@ -4,9 +4,9 @@
 #include <vector>
 #include <memory>
 
-#include "Config.hpp"
-#include "Mapper.hpp"
-#include "Mapper000.hpp"
+#include "NES/Config.hpp"
+#include "NES/Mapper.hpp"
+#include "NES/Mapper000.hpp"
 
 class Cartridge
 {

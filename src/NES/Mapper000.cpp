@@ -1,4 +1,4 @@
-#include "Mapper000.hpp"
+#include "NES/Mapper000.hpp"
 
 void Mapper000::reset()
 {

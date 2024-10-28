@@ -1,4 +1,4 @@
-#include "Memory6502.hpp"
+#include "NES/Memory6502.hpp"
 
 void Memory6502::reset()
 {

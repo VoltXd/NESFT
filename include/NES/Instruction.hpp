@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.hpp"
+#include "NES/Config.hpp"
 
 enum class AddressingMode
 {

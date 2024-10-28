@@ -1,9 +1,9 @@
-#include "Cartridge.hpp"
+#include "NES/Cartridge.hpp"
 
 #include <iostream>
 #include <fstream>
-#include "Config.hpp"
-#include "Toolbox.hpp"
+#include "NES/Config.hpp"
+#include "NES/Toolbox.hpp"
 
 Cartridge::Cartridge(const std::string& romFilename)
 {

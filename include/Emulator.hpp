@@ -2,8 +2,9 @@
 
 #include <string>
 
-#include "CPU.hpp"
-#include "Memory.hpp"
+#include "NES/CPU.hpp"
+#include "NES/PPU.hpp"
+#include "NES/Memory.hpp"
 
 class Emulator
 {

@@ -72,7 +72,7 @@ void PPU::writeByte(Memory &memory, u16 address, u8 value)
 
 void PPU::executeVisibleScanline(Memory &memory)
 {
-    if ((1 <= mCycleCount && mCycleCount <= 256) && (321 <= mCycleCount && mCycleCount <= 336))
+    if ((1 <= mCycleCount && mCycleCount <= 256) || (321 <= mCycleCount && mCycleCount <= 336))
     {
         // Get background pixels
         // (HW use two cycles but emulation will just fake it)
@@ -126,6 +126,10 @@ void PPU::executeVisibleScanline(Memory &memory)
                 if (248 < mCycleCount && mCycleCount <= 256)
                     // Unused tile fetch
                     break;
+
+                if (mScanlineCount == 239 && mCycleCount > 256)
+                    // Unused tile fetch
+                    break;
                     
                 u8 colorIdx;
                 if (i == 0)
@@ -153,13 +157,45 @@ void PPU::executeVisibleScanline(Memory &memory)
                 
                 u16 colorAddress = 0x3F00 | (paletteNumber << 2) | colorIdx;
                 u8 colorCode = readByte(memory, colorAddress);
-                u32 row = mScanlineCount;
-                u32 col = i + (mCycleCount > 256 ? mCycleCount - 321 : mCycleCount - 1 + 16) - 8;
+                u32 row = mCycleCount > 256 ? mScanlineCount + 1 : mScanlineCount;
+                u32 col = i + (mCycleCount > 256 ? mCycleCount - 321 - 7 : mCycleCount + 8);
 
                 setPictureColor(colorCode, row, col);
             }
 
-            // Increment reg.v
+            // Increment reg.v: Coarse X 
+            if ((mV & 0x001F) == 31)
+            {
+                // Coarse X overflow: set to 0 + switch horizontal Nametable
+                mV &= ~0x001F;
+                mV ^=  0x0400;
+            }
+            else
+                mV++;
+        }
+        
+        // Increment reg.v: Y
+        if (mCycleCount == 256)
+        {
+            if ((mV & 0x7000) != 0x7000)
+                // Increment fine Y
+                mV += 0x1000;
+            else
+            {
+                // Fine Y overflow: set to 0 + increment coarse Y
+                mV &= ~0x7000;
+                u8 coarseY = (u8)((mV & 0x03E0) >> 5);
+                if (coarseY == 29)
+                {
+                    // Coarse Y overvlow: set to 0 + switch nametable
+                    coarseY = 0;
+                    mV ^= 0x0800;
+                } 
+                else if (coarseY == 31)
+                    // Coarse Y forbidden value: set to 0
+                    coarseY = 0;
+                mV = (mV & ~0x03E0) | (coarseY << 5);
+            }
         }
     }
 }
@@ -182,74 +218,6 @@ void PPU::executePreRenderScanline(Memory &memory)
 
 void PPU::setPictureColor(u8 colorCode, u32 row, u32 col)
 {
-    const std::array<std::array<u8, 3>, 64> LUT = 
-    {{
-        { 124,124,124 },
-        { 0,0,252 },
-        { 0,0,188 },
-        { 68,40,188 },
-        { 148,0,132 },
-        { 168,0,32 },
-        { 168,16,0 },
-        { 136,20,0 },
-        { 80,48,0 },
-        { 0,120,0 },
-        { 0,104,0 },
-        { 0,88,0 },
-        { 0,64,88 },
-        { 0,0,0 },
-        { 0,0,0 },
-        { 0,0,0 },
-        { 188,188,188 },
-        { 0,120,248 },
-        { 0,88,248 },
-        { 104,68,252 },
-        { 216,0,204 },
-        { 228,0,88 },
-        { 248,56,0 },
-        { 228,92,16 },
-        { 172,124,0 },
-        { 0,184,0 },
-        { 0,168,0 },
-        { 0,168,68 },
-        { 0,136,136 },
-        { 0,0,0 },
-        { 0,0,0 },
-        { 0,0,0 },
-        { 248,248,248 },
-        { 60,188,252 },
-        { 104,136,252 },
-        { 152,120,248 },
-        { 248,120,248 },
-        { 248,88,152 },
-        { 248,120,88 },
-        { 252,160,68 },
-        { 248,184,0 },
-        { 184,248,24 },
-        { 88,216,84 },
-        { 88,248,152 },
-        { 0,232,216 },
-        { 120,120,120 },
-        { 0,0,0 },
-        { 0,0,0 },
-        { 252,252,252 },
-        { 164,228,252 },
-        { 184,184,248 },
-        { 216,184,248 },
-        { 248,184,248 },
-        { 248,164,192 },
-        { 240,208,176 },
-        { 252,224,168 },
-        { 248,216,120 },
-        { 216,248,120 },
-        { 184,248,184 },
-        { 184,248,216 },
-        { 0,252,252 },
-        { 248,216,248 },
-        { 0,0,0 },
-        { 0,0,0 }
-    }};
-
     mPicture[row][col][0] = LUT[colorCode][0];
     mPicture[row][col][1] = LUT[colorCode][1];
     mPicture[row][col][2] = LUT[colorCode][2];

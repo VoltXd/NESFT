@@ -1,5 +1,7 @@
 #include "NES/MemoryNES.hpp"
 
+#include <random>
+
 MemoryNES::MemoryNES(const std::string &romFilename)
 	: mCartridge(romFilename)
 {
@@ -10,6 +12,9 @@ void MemoryNES::reset()
 	// Set the whole memory to 0
 	for (u32 i = 0; i < CPU_RAM_SIZE; i++)
 		mCpuRam[i] = 0;
+
+	for (u32 i = 0; i < PPU_PALETTE_RAM_SIZE; i++)
+		mPpuPaletteRam[i] = rand() % 0x40;
 
 	mCartridge.reset();
 }

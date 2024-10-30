@@ -8,6 +8,18 @@
 #include "NES/Mapper.hpp"
 #include "NES/Mapper000.hpp"
 
+enum NametableArrangement
+{
+	VERT = 0,
+	HOR = 1,
+};
+
+enum TVSystem
+{
+	NTFS = 0,
+	PAL = 1
+};
+
 class Cartridge
 {
 public:
@@ -18,19 +30,12 @@ public:
 	bool readPrg(u16 cpuAddress, u8& output);
 	bool writePrg(u16 cpuAddress, u8 input);
 
+	bool readChr(u16 ppuAddress, u8& output);
+	bool writeChr(u16 ppuAddress, u8 input);
+
+	inline NametableArrangement getNtArrangement() const { return mNtArrangement; }
+
 private:
-	enum NametableArrangement
-	{
-		VERT = 0,
-		HOR = 1,
-	};
-
-	enum TVSystem
-	{
-		NTFS = 0,
-		PAL = 1
-	};
-
 	void printHeaderInfo(bool isINesHeader, 
                          uint32_t prgRomSize,
 	                     uint32_t chrRomSize,
@@ -48,6 +53,8 @@ private:
 	std::vector<u8> mPrgRom;
 	std::vector<u8> mPrgRam;
 	std::vector<u8> mChrRom;
+
+	NametableArrangement mNtArrangement;
 
 	std::shared_ptr<Mapper> mMapper;
 };

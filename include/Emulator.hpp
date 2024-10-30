@@ -14,8 +14,9 @@ public:
 	int run();
 
 private:
-	void runOneCycleAndPrintCPUInfo();
+	void runOneInstructionAndPrintCPUInfo();
 
 	CPU mCpu;
+	PPU mPpu;
 	Memory mMemory;
 };

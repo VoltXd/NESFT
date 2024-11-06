@@ -32,10 +32,10 @@ private:
     void writeByte(Memory& memory, u16 address, u8 value);
 
     void executeVisibleScanline(Memory& memory);
-    void executePostRenderScanline(Memory& memory);
-    void executeVBlankScanline(Memory& memory);
+    void executeVBlankScanline();
     void executePreRenderScanline(Memory& memory);
 
+    void processBackgroundData(Memory& memory);
     void setPictureColor(u8 colorCode, u32 row, u32 col);
 
     void incrementCoarseX();
@@ -43,6 +43,8 @@ private:
 
     void loadX();
     void loadY();
+
+    void incrementOnPpudataEnding();
 
     // Rendering
     picture_t mPicture;

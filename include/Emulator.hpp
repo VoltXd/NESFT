@@ -14,8 +14,10 @@ public:
 	int run();
 
 private:
-	void runOneCycleAndPrintCPUInfo();
+	void runOneInstruction();
+	void printCpuInfo(u16 pc, u8 instruction, s32 elapsedCycles);
 
 	CPU mCpu;
+	PPU mPpu;
 	Memory mMemory;
 };

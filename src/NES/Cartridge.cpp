@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "NES/Config.hpp"
 #include "NES/Toolbox.hpp"
 
@@ -46,7 +47,7 @@ Cartridge::Cartridge(const std::string& romFilename)
 	uint32_t chrRomSize = header.chrNumBanks << 13; //  8 kB unit 
 
 	// Flag 6
-	NametableArrangement ntArrangement = (NametableArrangement)(header.flag6 & 0b0000'0001);
+	mNtArrangement = (NametableArrangement)(header.flag6 & 0b0000'0001);
 	bool hasPrgRam = (header.flag6 & 0b0000'0010) != 0;
 	bool hasTrainer = (header.flag6 & 0b0000'0100) != 0;
 	bool hasAltNtLayout = (header.flag6 & 0b0000'1000) != 0;
@@ -66,7 +67,7 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 	// Flag 10 (redundant)
 	// Print ROM info
-	printHeaderInfo(isINesHeader, prgRomSize, chrRomSize, ntArrangement, hasPrgRam, hasTrainer,
+	printHeaderInfo(isINesHeader, prgRomSize, chrRomSize, mNtArrangement, hasPrgRam, hasTrainer,
 	                hasAltNtLayout, mapperNum, isVsUnisystem, isPlaychoice10, isNes2Header, 
 					prgRamSize, tvSystem);
 
@@ -130,6 +131,31 @@ bool Cartridge::writePrg(u16 cpuAddress, u8 input)
 
 	mPrgRam[prgRamAddr] = input;
 	return true;
+}
+
+bool Cartridge::readChr(u16 ppuAddress, u8 &output)
+{
+	uint32_t chrRomAddr;
+	if (!mMapper->mapPpuRead(ppuAddress, chrRomAddr))
+		return false;
+
+	output = mChrRom[chrRomAddr];
+	return true;
+}
+
+bool Cartridge::writeChr(u16 ppuAddress, u8 input)
+{
+	uint32_t chrRamAddr;
+	if (!mMapper->mapPpuRead(ppuAddress, chrRamAddr))
+		return false;
+
+	std::stringstream errorMessage;
+	errorMessage << "Write to CHR-RAM not implemented: " << __FILE__ << ":" << __LINE__;
+	testAndExitWithMessage(true, errorMessage.str());
+
+	// TODO (one day...) modify to CHR-RAM
+	mChrRom[chrRamAddr] = input;
+    return true;
 }
 
 void Cartridge::printHeaderInfo(bool isINesHeader, 

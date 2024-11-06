@@ -254,7 +254,7 @@ void PPU::executePreRenderScanline(Memory &memory)
     }
     else if (mCycleCount == 339)
     {
-        if (mIsOddFrame)
+        if (mIsOddFrame && ((mPpuMask & 0b0001'1000) != 0))
             mCycleCount++;
 
         mIsOddFrame = !mIsOddFrame;

@@ -6,7 +6,7 @@
 #include "IO/GlfwRenderer.hpp"
 
 Emulator::Emulator(const std::string &romFilename)
-	: mMemory(romFilename)
+	: mMemory(romFilename, mPpu)
 {
 }
 
@@ -34,22 +34,39 @@ int Emulator::run()
 	// Infinite loop
 	while (true)
 	{
-		runOneInstructionAndPrintCPUInfo();
-		renderer.draw(mPpu.getPicture());
+		runOneInstruction();
+		if (mPpu.isImageReady())
+		{
+			mPpu.clearIsImageReady();
+			renderer.draw(mPpu.getPicture());
+		}
 	}
 
 	return EXIT_SUCCESS;
 }
 
-void Emulator::runOneInstructionAndPrintCPUInfo()
+void Emulator::runOneInstruction()
 {
-	u16 pc = mCpu.getPc();
-	u8 instruction = mMemory.cpuRead(pc);
+	// u16 pc = mCpu.getPc();
+	// u8 instruction = mMemory.cpuRead(pc);
 
-	s32 elapsedCycles = mCpu.execute(1, mMemory);
+	s32 elapsedCycles;
+	if(mPpu.getVBlankNMISignal())
+	{
+		elapsedCycles = mCpu.nmi(mMemory);
+		mPpu.clearNMISignal();	
+	}
+	else
+		elapsedCycles = mCpu.execute(1, mMemory);
+	
 	for (int i = 0; i < 3 * elapsedCycles; i++)
 		mPpu.executeOneCycle(mMemory);
 
+	// printCpuInfo(pc, instruction, elapsedCycles);
+}
+
+void Emulator::printCpuInfo(u16 pc, u8 instruction, s32 elapsedCycles)
+{
 	std::cout << std::uppercase << std::hex 
 	          << "PC: 0x" << pc
 	          << ", INST: 0x" << +instruction

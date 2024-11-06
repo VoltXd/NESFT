@@ -1,9 +1,11 @@
 #include "NES/MemoryNES.hpp"
 
+#include "NES/PPU.hpp"
+
 #include <random>
 
-MemoryNES::MemoryNES(const std::string &romFilename)
-	: mCartridge(romFilename)
+MemoryNES::MemoryNES(const std::string &romFilename, PPU& ppuRef)
+	: mCartridge(romFilename), mPpuRef(ppuRef)
 {
 }
 
@@ -34,6 +36,7 @@ u8 MemoryNES::cpuRead(u16 address)
 	else if (0x2000 <= address && address < 0x4000)
 	{
 		// PPU Registers
+		value = mPpuRef.readRegister(*this, address);
 	}
 	else if (0x4000 <= address && address < 0x4018)
 	{
@@ -62,6 +65,7 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 	else if (0x2000 <= address && address < 0x4000)
 	{
 		// PPU Registers
+		mPpuRef.writeRegister(*this, address, value);
 	}
 	else if (0x4000 <= address && address < 0x4018)
 	{
@@ -75,6 +79,8 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 
 u8 MemoryNES::ppuRead(u16 address)
 {
+	address &= 0x3FFF;
+
 	u8 value = 0;
 	bool isInCartridgeMemory = mCartridge.readChr(address, value);
 	if (isInCartridgeMemory)
@@ -103,6 +109,8 @@ u8 MemoryNES::ppuRead(u16 address)
 
 void MemoryNES::ppuWrite(u16 address, u8 value)
 {
+	address &= 0x3FFF;
+	
 	bool isInCartridgeMemory = mCartridge.writeChr(address, value);
 	if (isInCartridgeMemory)
 		return;

@@ -6,7 +6,7 @@
 #include "NES/Config.hpp"
 #include "NES/Memory.hpp"
 
-constexpr u32 PPU_OUTPUT_WIDTH = 256 + 8;
+constexpr u32 PPU_OUTPUT_WIDTH = 256;
 constexpr u32 PPU_OUTPUT_HEIGHT = 240;
 constexpr u32 PPU_OUTPUT_CHANNELS = 3;
 
@@ -18,8 +18,14 @@ public:
     void reset();
     void executeOneCycle(Memory& memory);
 
+    void writeRegister(Memory& memory, u16 address, u8 value);
+    u8 readRegister(Memory& memory, u16 address);
+
     inline const picture_t& getPicture() const { return mPicture; }
-    inline const bool getVBlankNMISignal() const { return mVBlankNMI; }
+    inline bool getVBlankNMISignal() const { return mVBlankNMISignal; }
+    inline bool isImageReady() const { return mIsImageReady; }
+    inline void clearIsImageReady() { mIsImageReady = false; }
+    inline void clearNMISignal() { mVBlankNMISignal = false; mNMICanOccur = false; }
 
 private:
     u8 readByte(Memory& memory, u16 address);
@@ -32,8 +38,15 @@ private:
 
     void setPictureColor(u8 colorCode, u32 row, u32 col);
 
+    void incrementCoarseX();
+    void incrementY();
+
+    void loadX();
+    void loadY();
+
     // Rendering
     picture_t mPicture;
+    bool mIsImageReady;
     u16 mScanlineCount;
     u16 mCycleCount;
 
@@ -48,6 +61,15 @@ private:
     bool mIsFirstPrerenderPassed;
 
     // Registers
+    static constexpr u16 PPUCTRL_CPU_ADDR   = 0x2000;
+    static constexpr u16 PPUMASK_CPU_ADDR   = 0x2001;
+    static constexpr u16 PPUSTATUS_CPU_ADDR = 0x2002;
+    static constexpr u16 OAMADDR_CPU_ADDR   = 0x2003;
+    static constexpr u16 OAMDATA_CPU_ADDR   = 0x2004;
+    static constexpr u16 PPUSCROLL_CPU_ADDR = 0x2005;
+    static constexpr u16 PPUADDR_CPU_ADDR   = 0x2006;
+    static constexpr u16 PPUDATA_CPU_ADDR   = 0x2007;
+
     u8 mPpuCtrl;
     u8 mPpuMask;
     u8 mPpuStatus;
@@ -73,7 +95,8 @@ private:
     std::array<u8, 32> mPaletteRam;
 
     // NMI
-    bool mVBlankNMI;
+    bool mVBlankNMISignal;
+    bool mNMICanOccur;
 
     // Color Lookup table
     static constexpr std::array<std::array<u8, 3>, 64> LUT = 

@@ -1,14 +1,17 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include "NES/Config.hpp"
 #include "NES/Cartridge.hpp"
+
+class PPU;
 
 /// @brief Memory class for 6502 CPU Tests (RAM is 64 KB, while NES CPU RAM is 2 KB)
 class MemoryNES
 {
 public:
-	MemoryNES(const std::string& romFilename);
+	MemoryNES(const std::string& romFilename, PPU& ppuRef);
 	void reset();
 
 	u8 cpuRead(u16 address);
@@ -28,6 +31,8 @@ private:
 	u8 mPpuVram[PPU_VRAM_SIZE];
 	u8 mPpuPaletteRam[PPU_PALETTE_RAM_SIZE];
 
+	PPU& mPpuRef;
 
+	// Cartridge
 	Cartridge mCartridge;
 };

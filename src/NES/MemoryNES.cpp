@@ -100,7 +100,8 @@ u8 MemoryNES::ppuRead(u16 address)
 	}
 	else if (0x3F00 <= address && address < 0x4000)
 	{
-		u16 paletteRamAddress = address & 0x001F;
+		u16 paletteRamAddress = address;
+		paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
 		value = mPpuPaletteRam[paletteRamAddress];
 	}
 
@@ -129,7 +130,8 @@ void MemoryNES::ppuWrite(u16 address, u8 value)
 	}
 	else if (0x3F00 <= address && address < 0x4000)
 	{
-		u16 paletteRamAddress = address & 0x001F;
+		u16 paletteRamAddress = address;
+		paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
 		mPpuPaletteRam[paletteRamAddress] = value;
 	}
 }

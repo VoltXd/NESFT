@@ -114,23 +114,23 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
         case PPUADDR_CPU_ADDR:
             if (mW == 0)
             {
-                mPpuAddr = (u16)(value & 0b11'1111) << 8;
+                mPpuAddr = (u16)(value & 0b0011'1111) << 8;
                 mT = (mT & 0b000'0000'1111'1111) | ((u16)(value & 0b0011'1111) << 8);
             }
             else
             {
                 mPpuAddr |= value;
-                mT = (mT & 0b111'1111'0000'0000) | value;
+                mT = (mT & 0b011'1111'0000'0000) | value;
                 mV = mT;
             }
             mW = !mW;
             break;
 
         case PPUDATA_CPU_ADDR:
-            writeByte(memory, mPpuAddr, value);
+            writeByte(memory, mV, value);
 
             // TODO: weird behaviour while rendering
-            if (mScanlineCount < 240 || mScanlineCount == 261)
+            if ((mScanlineCount < 240 || mScanlineCount == 261) && ((mPpuMask & 0b0001'1000) != 0))
             {
                 incrementCoarseX();
                 incrementY();
@@ -181,13 +181,35 @@ u8 PPU::readRegister(Memory &memory, u16 address)
         case PPUDATA_CPU_ADDR:
             // TODO: see NESwiki if more
             // PPUDATA BUFFER
-            value = mPpuData;
-            mPpuData = readByte(memory, mPpuAddr);
-
-            if ((mPpuCtrl & 0x04) == 0)
-                mPpuAddr++;
+            if ((mV & 0x3F00) == 0x3F00)
+            {
+                value = readByte(memory, mV);
+                mPpuData = value;
+            }
             else
-                mPpuAddr += 32;
+            {
+                value = mPpuData;
+                mPpuData = readByte(memory, mV);
+            }
+
+            if ((mScanlineCount < 240 || mScanlineCount == 261) && ((mPpuMask & 0b0001'1000) != 0))
+            {
+                incrementCoarseX();
+                incrementY();
+            }
+            else
+            {
+                if ((mPpuCtrl & 0x04) == 0)
+                {
+                    mPpuAddr++;
+                    mV++;
+                }
+                else
+                {
+                    mPpuAddr += 0b10'0000;
+                    mV += 0b10'0000;
+                }
+            }
             break;
         
         default:
@@ -238,9 +260,9 @@ void PPU::executeVisibleScanline(Memory &memory)
         {
             // Get tile LSB
             // Tile address is: H'NNNN'NNNN'0yyy
-            address = ((u16)(mPpuCtrl & 0b0000'1000) << 9) |
-                      ((u16)mBgData.nt << 4)               |
-                      ((mV & 0x7000) >> 12)                &
+            address = (((u16)(mPpuCtrl & 0b0001'0000) << 8) |
+                      ((u16)mBgData.nt << 4)                |
+                      ((mV & 0x7000) >> 12))                &
                       0xFFF7; 
             mBgData.ptLsb = readByte(memory, address);
         }
@@ -248,7 +270,7 @@ void PPU::executeVisibleScanline(Memory &memory)
         {
             // Get tile MSB
             // Tile address is: H'NNNN'NNNN'1yyy
-            address = ((u16)(mPpuCtrl & 0b0000'1000) << 9) |
+            address = ((u16)(mPpuCtrl & 0b0001'0000) << 8) |
                       ((u16)mBgData.nt << 4)               |
                       ((mV & 0x7000) >> 12)                |
                       0x0008; 
@@ -267,10 +289,6 @@ void PPU::executeVisibleScanline(Memory &memory)
                     // Unused tile fetch
                     break;
 
-                if (321 < mCycleCount && mCycleCount <= 328)
-                    // Unused tile fetch
-                    break;
-
                 if (mScanlineCount == 239 && mCycleCount > 256)
                     // Unused tile fetch
                     break;
@@ -280,10 +298,10 @@ void PPU::executeVisibleScanline(Memory &memory)
                     break;
                     
                 u8 colorIdx;
-                if (i == 0)
-                    colorIdx = (mBgData.ptMsb & 1) << 1 | (mBgData.ptLsb & 1);
+                if (i != 7)
+                    colorIdx = (mBgData.ptMsb & (1 << (7 - i))) >> (7 - i - 1) | (mBgData.ptLsb & (1 << (7 - i))) >> (7 - i);
                 else
-                    colorIdx = (mBgData.ptMsb & (1 << i)) >> (i - 1) | (mBgData.ptLsb & (1 << i)) >> i;
+                    colorIdx = (mBgData.ptMsb & 1) << 1 | (mBgData.ptLsb & 1);
 
                 // Calculate Palette number
                 bool isRightTile  = (mV & 0b0000'0000'0000'0010) != 0;
@@ -317,10 +335,7 @@ void PPU::executeVisibleScanline(Memory &memory)
         
         // Increment reg.v: Y
         if (mCycleCount == 256)
-        {
-            incrementCoarseX();
             incrementY();
-        }
     }
     else if (mCycleCount == 257)
     {
@@ -356,6 +371,18 @@ void PPU::executePreRenderScanline(Memory &memory)
         mNMICanOccur = false;
         mPpuStatus &= ~0b1000'0000;
     }
+    
+    if (1 <= mCycleCount && mCycleCount <= 256)
+    {
+        if ((mCycleCount - 1) % 8 == 7)
+            // Increment reg.v: Coarse X (the same increments as visible scanlines
+            //                            are made)
+            incrementCoarseX();
+        
+        // Increment reg.v: Y
+        if (mCycleCount == 256)
+            incrementY();
+    }
     else if (mCycleCount == 257)
         loadX();
     else if (280 <= mCycleCount && mCycleCount <= 304)
@@ -386,7 +413,7 @@ void PPU::executePreRenderScanline(Memory &memory)
         {
             // Get tile LSB
             // Tile address is: H'NNNN'NNNN'0yyy
-            address = ((u16)(mPpuCtrl & 0b0000'1000) << 9) |
+            address = ((u16)(mPpuCtrl & 0b0001'0000) << 8) |
                       ((u16)mBgData.nt << 4)               |
                       ((mV & 0x7000) >> 12)                &
                       0xFFF7; 
@@ -396,11 +423,11 @@ void PPU::executePreRenderScanline(Memory &memory)
         {
             // Get tile MSB
             // Tile address is: H'NNNN'NNNN'1yyy
-            address = ((u16)(mPpuCtrl & 0b0000'1000) << 9) |
+            address = ((u16)(mPpuCtrl & 0b0001'0000) << 8) |
                       ((u16)mBgData.nt << 4)               |
                       ((mV & 0x7000) >> 12)                |
                       0x0008; 
-            mBgData.ptLsb = readByte(memory, address);
+            mBgData.ptMsb = readByte(memory, address);
 
             // Update picture color ?
             // For each pixel:
@@ -410,20 +437,16 @@ void PPU::executePreRenderScanline(Memory &memory)
             // Calculate real color
             // Magic (I hope...)
             for (int i = 0; i < 8; i++)
-            {                   
-                if (321 < mCycleCount && mCycleCount <= 328)
-                    // Unused tile fetch
-                    break; 
-
+            {
                 if ((mPpuMask & 0b0000'1000) == 0)
                     // Only when rendering
                     break;
-                    
+
                 u8 colorIdx;
-                if (i == 0)
-                    colorIdx = (mBgData.ptMsb & 1) << 1 | (mBgData.ptLsb & 1);
+                if (i != 7)
+                    colorIdx = (mBgData.ptMsb & (1 << (7 - i))) >> (7 - i - 1) | (mBgData.ptLsb & (1 << (7 - i))) >> (7 - i);
                 else
-                    colorIdx = (mBgData.ptMsb & (1 << i)) >> (i - 1) | (mBgData.ptLsb & (1 << i)) >> i;
+                    colorIdx = (mBgData.ptMsb & 1) << 1 | (mBgData.ptLsb & 1);
 
                 // Calculate Palette number
                 bool isRightTile  = (mV & 0b0000'0000'0000'0010) != 0;
@@ -454,10 +477,6 @@ void PPU::executePreRenderScanline(Memory &memory)
             // Increment reg.v: Coarse X 
             incrementCoarseX();
         }
-        
-        // Increment reg.v: Y
-        if (mCycleCount == 256)
-            incrementY();
     }
     else if (mCycleCount == 339)
     {

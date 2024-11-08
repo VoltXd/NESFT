@@ -55,6 +55,7 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)
 
 ### NES Hardware
 [NESdev Wiki](https://www.nesdev.org/wiki/NES_reference_guide)
+[Palette color](https://forums.nesdev.org/viewtopic.php?t=746)
 
 ### 6502
 [Andrew Jacobs - 6502](https://www.nesdev.org/obelisk-6502-guide/index.html)\

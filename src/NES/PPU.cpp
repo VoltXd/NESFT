@@ -356,7 +356,7 @@ void PPU::processPixelData(Memory& memory)
             {
                 // Sprite 0 hit is possible
                 u16 sprite0ColorAddress;
-                bool isSprite0Detected = isSprite0OnPixel(memory, i, sprite0ColorAddress);
+                bool isSprite0Detected = isSprite0OnPixel(memory, (u8)col, sprite0ColorAddress);
                 if (isSprite0Detected)
                 {
                     // Compare palette address to BG palette address
@@ -661,43 +661,16 @@ u8 PPU::getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx)
 
 bool PPU::isSprite0OnPixel(Memory &memory, u8 pixelXPos, u16 &colorAddress)
 {
-    u8 yPos = mOam[0];
-    if (!(yPos <= mScanlineCount && mScanlineCount < yPos + 8))
+    oamData sprite;
+    bool dummyFlag;
+    sprite.yPos      = mOam[0];
+    sprite.tileIdx   = mOam[1];
+    sprite.attribute = mOam[2];
+    sprite.xPos      = mOam[3];
+    colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, dummyFlag);
+    if (colorAddress == SPRITE_NOT_IN_RANGE)
         return false;
-
-    // Sprite is rendered on this scanline
-    u8 spriteXPos = mSpriteRenderBuffer[3];
-
-    if (!(spriteXPos <= pixelXPos && pixelXPos < spriteXPos + 8))
-        false;
     
-    // Sprite is render on this pixel
-    u16 address;
-
-    u8 tileIdx    = mSpriteRenderBuffer[1];
-    u8 attribute  = mSpriteRenderBuffer[2];
-
-    // Pattern table (TODO: FLIP V & H)
-    address = ((u16)tileIdx & 0b0000'0001) << 12 | 
-                ((u16)tileIdx & 0b1111'1110) << 4;
-                
-    // Vertical flip
-    address |= ((attribute & 0b1000'0000) == 0) ? (mScanlineCount - yPos) : 7 - (mScanlineCount - yPos);
-
-    u8 ptLsb = readByte(memory, address);
-    u8 ptMsb = readByte(memory, address | 0b1'0000);
-    u8 xIdx = pixelXPos - spriteXPos;
-
-    // Horizontal flip
-    if ((attribute & 0b0100'0000) != 0)
-        xIdx = 7 - xIdx;
-
-    u8 colorIdx = getColorIndexFromPattern(ptLsb, ptMsb, xIdx);
-
-    // Palette 
-    u8 paletteNumber = attribute & 0b0000'0011;
-
-    colorAddress =  0x3F10 | (paletteNumber << 2) | colorIdx; 
     return true;
 }
 
@@ -769,11 +742,13 @@ void PPU::incrementOnPpudataEnding()
 {
     if ((mScanlineCount < 240 || mScanlineCount == 261) && ((mPpuMask & 0b0001'1000) != 0))
     {
+        // While rendering, increment with hardware bug
         incrementCoarseX();
         incrementY();
     }
     else
     {
+        // Normal increment
         if ((mPpuCtrl & 0x04) == 0)
         {
             mPpuAddr++;

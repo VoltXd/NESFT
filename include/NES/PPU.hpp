@@ -28,6 +28,22 @@ public:
     inline void clearNMISignal() { mVBlankNMISignal = false; mNMICanOccur = false; }
 
 private:
+    struct backgroundData
+    {
+        u8 nt;
+        u8 at;
+        u8 ptLsb;
+        u8 ptMsb;
+    };
+
+    struct oamData
+    {
+        u8 yPos;
+        u8 tileIdx;
+        u8 attribute;
+        u8 xPos;
+    };
+
     u8 readByte(Memory& memory, u16 address);
     void writeByte(Memory& memory, u16 address, u8 value);
 
@@ -35,8 +51,16 @@ private:
     void executeVBlankScanline();
     void executePreRenderScanline(Memory& memory);
 
-    void processBackgroundData(Memory& memory);
+    void processPixelData(Memory& memory);
+    void processSpriteEvaluation(Memory& memory);
     void setPictureColor(u8 colorCode, u32 row, u32 col);
+
+    u16 getColorAddressFromBGData(u8 xIdx);
+    u16 getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, bool& hasSpritePriority);
+    u16 getColorAddressFromSprite(Memory& memory, oamData sprite, u8 pixelXPos, bool& hasSpritePriority);
+    u8 getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx);
+
+    bool isSprite0OnPixel(Memory& memory, u8 pixelXPos, u16& colorAddress);
 
     void incrementCoarseX();
     void incrementY();
@@ -52,26 +76,11 @@ private:
     u16 mScanlineCount;
     u16 mCycleCount;
 
-    struct backgroundData
-    {
-        u8 nt;
-        u8 at;
-        u8 ptLsb;
-        u8 ptMsb;
-    } mBgData;
+    backgroundData mBgData;
 
     bool mIsFirstPrerenderPassed;
 
     // Registers
-    static constexpr u16 PPUCTRL_CPU_ADDR   = 0x2000;
-    static constexpr u16 PPUMASK_CPU_ADDR   = 0x2001;
-    static constexpr u16 PPUSTATUS_CPU_ADDR = 0x2002;
-    static constexpr u16 OAMADDR_CPU_ADDR   = 0x2003;
-    static constexpr u16 OAMDATA_CPU_ADDR   = 0x2004;
-    static constexpr u16 PPUSCROLL_CPU_ADDR = 0x2005;
-    static constexpr u16 PPUADDR_CPU_ADDR   = 0x2006;
-    static constexpr u16 PPUDATA_CPU_ADDR   = 0x2007;
-
     u8 mPpuCtrl;
     u8 mPpuMask;
     u8 mPpuStatus;
@@ -90,8 +99,15 @@ private:
     bool mIsOddFrame;
 
     // OAM
+    static constexpr u16 SPRITE_NOT_IN_RANGE = 0xFFFF;
     std::array<u8, 256> mOam;
-    std::array<u8, 32> mOamSecondary;
+    std::array<u8, 32> mOamSecondary = {{ 0xFF }};
+    std::array<u8, 32> mSpriteRenderBuffer = {{ 0xFF }};
+    u8 mOamTransfertBuffer;
+    u8 mOamSpriteIdx;
+    u8 mOamByteIdx;
+    u8 mSecOamIdx;
+    bool mIsStoringOamSprite;
 
     // Palette RAM
     std::array<u8, 32> mPaletteRam;

@@ -5,6 +5,15 @@
 #include "NES/Config.hpp"
 #include "NES/Cartridge.hpp"
 
+constexpr u16 PPUCTRL_CPU_ADDR   = 0x2000;
+constexpr u16 PPUMASK_CPU_ADDR   = 0x2001;
+constexpr u16 PPUSTATUS_CPU_ADDR = 0x2002;
+constexpr u16 OAMADDR_CPU_ADDR   = 0x2003;
+constexpr u16 OAMDATA_CPU_ADDR   = 0x2004;
+constexpr u16 PPUSCROLL_CPU_ADDR = 0x2005;
+constexpr u16 PPUADDR_CPU_ADDR   = 0x2006;
+constexpr u16 PPUDATA_CPU_ADDR   = 0x2007;
+
 class PPU;
 
 /// @brief Memory class for 6502 CPU Tests (RAM is 64 KB, while NES CPU RAM is 2 KB)
@@ -19,6 +28,13 @@ public:
 	
 	u8 ppuRead(u16 address);
 	void ppuWrite(u16 address, u8 value);
+
+	inline bool isOamDmaStarted() const { return mIsOamDmaStarted; }
+	s32 executeOamDma(bool isGetCycle);
+
+private:
+	// DMA
+	void startOamDma(u8 pageAddress);
 
 private:
 	// CPU
@@ -35,4 +51,12 @@ private:
 
 	// Cartridge
 	Cartridge mCartridge;
+
+	// DMA
+    static constexpr u16 OAMDMA_CPU_ADDR = 0x4014;
+	u8 mOamDma;
+	u8 mOamDmaBuffer;
+	u16 mOamDmaIdx;
+	bool mIsOamDmaStarted;
+	bool mIsCpuHalt;
 };

@@ -20,4 +20,6 @@ private:
 	CPU mCpu;
 	PPU mPpu;
 	Memory mMemory;
+
+	bool mIsDmaGetCycle;
 };

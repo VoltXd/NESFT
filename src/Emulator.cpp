@@ -12,24 +12,14 @@ Emulator::Emulator(const std::string &romFilename)
 
 int Emulator::run()
 {
-	// Instantiations
-	
-	// *************** CPU Emulation *************** //
+	// *************** NES Emulation *************** //
 	// Reset
 	mMemory.reset();
 	mCpu.reset(mMemory);
 	mPpu.reset();
+	mIsDmaGetCycle = false;
 
 	GlfwRenderer renderer;
-	// picture_t redScreen = { 0 }; 
-	// for (int i = 0; i < PPU_OUTPUT_HEIGHT; i++)
-	// 	for (int j = 0; j < PPU_OUTPUT_WIDTH; j++)
-	// 	{
-	// 		redScreen[i][j][0] = (u8)i;
-	// 		redScreen[i][j][1] = (u8)j;
-	// 		redScreen[i][j][2] = (u8)sqrt(i * j);
-	// 	}
-	
 		
 	// Infinite loop
 	while (true)
@@ -50,15 +40,22 @@ void Emulator::runOneInstruction()
 	// u16 pc = mCpu.getPc();
 	// u8 instruction = mMemory.cpuRead(pc);
 
+	// CPU
 	s32 elapsedCycles;
-	if(mPpu.getVBlankNMISignal())
+	if (mMemory.isOamDmaStarted())
+		elapsedCycles = mMemory.executeOamDma(mIsDmaGetCycle);
+	else if(mPpu.getVBlankNMISignal())
 	{
 		elapsedCycles = mCpu.nmi(mMemory);
 		mPpu.clearNMISignal();	
 	}
 	else
 		elapsedCycles = mCpu.execute(1, mMemory);
+
+	// Update get/put cycle flag (DMA)
+	mIsDmaGetCycle = (bool)(((mIsDmaGetCycle ? 1 : 0) + elapsedCycles) % 2);
 	
+	// PPU
 	for (int i = 0; i < 3 * elapsedCycles; i++)
 		mPpu.executeOneCycle(mMemory);
 

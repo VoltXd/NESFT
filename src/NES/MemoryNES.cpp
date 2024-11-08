@@ -3,6 +3,7 @@
 #include "NES/PPU.hpp"
 
 #include <random>
+#include <iostream>
 
 MemoryNES::MemoryNES(const std::string &romFilename, PPU& ppuRef)
 	: mCartridge(romFilename), mPpuRef(ppuRef)
@@ -19,6 +20,9 @@ void MemoryNES::reset()
 		mPpuPaletteRam[i] = rand() % 0x40;
 
 	mCartridge.reset();
+
+	mIsOamDmaStarted = false;
+	mIsCpuHalt = false;
 }
 
 u8 MemoryNES::cpuRead(u16 address)
@@ -62,7 +66,7 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 		// CPU RAM, mirrored 4 times
 		mCpuRam[address & 0x07FF] = value;
 	}
-	else if (0x2000 <= address && address < 0x4000)
+	else if ((0x2000 <= address && address < 0x4000))
 	{
 		// PPU Registers
 		mPpuRef.writeRegister(*this, address, value);
@@ -70,6 +74,8 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 	else if (0x4000 <= address && address < 0x4018)
 	{
 		// APU & IO Registers
+		if (address == OAMDMA_CPU_ADDR)
+			startOamDma(value);
 	}
 	else if (0x4018 <= address && address < 0x4020)
 	{
@@ -134,4 +140,47 @@ void MemoryNES::ppuWrite(u16 address, u8 value)
 		paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
 		mPpuPaletteRam[paletteRamAddress] = value;
 	}
+}
+
+s32 MemoryNES::executeOamDma(bool isGetCycle)
+{
+	s32 elapsedCycles = 1;
+
+	if (!mIsCpuHalt)
+	{
+		// Do halt cycle
+		mIsCpuHalt = true;
+	}
+	else if ((mOamDmaIdx == 0) && !isGetCycle)
+		// Do alignment cycle (optionnal)
+		elapsedCycles = 1;
+	else if ((mOamDmaIdx < 256) && isGetCycle)
+	{
+		// Read from RAM to DMA
+		u16 cpuAddress = (u16)(mOamDma << 8) | mOamDmaIdx;
+		mOamDmaBuffer = cpuRead(cpuAddress);
+
+		mOamDmaIdx++;
+	}
+	else if ((mOamDmaIdx <= 256) && !isGetCycle)
+	{
+		// Write from DMA to OAM
+		cpuWrite(OAMDATA_CPU_ADDR, mOamDmaBuffer);
+
+		if (mOamDmaIdx == 256)
+		{
+			// DMA Complete
+			mIsOamDmaStarted = false;
+			mIsCpuHalt = false;
+		}
+	}
+
+    return elapsedCycles;
+}
+
+void MemoryNES::startOamDma(u8 pageAddress)
+{
+	mOamDma = pageAddress;
+	mOamDmaIdx = 0;
+	mIsOamDmaStarted = true;
 }

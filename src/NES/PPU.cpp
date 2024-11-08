@@ -26,6 +26,10 @@ void PPU::reset()
 
     mIsOddFrame = false;
 
+    mOamSpriteIdx = 0;
+    mOamByteIdx = 0;
+    mIsStoringOamSprite = false;
+
     mVBlankNMISignal = false;
     mNMICanOccur = false;
     mIsImageReady = false;
@@ -87,10 +91,15 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
             break;
 
         case OAMDATA_CPU_ADDR:
-            // TODO: store in OAM
-            mOamData = value;
-            mOam[mOamAddr] = mOamData;
-            mOamAddr++;
+            if (((mPpuMask & 0b0001'1000) != 0) && !(240 <= mScanlineCount && mScanlineCount < 261))
+                // Should not do anything while rendering
+                break;
+            else
+            {
+                mOamData = value;
+                mOam[mOamAddr] = mOamData;
+                mOamAddr++;
+            }
             break;
 
         case PPUSCROLL_CPU_ADDR:
@@ -152,8 +161,13 @@ u8 PPU::readRegister(Memory &memory, u16 address)
             break;
         
         case OAMDATA_CPU_ADDR:
-            mOamData = mOam[mOamAddr];
-            value = mOamData;
+            if (mScanlineCount < 240 && 1 <= mCycleCount && mCycleCount <= 64)
+                value = 0xFF;
+            else
+            {
+                mOamData = mOam[mOamAddr];
+                value = mOamData;
+            }
             break;
         
         case PPUDATA_CPU_ADDR:
@@ -197,7 +211,7 @@ void PPU::executeVisibleScanline(Memory &memory)
     if ((1 <= mCycleCount && mCycleCount <= 256) || (321 <= mCycleCount && mCycleCount <= 336))
     {
         // Get background pixels
-        processBackgroundData(memory);
+        processPixelData(memory);
     
         // Increment reg.v: Y
         if (mCycleCount == 256)
@@ -208,6 +222,8 @@ void PPU::executeVisibleScanline(Memory &memory)
         // Load temp horizontal address
         loadX();
     }
+
+    processSpriteEvaluation(memory);
 }
 
 void PPU::executeVBlankScanline()
@@ -228,7 +244,7 @@ void PPU::executePreRenderScanline(Memory &memory)
     if (mCycleCount == 1)
     {
         mNMICanOccur = false;
-        mPpuStatus &= ~0b1000'0000;
+        mPpuStatus &= ~0b1110'0000;
     }
     
     if (1 <= mCycleCount && mCycleCount <= 256)
@@ -250,7 +266,7 @@ void PPU::executePreRenderScanline(Memory &memory)
     else if (321 <= mCycleCount && mCycleCount <= 336)
     {
         // Get background pixels
-        processBackgroundData(memory);
+        processPixelData(memory);
     }
     else if (mCycleCount == 339)
     {
@@ -259,10 +275,14 @@ void PPU::executePreRenderScanline(Memory &memory)
 
         mIsOddFrame = !mIsOddFrame;
     }
+
+    if (257 <= mCycleCount && mCycleCount <= 320)
+        mOamAddr = 0;
 }
 
-void PPU::processBackgroundData(Memory& memory)
+void PPU::processPixelData(Memory& memory)
 {
+    // Fetch background data
     // (HW use two cycles but emulation will just fake it)
     if (((mCycleCount - 1) % 2) == 0)
         return;
@@ -303,14 +323,14 @@ void PPU::processBackgroundData(Memory& memory)
                   0x0008; 
         mBgData.ptMsb = readByte(memory, address);
 
-        // Update picture color
+        // Update picture color (background & sprites)
         // For each pixel:
         // Get color index (using pattern table bytes)
         // Get Palette (using AT byte & reg.v)
         // Get color code = palette[color_index]
         // Calculate real color
         // Magic (I hope...)
-        for (int i = 0; i < 8; i++)
+        for (u8 i = 0; i < 8; i++)
         {
             if (248 < mCycleCount && mCycleCount <= 256)
                 // Unused tile fetch
@@ -319,48 +339,187 @@ void PPU::processBackgroundData(Memory& memory)
             if (mScanlineCount == 239 && mCycleCount > 256)
                 // Unused tile fetch
                 break;
-                
-            if ((mPpuMask & 0b0000'1000) == 0)
-                // BG Rendering disabled
-                break;
             
-            // Get 2 bits color index using pattern table byte
-            u8 colorIdx;
-            if (i != 7)
-                colorIdx = (mBgData.ptMsb & (1 << (7 - i))) >> (7 - i - 1) | (mBgData.ptLsb & (1 << (7 - i))) >> (7 - i);
-            else
-                colorIdx = (mBgData.ptMsb & 1) << 1 | (mBgData.ptLsb & 1);
-
-            // Calculate Palette number (which palette is used)
-            bool isRightTile  = (mV & 0b0000'0000'0000'0010) != 0;
-            bool isBottomTile = (mV & 0b0000'0000'0100'0000) != 0;
-
-            u8 paletteNumber;
-            if (!(isRightTile || isBottomTile))
-                paletteNumber = mBgData.at & 0b0000'0011;                
-
-            else if (isRightTile && !isBottomTile)
-                paletteNumber = (mBgData.at & 0b0000'1100) >> 2;                
-                
-            else if (!isRightTile && isBottomTile)
-                paletteNumber = (mBgData.at & 0b0011'0000) >> 4;                
-
-            else
-                paletteNumber = (mBgData.at & 0b1100'0000) >> 6;                
-
-            // Get color (in palette) address -> Get color code -> Set pixel color
-            u16 colorAddress = 0x3F00 | (paletteNumber << 2) | colorIdx;
-            u8 colorCode = readByte(memory, colorAddress);
             u32 row = 0;
             if (mScanlineCount != 261)
                 row = mCycleCount > 256 ? mScanlineCount + 1 : mScanlineCount;
             u32 col = i + (mCycleCount > 256 ? mCycleCount - 321 - 7 : mCycleCount + 8) - mX;
+
+            bool hasSpritePriority = false;
+            u16 bgColorAddress = getColorAddressFromBGData(i);
+            u16 spriteColorAddress = getColorAddressFromSecOam(memory, (u8)col, hasSpritePriority);
+
+            // Sprite 0 hit
+            if (!(((mPpuMask & 0b0001'1000) != 0b0001'1000) ||
+                  (0 <= col && col < 8 && ((mPpuMask & 0b0000'0110) != 0b0000'0110)) ||
+                  (col == 255)))
+            {
+                // Sprite 0 hit is possible
+                u16 sprite0ColorAddress;
+                bool isSprite0Detected = isSprite0OnPixel(memory, i, sprite0ColorAddress);
+                if (isSprite0Detected)
+                {
+                    // Compare palette address to BG palette address
+                    if (((bgColorAddress & 0x0003) != 0) && ((sprite0ColorAddress & 0x0003) != 0))
+                        // Sprite 0 hit detected
+                        mPpuStatus |= 0b0100'0000;
+                }
+            }
+
+            u16 colorAddress = 0x3F00;
+            if (((bgColorAddress | spriteColorAddress) & 0x0003) == 0)
+            {
+                // No BG or sprite color -> Backdrop color
+                colorAddress = 0x3F00;
+            }
+            else if ((bgColorAddress & 0x0003) == 0)
+            {
+                // No BG color -> Sprite color
+                colorAddress = spriteColorAddress;
+            }
+            else if ((spriteColorAddress & 0x0003) == 0)
+            {
+                // No sprite color -> BG color
+                colorAddress = bgColorAddress;
+            }
+            else 
+            {
+                // BG & sprite have a color
+                if (hasSpritePriority)
+                {
+                    // Sprite has priority over BG -> Sprite color
+                    colorAddress = spriteColorAddress;
+                }
+                else
+                {
+                    // BG has priority over sprite -> BG color
+                    colorAddress = bgColorAddress;
+                }
+            }
+
+            u8 colorCode = readByte(memory, colorAddress);
 
             setPictureColor(colorCode, row, col);
         }
 
         // Increment reg.v: Coarse X 
         incrementCoarseX();
+    }
+}
+
+void PPU::processSpriteEvaluation(Memory &memory)
+{
+    memory.ppuRead(0); // TODO Remove
+    bool isOddCycle = (mCycleCount % 2) == 1;
+    if (mCycleCount == 0)
+    {
+        // Reset counters
+        mSecOamIdx = 0;
+        mOamByteIdx = 0;
+        mOamSpriteIdx = 0;
+    }
+    else if (1 <= mCycleCount && mCycleCount <= 64)
+    {
+        // Clear secondary OAM
+        if (!isOddCycle)
+            return;
+        
+        u8 soamIdx = (u8)mCycleCount / 2;
+        mOamSecondary[soamIdx] = 0xFF;
+    }
+    else if (65 <= mCycleCount && mCycleCount <= 256)
+    {
+        if (mOamSpriteIdx == 64)
+            // No reading or writing if all sprites are read
+            return;
+
+        if (isOddCycle)
+        {
+            // Read from primary OAM
+            u8 oamIdx = 4 * mOamSpriteIdx + mOamByteIdx;
+            mOamTransfertBuffer = mOam[oamIdx];
+        }
+        else
+        {
+            // Write into secondary OAM
+            u16 pixelY = mScanlineCount;
+            if (mSecOamIdx == 8 * 4)
+            {
+                // Check for Sprite overflow (+ HW bug)
+                if (!mIsStoringOamSprite)
+                {
+                    if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + 8)
+                    {
+                        // Set sprite overflow flag
+                        mPpuStatus |= 0b0010'0000;
+                        mIsStoringOamSprite = true;
+                        mOamByteIdx++;
+                    }
+                    else
+                    {
+                        // Hardware bug
+                        mOamSpriteIdx++;
+                        mOamByteIdx++;
+                        if (mOamByteIdx == 4)
+                            mOamByteIdx = 0;
+                    }
+                }
+                else
+                {
+                    mOamByteIdx++;
+                    if (mOamByteIdx == 4)
+                    {
+                        // Finished fetching sprite
+                        mOamByteIdx = 0;
+                        mOamSpriteIdx++;
+                        mIsStoringOamSprite = false;
+                    }
+                }
+                // No writing if secondary OAM is full (8 sprites)
+                return;
+            }
+            
+            mOamSecondary[mSecOamIdx] = mOamTransfertBuffer;
+
+            if (!mIsStoringOamSprite)
+            {
+                // Check that Y position fits to next scanline
+                if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + 8)
+                {
+                    // It fits -> get sprites 4 bytes
+                    mIsStoringOamSprite = true;
+                    mSecOamIdx++;
+                    mOamByteIdx++;
+                }
+                else
+                {
+                    // It doesn't fit -> keep fetching Y pos bytes
+                    mOamSpriteIdx++;
+                }
+            }
+            else
+            {
+                // Increment current sprite byte counter & sec OAM counter
+                mSecOamIdx++;
+                mOamByteIdx++;
+                if (mOamByteIdx == 4)
+                {
+                    // Finished fetching sprite
+                    mOamByteIdx = 0;
+                    mOamSpriteIdx++;
+                    mIsStoringOamSprite = false;
+                }
+            }
+        }
+    }
+    else if (257 <= mCycleCount && mCycleCount <= 320)
+    {
+        // HW fetches secondary OAM bytes for next scanline rendering
+        // I will do it in one cycle
+        if (mCycleCount == 257)
+            mSpriteRenderBuffer = mOamSecondary;
+
+        mOamAddr = 0;
     }
 }
 
@@ -372,6 +531,174 @@ void PPU::setPictureColor(u8 colorCode, u32 row, u32 col)
     mPicture[row][col][0] = LUT[colorCode][0];
     mPicture[row][col][1] = LUT[colorCode][1];
     mPicture[row][col][2] = LUT[colorCode][2];
+}
+
+u16 PPU::getColorAddressFromBGData(u8 xIdx)
+{
+    // Get 2 bits color index using pattern table byte
+    u8 colorIdx = getColorIndexFromPattern(mBgData.ptLsb, mBgData.ptMsb, xIdx);
+
+    // Calculate Palette number (which palette is used)
+    bool isRightTile  = (mV & 0b0000'0000'0000'0010) != 0;
+    bool isBottomTile = (mV & 0b0000'0000'0100'0000) != 0;
+
+    u8 paletteNumber;
+    if (!(isRightTile || isBottomTile))
+        paletteNumber = mBgData.at & 0b0000'0011;                
+
+    else if (isRightTile && !isBottomTile)
+        paletteNumber = (mBgData.at & 0b0000'1100) >> 2;                
+        
+    else if (!isRightTile && isBottomTile)
+        paletteNumber = (mBgData.at & 0b0011'0000) >> 4;                
+
+    else
+        paletteNumber = (mBgData.at & 0b1100'0000) >> 6;                
+
+    // Get color (in palette) address -> Get color code -> Set pixel color
+    u16 colorAddress = 0x3F00; 
+    if ((mPpuMask & 0b0000'1000) != 0)
+        // BG Rendering Enable
+        colorAddress |= (paletteNumber << 2) | colorIdx;
+
+    return colorAddress;
+}
+
+u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, bool& hasSpritePriority)
+{
+    // Return EXT input when no rendering
+    if ((mPpuMask & 0b0001'0000) == 0)
+        return 0x3F00;
+        
+    oamData sprite;
+    for (u8 spriteIdx = 0; spriteIdx < 8; spriteIdx++)
+    {
+        sprite.yPos      = mSpriteRenderBuffer[spriteIdx * 4 + 0];
+        sprite.tileIdx   = mSpriteRenderBuffer[spriteIdx * 4 + 1];
+        sprite.attribute = mSpriteRenderBuffer[spriteIdx * 4 + 2];
+        sprite.xPos      = mSpriteRenderBuffer[spriteIdx * 4 + 3];
+
+        u16 colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, hasSpritePriority);
+        if (colorAddress == SPRITE_NOT_IN_RANGE)
+            continue;
+        
+        return colorAddress;
+    }
+
+    return 0x3F00;
+}
+
+u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos, bool &hasSpritePriority)
+{
+    u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
+    u8 yPos = sprite.yPos + 1;
+    if (!(yPos <= mScanlineCount && mScanlineCount < yPos + spriteHeight))
+        return SPRITE_NOT_IN_RANGE;
+
+    // Sprite is rendered on this scanline
+    u8 spriteXPos = sprite.xPos;
+
+    if (!(spriteXPos <= pixelXPos && pixelXPos < spriteXPos + 8))
+        return SPRITE_NOT_IN_RANGE;
+    
+    // Sprite is render on this pixel
+    u16 address;
+
+    u8 tileIdx    = sprite.tileIdx;
+    u8 attribute  = sprite.attribute;
+
+    // Get sprite priority
+    hasSpritePriority = (attribute & 0b0010'0000) == 0;
+
+    if ((mPpuCtrl & 0b0010'0000) == 0)
+    {
+        // Pattern table (8x8)
+        address = ((u16)mPpuCtrl & 0b0000'1000) << 9 |
+                (u16)tileIdx << 4;
+    }
+    else
+    {
+        // Pattern table (16x8)
+        address = ((u16)tileIdx & 0b0000'0001) << 12 | 
+                    ((u16)tileIdx & 0b1111'1110) << 4;
+    }
+
+                
+    // Vertical flip
+    u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? (mScanlineCount - yPos) : spriteHeight - 1 - (mScanlineCount - yPos));
+    if (spriteHeight == 8)
+        address |= spriteYPos;
+    else
+        address |= ((spriteYPos & 0b0000'1000) << 1) | (spriteYPos & 0b0000'0111); 
+
+
+    u8 ptLsb = readByte(memory, address);
+    u8 ptMsb = readByte(memory, address | 0b1000);
+    u8 xIdx = pixelXPos - spriteXPos;
+
+    // Horizontal flip
+    if ((attribute & 0b0100'0000) != 0)
+        xIdx = 7 - xIdx;
+
+    u8 colorIdx = getColorIndexFromPattern(ptLsb, ptMsb, xIdx);
+
+    // Palette 
+    u8 paletteNumber = attribute & 0b0000'0011;
+
+    return 0x3F10 | (paletteNumber << 2) | colorIdx; 
+}
+
+u8 PPU::getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx)
+{
+    u8 colorIdx;
+    if (xIdx != 7)
+        colorIdx = (ptMsb & (1 << (7 - xIdx))) >> (7 - xIdx - 1) | (ptLsb & (1 << (7 - xIdx))) >> (7 - xIdx);
+    else
+        colorIdx = (ptMsb & 1) << 1 | (ptLsb & 1);
+
+    return colorIdx;
+}
+
+bool PPU::isSprite0OnPixel(Memory &memory, u8 pixelXPos, u16 &colorAddress)
+{
+    u8 yPos = mOam[0];
+    if (!(yPos <= mScanlineCount && mScanlineCount < yPos + 8))
+        return false;
+
+    // Sprite is rendered on this scanline
+    u8 spriteXPos = mSpriteRenderBuffer[3];
+
+    if (!(spriteXPos <= pixelXPos && pixelXPos < spriteXPos + 8))
+        false;
+    
+    // Sprite is render on this pixel
+    u16 address;
+
+    u8 tileIdx    = mSpriteRenderBuffer[1];
+    u8 attribute  = mSpriteRenderBuffer[2];
+
+    // Pattern table (TODO: FLIP V & H)
+    address = ((u16)tileIdx & 0b0000'0001) << 12 | 
+                ((u16)tileIdx & 0b1111'1110) << 4;
+                
+    // Vertical flip
+    address |= ((attribute & 0b1000'0000) == 0) ? (mScanlineCount - yPos) : 7 - (mScanlineCount - yPos);
+
+    u8 ptLsb = readByte(memory, address);
+    u8 ptMsb = readByte(memory, address | 0b1'0000);
+    u8 xIdx = pixelXPos - spriteXPos;
+
+    // Horizontal flip
+    if ((attribute & 0b0100'0000) != 0)
+        xIdx = 7 - xIdx;
+
+    u8 colorIdx = getColorIndexFromPattern(ptLsb, ptMsb, xIdx);
+
+    // Palette 
+    u8 paletteNumber = attribute & 0b0000'0011;
+
+    colorAddress =  0x3F10 | (paletteNumber << 2) | colorIdx; 
+    return true;
 }
 
 void PPU::incrementCoarseX()

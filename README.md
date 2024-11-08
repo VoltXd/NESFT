@@ -35,9 +35,10 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 
 ## Plan
 - [x] Emulate the CPU
+- [x] PPU
+	- [x] Rendering with OpenGL
+	- [ ] Verify 8x16 sprite rendering (one day)
 - [ ] Learn more about the rest
-	- [ ] PPU
-		- [x] Rendering with OpenGL
 	- [ ] Controller
 	- [ ] APU
 		- [ ] Stream audio with OpenAL
@@ -62,9 +63,6 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)
 
 ### Test
 [Google Test](https://github.com/google/googletest)
-
-## Fun fact
-The CPU and its memory should fit in any modern computer stack.
 
 ## License
 

@@ -56,11 +56,11 @@ private:
     void setPictureColor(u8 colorCode, u32 row, u32 col);
 
     u16 getColorAddressFromBGData(u8 xIdx);
-    u16 getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, bool& hasSpritePriority);
-    u16 getColorAddressFromSprite(Memory& memory, oamData sprite, u8 pixelXPos, bool& hasSpritePriority);
+    u16 getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, u8 pixelYPos, bool& hasSpritePriority);
+    u16 getColorAddressFromSprite(Memory& memory, oamData sprite, u8 pixelXPos, u8 pixelYPos, bool& hasSpritePriority);
     u8 getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx);
 
-    bool isSprite0OnPixel(Memory& memory, u8 pixelXPos, u16& colorAddress);
+    bool isSprite0OnPixel(Memory& memory, u8 pixelXPos, u8 pixelYPos, u16& colorAddress);
 
     void incrementCoarseX();
     void incrementY();

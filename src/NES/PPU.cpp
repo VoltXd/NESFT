@@ -347,7 +347,7 @@ void PPU::processPixelData(Memory& memory)
 
             bool hasSpritePriority = false;
             u16 bgColorAddress = getColorAddressFromBGData(i);
-            u16 spriteColorAddress = getColorAddressFromSecOam(memory, (u8)col, hasSpritePriority);
+            u16 spriteColorAddress = getColorAddressFromSecOam(memory, (u8)col, (u8)row, hasSpritePriority);
 
             // Sprite 0 hit
             if (!(((mPpuMask & 0b0001'1000) != 0b0001'1000) ||
@@ -356,7 +356,7 @@ void PPU::processPixelData(Memory& memory)
             {
                 // Sprite 0 hit is possible
                 u16 sprite0ColorAddress;
-                bool isSprite0Detected = isSprite0OnPixel(memory, (u8)col, sprite0ColorAddress);
+                bool isSprite0Detected = isSprite0OnPixel(memory, (u8)col, (u8)row, sprite0ColorAddress);
                 if (isSprite0Detected)
                 {
                     // Compare palette address to BG palette address
@@ -564,7 +564,7 @@ u16 PPU::getColorAddressFromBGData(u8 xIdx)
     return colorAddress;
 }
 
-u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, bool& hasSpritePriority)
+u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, u8 pixelYPos, bool& hasSpritePriority)
 {
     // Return EXT input when no rendering
     if ((mPpuMask & 0b0001'0000) == 0)
@@ -578,8 +578,12 @@ u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, bool& hasSprite
         sprite.attribute = mSpriteRenderBuffer[spriteIdx * 4 + 2];
         sprite.xPos      = mSpriteRenderBuffer[spriteIdx * 4 + 3];
 
-        u16 colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, hasSpritePriority);
+        u16 colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, pixelYPos, hasSpritePriority);
         if (colorAddress == SPRITE_NOT_IN_RANGE)
+            continue;
+
+        if ((colorAddress & 0x0003) == 0)
+            // Sprite pixel is transparent
             continue;
         
         return colorAddress;
@@ -588,11 +592,11 @@ u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, bool& hasSprite
     return 0x3F00;
 }
 
-u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos, bool &hasSpritePriority)
+u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos, u8 pixelYPos, bool &hasSpritePriority)
 {
     u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
     u8 yPos = sprite.yPos + 1;
-    if (!(yPos <= mScanlineCount && mScanlineCount < yPos + spriteHeight))
+    if (!(yPos <= pixelYPos && pixelYPos < yPos + spriteHeight))
         return SPRITE_NOT_IN_RANGE;
 
     // Sprite is rendered on this scanline
@@ -625,7 +629,7 @@ u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos,
 
                 
     // Vertical flip
-    u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? (mScanlineCount - yPos) : spriteHeight - 1 - (mScanlineCount - yPos));
+    u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? (pixelYPos - yPos) : spriteHeight - 1 - (pixelYPos - yPos));
     if (spriteHeight == 8)
         address |= spriteYPos;
     else
@@ -659,7 +663,7 @@ u8 PPU::getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx)
     return colorIdx;
 }
 
-bool PPU::isSprite0OnPixel(Memory &memory, u8 pixelXPos, u16 &colorAddress)
+bool PPU::isSprite0OnPixel(Memory &memory, u8 pixelXPos, u8 pixelYPos, u16 &colorAddress)
 {
     oamData sprite;
     bool dummyFlag;
@@ -667,7 +671,7 @@ bool PPU::isSprite0OnPixel(Memory &memory, u8 pixelXPos, u16 &colorAddress)
     sprite.tileIdx   = mOam[1];
     sprite.attribute = mOam[2];
     sprite.xPos      = mOam[3];
-    colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, dummyFlag);
+    colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, pixelYPos, dummyFlag);
     if (colorAddress == SPRITE_NOT_IN_RANGE)
         return false;
     

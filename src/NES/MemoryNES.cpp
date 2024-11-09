@@ -5,8 +5,8 @@
 #include <random>
 #include <iostream>
 
-MemoryNES::MemoryNES(const std::string &romFilename, PPU& ppuRef, Controller& controllerRef)
-	: mCartridge(romFilename), mPpuRef(ppuRef), mControllerRef(controllerRef)
+MemoryNES::MemoryNES(const std::string &romFilename, APU& apuRef, PPU& ppuRef, Controller& controllerRef)
+	: mCartridge(romFilename), mApuRef(apuRef), mPpuRef(ppuRef), mControllerRef(controllerRef)
 {
 }
 
@@ -45,7 +45,12 @@ u8 MemoryNES::cpuRead(u16 address)
 	else if (0x4000 <= address && address < 0x4018)
 	{
 		// APU & IO Registers
+		if (address == APU_STATUS_CPU_ADDR)
+			 // APU status
+			value = mApuRef.readRegister(address);
+
 		if (address == CONTROLLER_1_STATE_ADDR)
+			// Controller 1
 			value = mControllerRef.getStateBitAndShift();
 	}
 	else if (0x4018 <= address && address < 0x4020)
@@ -76,9 +81,18 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 	else if (0x4000 <= address && address < 0x4018)
 	{
 		// APU & IO Registers
-		if (address == OAMDMA_CPU_ADDR)
+		if ((0x4000 <= address && address <= 0x4013) || 
+		    address == APU_STATUS_CPU_ADDR           || 
+			address == APU_FRAME_COUNTER_CPU_ADDR)
+			 // APU
+			mApuRef.writeRegister(address, value);
+
+		else if (address == OAMDMA_CPU_ADDR)
+			// OAM DMA
 			startOamDma(value);
+			
 		else if (address == CONTROLLER_STROBE_ADDR)
+			// Controller 1
 			mControllerRef.setStrobe(value);
 	}
 	else if (0x4018 <= address && address < 0x4020)

@@ -5,6 +5,7 @@
 #include "NES/Config.hpp"
 #include "NES/Cartridge.hpp"
 #include "NES/Controller.hpp"
+#include "NES/APU.hpp"
 
 constexpr u16 PPUCTRL_CPU_ADDR   = 0x2000;
 constexpr u16 PPUMASK_CPU_ADDR   = 0x2001;
@@ -21,7 +22,7 @@ class PPU;
 class MemoryNES
 {
 public:
-	MemoryNES(const std::string& romFilename, PPU& ppuRef, Controller& controllerRef);
+	MemoryNES(const std::string& romFilename, APU& apuRef, PPU& ppuRef, Controller& controllerRef);
 	void reset();
 
 	u8 cpuRead(u16 address);
@@ -41,6 +42,9 @@ private:
 	// CPU
 	static constexpr u32 CPU_RAM_SIZE = 0x0800; // 2 kB
 	u8 mCpuRam[CPU_RAM_SIZE];
+
+	// APU
+	APU& mApuRef;
 
 	// PPU
 	static constexpr u32 PPU_VRAM_SIZE = 0x0800; // 2 kB

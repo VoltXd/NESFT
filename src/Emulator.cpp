@@ -7,7 +7,7 @@
 #include "IO/GlfwApp.hpp"
 
 Emulator::Emulator(const std::string &romFilename)
-	: mMemory(romFilename, mPpu, mController)
+	: mMemory(romFilename, mApu, mPpu, mController)
 {
 }
 

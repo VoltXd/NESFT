@@ -7,16 +7,22 @@
 
 #include "IO/Shader.hpp"
 #include "NES/PPU.hpp"
+#include "NES/Controller.hpp"
 
-class GlfwRenderer
+class GlfwApp
 {
 public:
-    GlfwRenderer();
-    ~GlfwRenderer();
+    GlfwApp(Controller& controllerRef);
+    ~GlfwApp();
 
     void draw(const picture_t& pictureBuffer);
 
+    void updateControllerState(ControllerInput input, bool isPressed);
+    
+    bool shouldWindowClose() { return glfwWindowShouldClose(mWindow); }
+    
 private:
+
     GLFWwindow* mWindow;
 
     int mWindowWidth = 1280;
@@ -47,4 +53,6 @@ private:
     uint32_t mScreenEbo;
     uint32_t mScreenTexture;
     std::unique_ptr<Shader> mScreenShader;
+
+    Controller& mControllerRef;
 };

@@ -1,10 +1,11 @@
-#include "IO/GlfwRenderer.hpp"
+#include "IO/GlfwApp.hpp"
 
 #include <iostream>
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-GlfwRenderer::GlfwRenderer()
+GlfwApp::GlfwApp(Controller& controllerRef)
+    : mControllerRef(controllerRef)
 {
     // Window size
     mWindowHeight;
@@ -91,7 +92,7 @@ GlfwRenderer::GlfwRenderer()
     glEnable(GL_CULL_FACE);
 }
 
-GlfwRenderer::~GlfwRenderer()
+GlfwApp::~GlfwApp()
 {
     glDeleteVertexArrays(1, &mScreenVao);
     glDeleteBuffers(1, &mScreenVbo);
@@ -100,7 +101,7 @@ GlfwRenderer::~GlfwRenderer()
     glfwTerminate();
 }
 
-void GlfwRenderer::draw(const picture_t& pictureBuffer)
+void GlfwApp::draw(const picture_t& pictureBuffer)
 {
     // Clear frame buffer
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -126,12 +127,51 @@ void GlfwRenderer::draw(const picture_t& pictureBuffer)
     glfwPollEvents();
 }
 
+void GlfwApp::updateControllerState(ControllerInput input, bool isPressed)
+{
+    mControllerRef.updateControllerState(input, isPressed);
+}
+
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    GlfwRenderer* renderer = reinterpret_cast<GlfwRenderer*>(glfwGetWindowUserPointer(window));
+    GlfwApp* renderer = reinterpret_cast<GlfwApp*>(glfwGetWindowUserPointer(window));
     if (renderer)
     {
         // Handle keyboard press
-        std::cout << key << ' ' << scancode << ' ' << action << ' ' << mods << std::endl;
+        bool isPressed;
+        ControllerInput input;
+
+        if (mods != 0x0000)
+            // No input if ALT, CTRL, Super...
+            return;
+        scancode; // Useless line to remove warning
+
+        if (action == GLFW_PRESS)
+            isPressed = true;
+        else if (action == GLFW_RELEASE)
+            isPressed = false;
+        else 
+            return;
+
+        if (key == GLFW_KEY_K)
+            input = ControllerInput::A;
+        else if  (key == GLFW_KEY_J)
+            input = ControllerInput::B;
+        else if  (key == GLFW_KEY_G)
+            input = ControllerInput::SELECT;
+        else if  (key == GLFW_KEY_H)
+            input = ControllerInput::START;
+        else if  (key == GLFW_KEY_W)
+            input = ControllerInput::UP;
+        else if  (key == GLFW_KEY_S)
+            input = ControllerInput::DOWN;
+        else if  (key == GLFW_KEY_A)
+            input = ControllerInput::LEFT;
+        else if  (key == GLFW_KEY_D)
+            input = ControllerInput::RIGHT;
+        else
+            return;
+        
+        renderer->updateControllerState(input, isPressed);
     }
 }

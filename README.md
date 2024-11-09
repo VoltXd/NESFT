@@ -38,8 +38,8 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [x] PPU
 	- [x] Rendering with OpenGL
 	- [ ] Verify 8x16 sprite rendering (one day)
+- [x] Controller
 - [ ] Learn more about the rest
-	- [ ] Controller
 	- [ ] APU
 		- [ ] Stream audio with OpenAL
 	- [ ] More Mappers

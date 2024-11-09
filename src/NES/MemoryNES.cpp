@@ -5,8 +5,8 @@
 #include <random>
 #include <iostream>
 
-MemoryNES::MemoryNES(const std::string &romFilename, PPU& ppuRef)
-	: mCartridge(romFilename), mPpuRef(ppuRef)
+MemoryNES::MemoryNES(const std::string &romFilename, PPU& ppuRef, Controller& controllerRef)
+	: mCartridge(romFilename), mPpuRef(ppuRef), mControllerRef(controllerRef)
 {
 }
 
@@ -45,6 +45,8 @@ u8 MemoryNES::cpuRead(u16 address)
 	else if (0x4000 <= address && address < 0x4018)
 	{
 		// APU & IO Registers
+		if (address == CONTROLLER_1_STATE_ADDR)
+			value = mControllerRef.getStateBitAndShift();
 	}
 	else if (0x4018 <= address && address < 0x4020)
 	{
@@ -76,6 +78,8 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 		// APU & IO Registers
 		if (address == OAMDMA_CPU_ADDR)
 			startOamDma(value);
+		else if (address == CONTROLLER_STROBE_ADDR)
+			mControllerRef.setStrobe(value);
 	}
 	else if (0x4018 <= address && address < 0x4020)
 	{

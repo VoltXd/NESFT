@@ -4,10 +4,10 @@
 #include <iostream>
 #include <chrono>
 #include "NES/Cartridge.hpp"
-#include "IO/GlfwRenderer.hpp"
+#include "IO/GlfwApp.hpp"
 
 Emulator::Emulator(const std::string &romFilename)
-	: mMemory(romFilename, mPpu)
+	: mMemory(romFilename, mPpu, mController)
 {
 }
 
@@ -20,14 +20,14 @@ int Emulator::run()
 	mPpu.reset();
 	mIsDmaGetCycle = false;
 
-	GlfwRenderer renderer;
+	GlfwApp appWindow(mController);
 
 	std::chrono::steady_clock::time_point time0 = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point time1;
 	std::chrono::duration<double> elapsedTime;
 		
 	// Infinite loop
-	while (true)
+	while (!appWindow.shouldWindowClose())
 	{
 		// Update
 		runOneInstruction();
@@ -45,7 +45,7 @@ int Emulator::run()
 			time0 = time1;
 			
 			// Render
-			renderer.draw(mPpu.getPicture());
+			appWindow.draw(mPpu.getPicture());
 		}
 	}
 

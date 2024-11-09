@@ -4,6 +4,7 @@
 #include <memory>
 #include "NES/Config.hpp"
 #include "NES/Cartridge.hpp"
+#include "NES/Controller.hpp"
 
 constexpr u16 PPUCTRL_CPU_ADDR   = 0x2000;
 constexpr u16 PPUMASK_CPU_ADDR   = 0x2001;
@@ -20,7 +21,7 @@ class PPU;
 class MemoryNES
 {
 public:
-	MemoryNES(const std::string& romFilename, PPU& ppuRef);
+	MemoryNES(const std::string& romFilename, PPU& ppuRef, Controller& controllerRef);
 	void reset();
 
 	u8 cpuRead(u16 address);
@@ -59,4 +60,9 @@ private:
 	u16 mOamDmaIdx;
 	bool mIsOamDmaStarted;
 	bool mIsCpuHalt;
+
+	// Controller
+	static constexpr u16 CONTROLLER_STROBE_ADDR = 0x4016;
+	static constexpr u16 CONTROLLER_1_STATE_ADDR = 0x4016;
+	Controller& mControllerRef;
 };

@@ -40,7 +40,7 @@ u8 MemoryNES::cpuRead(u16 address)
 	else if (0x2000 <= address && address < 0x4000)
 	{
 		// PPU Registers
-		value = mPpuRef.readRegister(*this, address);
+		value = mPpuRef.readRegister(*this, address & 0x2007);
 	}
 	else if (0x4000 <= address && address < 0x4018)
 	{
@@ -71,7 +71,7 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 	else if ((0x2000 <= address && address < 0x4000))
 	{
 		// PPU Registers
-		mPpuRef.writeRegister(*this, address, value);
+		mPpuRef.writeRegister(*this, address & 0x2007, value);
 	}
 	else if (0x4000 <= address && address < 0x4018)
 	{

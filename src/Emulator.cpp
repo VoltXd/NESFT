@@ -4,7 +4,9 @@
 #include <iostream>
 #include <chrono>
 #include "NES/Cartridge.hpp"
+#include "NES/Toolbox.hpp"
 #include "IO/GlfwApp.hpp"
+#include "IO/SoundManager.hpp"
 
 Emulator::Emulator(const std::string &romFilename)
 	: mMemory(romFilename, mApu, mPpu, mController)
@@ -25,6 +27,18 @@ int Emulator::run()
 	std::chrono::steady_clock::time_point time0 = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point time1;
 	std::chrono::duration<double> elapsedTime;
+
+	// *** Horribly designed sound test
+	SoundManager sm;
+	testAndExitWithMessage(sm.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
+
+	soundBuffer_t bufferData;
+	for (int i = 0; i < BUFFER_SIZE; i++)
+		bufferData[i] = (u8)(i % 256);
+
+	for (int i = 0; i < 100; i++)
+		while (sm.streamSound(bufferData) == StreamStatus::NOT_QUEUED);
+	// *** End of test
 		
 	// Infinite loop
 	while (!appWindow.shouldWindowClose())

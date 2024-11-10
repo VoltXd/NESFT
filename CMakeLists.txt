@@ -26,10 +26,13 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(libraries/glfw)
-
 target_link_libraries(${PROJECT_NAME} glfw)
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)
+
+add_subdirectory(libraries/openal-soft)
+target_link_libraries(${PROJECT_NAME} OpenAL)
+target_include_directories(${PROJECT_NAME} PRIVATE libraries/openal-soft/include)
 
 # Verbose warnings & warnings are errors
 if(MSVC)

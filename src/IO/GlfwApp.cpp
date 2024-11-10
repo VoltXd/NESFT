@@ -146,6 +146,11 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
             return;
         scancode; // Useless line to remove warning
 
+        // Window
+        if ((action == GLFW_PRESS) && (key == GLFW_KEY_ESCAPE))
+            glfwSetWindowShouldClose(window, true);
+
+        // Controller 1
         if (action == GLFW_PRESS)
             isPressed = true;
         else if (action == GLFW_RELEASE)

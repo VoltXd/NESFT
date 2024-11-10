@@ -9,6 +9,8 @@
 #include "NES/PPU.hpp"
 #include "NES/Controller.hpp"
 
+constexpr float NES_ASPECT_RATIO = 256.0f / 240;
+
 class GlfwApp
 {
 public:
@@ -24,9 +26,6 @@ public:
 private:
 
     GLFWwindow* mWindow;
-
-    int mWindowWidth = 1280;
-    int mWindowHeight = 720;
 
     static constexpr float SCREEN_VERTICES[] = 
     {
@@ -48,10 +47,10 @@ private:
         0.0f, 0.0f, 0.0f, 1.0f 
     };
 
-    uint32_t mScreenVao;
-    uint32_t mScreenVbo;
-    uint32_t mScreenEbo;
-    uint32_t mScreenTexture;
+    GLuint mScreenVao;
+    GLuint mScreenVbo;
+    GLuint mScreenEbo;
+    GLuint mScreenTexture;
     std::unique_ptr<Shader> mScreenShader;
 
     Controller& mControllerRef;

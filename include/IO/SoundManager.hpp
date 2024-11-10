@@ -5,7 +5,9 @@
 
 #include "NES/Config.hpp"
 
-constexpr u32 BUFFER_SIZE = 2048;
+constexpr u32     BUFFER_SIZE   = 1 << 10;
+constexpr ALenum  BUFFER_FORMAT = AL_FORMAT_MONO8;
+constexpr ALsizei BUFFER_SAMPLE_RATE   = 44'100;
 
 using soundBuffer_t = std::array<u8, BUFFER_SIZE>;
 
@@ -27,9 +29,7 @@ private:
 	void checkError();
 	
 	// Buffers
-	static constexpr u8      NUM_BUFFERS   = 4;
-	static constexpr ALenum  BUFFER_FORMAT = AL_FORMAT_MONO8;
-	static constexpr ALsizei SAMPLE_RATE   = 44'100;
+	static constexpr u8      NUM_BUFFERS   = 8;
 	std::array<ALuint, NUM_BUFFERS> mBuffers;
 
 	ALuint mSource;

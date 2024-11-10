@@ -37,12 +37,20 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [x] Emulate the CPU
 - [x] PPU
 	- [x] Rendering with OpenGL
+	- [x] Pixels rendering
+		- [x] Background rendering
+		- [x] Sprites rendering
 	- [ ] Verify 8x16 sprite rendering (one day)
+	- [ ] Color emphasis & greyscale
 - [x] Controller
-- [ ] Learn more about the rest
-	- [ ] APU
-		- [ ] Stream audio with OpenAL
-	- [ ] More Mappers
+- [ ] APU
+	- [x] Stream audio with OpenAL
+	- [ ] Generate sound signals
+		- [ ] Pulses
+		- [ ] Triangle
+		- [ ] Noise
+		- [ ] DMC
+- [ ] More Mappers
 
 ## References
 ### Inspiration
@@ -52,6 +60,7 @@ Inspired by [Dave Poo](https://www.youtube.com/@DavePoo):\
 ](https://youtu.be/L7J1pPokEyw?si=gRlonH_mJQViYa5g)
 
 And [OneLoneCoder](https://www.youtube.com/@javidx9)
+[NES Emulator from scratch](https://www.youtube.com/playlist?list=PLrOv9FMX8xJHqMvSGB_9G9nZZ_4IgteYf)
 
 ### NES Hardware
 [NESdev Wiki](https://www.nesdev.org/wiki/NES_reference_guide)
@@ -64,6 +73,10 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)
 
 ### Test
 [Google Test](https://github.com/google/googletest)
+
+### OpenAL
+[OpenAL Documentation](https://www.openal.org/documentation/)
+[OpenAL destroy computer audio FIX](https://stackoverflow.com/questions/9397681/openal-randomly-stops-playing-some-sounds-can-only-fix-with-reboot)
 
 ## License
 

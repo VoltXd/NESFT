@@ -5,6 +5,9 @@
 
 int SoundManager::initialise()
 {
+	// Reset
+	alcCloseDevice(alcOpenDevice(nullptr));
+	
 	// Open sound device
     ALCdevice* devicePtr = alcOpenDevice(nullptr);
 	if (devicePtr == nullptr)
@@ -81,7 +84,7 @@ StreamStatus SoundManager::streamSound(const soundBuffer_t& bufferData)
 	{
 		// Start of the stream
 		// Fill the source with buffers
-		alBufferData(mBuffers[totalInSource], BUFFER_FORMAT, bufferData.data(), BUFFER_SIZE, SAMPLE_RATE);
+		alBufferData(mBuffers[totalInSource], BUFFER_FORMAT, bufferData.data(), BUFFER_SIZE, BUFFER_SAMPLE_RATE);
 		alSourceQueueBuffers(mSource, 1, &mBuffers[totalInSource]);
 
 		streamStatus = StreamStatus::QUEUED;
@@ -97,7 +100,7 @@ StreamStatus SoundManager::streamSound(const soundBuffer_t& bufferData)
 		// Unqueue a buffer, modify it's data and requeue it
 		ALuint buffer;
 		alSourceUnqueueBuffers(mSource, 1, &buffer);
-		alBufferData(buffer, BUFFER_FORMAT, bufferData.data(), BUFFER_SIZE, SAMPLE_RATE);
+		alBufferData(buffer, BUFFER_FORMAT, bufferData.data(), BUFFER_SIZE, BUFFER_SAMPLE_RATE);
 		alSourceQueueBuffers(mSource, 1, &buffer);
 
 		streamStatus = StreamStatus::QUEUED;

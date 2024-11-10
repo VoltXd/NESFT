@@ -6,7 +6,9 @@
 #include "NES/Cartridge.hpp"
 #include "NES/Toolbox.hpp"
 #include "IO/GlfwApp.hpp"
+
 #include "IO/SoundManager.hpp"
+#include <cmath>
 
 Emulator::Emulator(const std::string &romFilename)
 	: mMemory(romFilename, mApu, mPpu, mController)
@@ -33,11 +35,13 @@ int Emulator::run()
 	testAndExitWithMessage(sm.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
 
 	soundBuffer_t bufferData;
-	for (int i = 0; i < BUFFER_SIZE; i++)
-		bufferData[i] = (u8)(i % 256);
 
 	for (int i = 0; i < 100; i++)
+	{
+		for (int j = 0; j < BUFFER_SIZE; j++)
+			bufferData[j] = (u8)(255 * 0.5f * (sinf(2.0f * 3.1415f * 440 * (i * BUFFER_SIZE + j) / BUFFER_SAMPLE_RATE) + 1));
 		while (sm.streamSound(bufferData) == StreamStatus::NOT_QUEUED);
+	}
 	// *** End of test
 		
 	// Infinite loop

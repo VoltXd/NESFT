@@ -3,13 +3,14 @@
 #include <iostream>
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+static void resizeCallback(GLFWwindow* window, int windowWidth, int windowHeight);
 
 GlfwApp::GlfwApp(Controller& controllerRef)
     : mControllerRef(controllerRef)
 {
     // Window size
-    mWindowHeight;
-    mWindowWidth;
+    constexpr int windowWidth = 1280;
+    constexpr int windowHeight = 720;
 
     // Init GLFW + Version + Core profile
     glfwInit();
@@ -18,7 +19,7 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Window
-    mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, "Simple NES Emulator", nullptr, nullptr);
+    mWindow = glfwCreateWindow(windowWidth, windowHeight, "Simple NES Emulator", nullptr, nullptr);
     if (mWindow == nullptr)
     {
         std::cout << "Failed to create GLFW window!" << std::endl;
@@ -36,13 +37,12 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     }
 
     // Tells openGL the position & size of the view port
-    int windowWidth4_3 = (int)(mWindowHeight * (256.0 / 240));
-    int windowXOffset = (mWindowWidth - windowWidth4_3) / 2; 
-    glViewport(windowXOffset, 0, windowWidth4_3, mWindowHeight);
+    resizeCallback(mWindow, windowWidth, windowHeight);
 
-    // Enable keyboard events
+    // Enable keyboard & resize callbacks
     glfwSetWindowUserPointer(mWindow, this);
     glfwSetKeyCallback(mWindow, keyCallback);
+    glfwSetWindowSizeCallback(mWindow, resizeCallback);
 
     // Screen VAO, VBO & EBO
     // VAO
@@ -178,5 +178,22 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
             return;
         
         renderer->updateControllerState(input, isPressed);
+    }
+}
+
+void resizeCallback(GLFWwindow *window, int windowWidth, int windowHeight)
+{
+    window = nullptr; // Remove warning
+    if ((float)windowWidth / windowHeight > NES_ASPECT_RATIO)
+    {
+        int windowWidth4_3 = (int)(windowHeight * NES_ASPECT_RATIO);
+        int windowXOffset = (windowWidth - windowWidth4_3) / 2; 
+        glViewport(windowXOffset, 0, windowWidth4_3, windowHeight);
+    }
+    else
+    {
+        int windowHeight4_3 = (int)(windowWidth * (1.0 / NES_ASPECT_RATIO));
+        int windowYOffset = (windowHeight - windowHeight4_3) / 2; 
+        glViewport(0, windowYOffset, windowWidth, windowHeight4_3);
     }
 }

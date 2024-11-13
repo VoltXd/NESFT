@@ -13,37 +13,28 @@
 Emulator::Emulator(const std::string &romFilename)
 	: mMemory(romFilename, mApu, mPpu, mController)
 {
+	// Reset
+	mMemory.reset();
+	mCpu.reset(mMemory);
+	mApu.reset();
+	mPpu.reset();
+
+	mIsDmaGetCycle = false;
+	mApuTimestamp = 0.0f;
+	mSoundSamplesCount = 0;
+
+	testAndExitWithMessage(mSoundManager.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
 }
 
 int Emulator::run()
 {
 	// *************** NES Emulation *************** //
-	// Reset
-	mMemory.reset();
-	mCpu.reset(mMemory);
-	mPpu.reset();
-	mIsDmaGetCycle = false;
-
 	GlfwApp appWindow(mController);
 
 	std::chrono::steady_clock::time_point time0 = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point time1;
 	std::chrono::duration<double> elapsedTime;
 
-	// *** Horribly designed sound test
-	SoundManager sm;
-	testAndExitWithMessage(sm.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
-
-	soundBuffer_t bufferData;
-
-	for (int i = 0; i < 100; i++)
-	{
-		for (int j = 0; j < BUFFER_SIZE; j++)
-			bufferData[j] = (u8)(255 * 0.5f * (sinf(2.0f * 3.1415f * 440 * (i * BUFFER_SIZE + j) / BUFFER_SAMPLE_RATE) + 1));
-		while (sm.streamSound(bufferData) == StreamStatus::NOT_QUEUED);
-	}
-	// *** End of test
-		
 	// Infinite loop
 	while (!appWindow.shouldWindowClose())
 	{
@@ -84,12 +75,37 @@ void Emulator::runOneInstruction()
 		elapsedCycles = mCpu.nmi(mMemory);
 		mPpu.clearNMISignal();	
 	}
+	else if (mApu.getFrameCounterIRQSignal())
+	{
+		elapsedCycles = mCpu.irq(mMemory);
+		mApu.clearIRQSignal();
+	}
 	else
 		elapsedCycles = mCpu.execute(1, mMemory);
 
 	// Update get/put cycle flag (DMA)
 	mIsDmaGetCycle = (bool)(((mIsDmaGetCycle ? 1 : 0) + elapsedCycles) % 2);
 	
+	// APU
+	for (int i = 0; i < elapsedCycles; i++)
+	{
+		mApu.executeOneCpuCycle();
+		mApuTimestamp += TIME_PER_CYCLE;
+		while (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
+		{
+			// Get sample & substract sample period to time stamp
+			mSoundBuffer[mSoundSamplesCount++] = (u8)(256 * mApu.getOutput());
+			mApuTimestamp -= BUFFER_SAMPLE_PERIOD;
+
+			// Push buffer to audio output when full
+			if (mSoundSamplesCount >= BUFFER_SIZE)
+			{
+				mSoundSamplesCount = 0;
+				while (mSoundManager.streamSound(mSoundBuffer) == StreamStatus::NOT_QUEUED);
+			}
+		}
+	}
+
 	// PPU
 	for (int i = 0; i < 3 * elapsedCycles; i++)
 		mPpu.executeOneCycle(mMemory);

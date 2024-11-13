@@ -29,6 +29,36 @@ void APU::reset()
 	mDmcReg.reg3 = 0x00;
 
 	mStatus = 0x00;
+
+	mFrameCounter.reset();
+	mNoiseChannel.reset();
+}
+
+void APU::executeOneCpuCycle()
+{
+	APUFrameCounterState fcState;
+
+	// Frame counter
+	fcState = mFrameCounter.executeOneCpuCycle();
+
+	if (!mFrameCounter.isEvenCycle())
+	{
+		// On even cycle -> tick pulse, noise & DMC
+		mNoiseChannel.update(fcState);
+	}
+}
+
+float APU::getOutput()
+{
+	u8 noise;
+	float output;
+
+	noise = mNoiseChannel.getOutput();
+
+	// Store the APU mixed output
+	output = mix(0, 0, 0, noise, 0);
+
+	return output;
 }
 
 void APU::writeRegister(u16 address, u8 value)
@@ -85,6 +115,7 @@ void APU::writeRegister(u16 address, u8 value)
 			
 		case APU_NOISE_0_CPU_ADDR:
 			mNoiseReg.reg0 = value;
+			mNoiseChannel.setReg0(value);
 			break;
 			
 		case APU_NOISE_1_CPU_ADDR:
@@ -93,10 +124,12 @@ void APU::writeRegister(u16 address, u8 value)
 			
 		case APU_NOISE_2_CPU_ADDR:
 			mNoiseReg.reg1 = value;
+			mNoiseChannel.setReg1(value);
 			break;
 			
 		case APU_NOISE_3_CPU_ADDR:
 			mNoiseReg.reg2 = value;
+			mNoiseChannel.setReg2(value);
 			break;
 			
 		case APU_DMC_0_CPU_ADDR:
@@ -117,10 +150,15 @@ void APU::writeRegister(u16 address, u8 value)
 		
 		case APU_STATUS_CPU_ADDR:
 			mStatus = value;
+			if ((mStatus & 0b0000'1000) == 0)
+				mNoiseChannel.disable();
+			else
+				mNoiseChannel.enable();
+
 			break;
 
 		case APU_FRAME_COUNTER_CPU_ADDR:
-			mFrameCounter = value;
+			mFrameCounterReg = value;
 			break;
 		
 		default:
@@ -145,4 +183,28 @@ u8 APU::readRegister(u16 address)
 	}
 	
 	return value;
+}
+
+float APU::mix(u8 pulse1, u8 pulse2, u8 triangle, u8 noise, u8 dmc)
+{
+	float pulseOut, tndOut, tndTemp;
+	u8 pulse12 = pulse1 + pulse2;
+	u8 tnd = triangle + noise + dmc;
+
+	// Pulses mix
+	if (pulse12 == 0)
+		pulseOut = 0.0f;
+	else
+		pulseOut = (95.88f * pulse12) / (8128 + 100.0f * pulse12);
+	
+	// Triangle, noise & DMC mix
+	tndTemp = triangle * (1.0f / 8227) + 
+	                noise * (1.0f / 12241) + 
+					dmc * (1.0f / 22638);
+	if (tnd == 0)
+		tndOut = 0.0f;
+	else
+		tndOut = (159.79f * tndTemp) / (1.0f + 100.0f * tndTemp);
+	
+	return pulseOut + tndOut;
 }

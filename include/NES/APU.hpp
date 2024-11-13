@@ -1,6 +1,10 @@
 #pragma once
 
+#include <array>
+
 #include "NES/Config.hpp"
+#include "NES/APUFrameCounter.hpp"
+#include "NES/APUNoise.hpp"
 
 constexpr u16 APU_PULSE1_0_CPU_ADDR      = 0x4000;
 constexpr u16 APU_PULSE1_1_CPU_ADDR      = 0x4001;
@@ -35,11 +39,24 @@ class APU
 {
 public:
 	void reset();
+
+	void executeOneCpuCycle();
+	float getOutput();
 	
 	void writeRegister(u16 address, u8 value);
 	u8 readRegister(u16 address);
 
+	inline bool getFrameCounterIRQSignal() const { return mFrameCounter.getIRQSignal(); }
+	inline void clearIRQSignal() { mFrameCounter.clearIRQSignal(); }
+
 private:
+	float mix(u8 pulse1, 
+	          u8 pulse2,
+			  u8 triangle,
+			  u8 noise,
+			  u8 dmc);
+
+	// Registers
 	struct pulseReg
 	{
 		u8 reg0;
@@ -48,7 +65,6 @@ private:
 		u8 reg3;
 	} mPulse1Reg, mPulse2Reg;
 
-	
 	struct triangleReg
 	{
 		u8 reg0;
@@ -71,6 +87,9 @@ private:
 		u8 reg3;
 	} mDmcReg;
 
+	APUFrameCounter mFrameCounter;
+	APUNoise mNoiseChannel;
+
 	u8 mStatus;
-	u8 mFrameCounter;
+	u8 mFrameCounterReg;
 };

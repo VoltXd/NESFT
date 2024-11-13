@@ -48,7 +48,7 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 	- [ ] Generate sound signals
 		- [ ] Pulses
 		- [ ] Triangle
-		- [ ] Noise
+		- [x] Noise
 		- [ ] DMC
 - [ ] More Mappers
 

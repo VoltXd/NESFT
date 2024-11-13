@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14) 
 
-# *************** No test *************** #
+# *************** Release *************** #
 project(simple-nes-emulator LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,6 +31,50 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)
 
 add_subdirectory(libraries/openal-soft)
+target_link_libraries(${PROJECT_NAME} OpenAL)
+target_include_directories(${PROJECT_NAME} PRIVATE libraries/openal-soft/include)
+
+# Verbose warnings & warnings are errors
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
+
+
+# *************** ALDebug *************** #
+project(simple-nes-emulator-ALDebug LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Source & Header location
+file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE HEADER_FILES include/*.hpp)
+
+file(GLOB_RECURSE GLAD_SOURCE_FILES libraries/glad/src/*.c)
+
+# Make the executable with the headers & sources (NO TESTS)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${GLAD_SOURCE_FILES})
+
+# Set the directory where CMakeLists.txt is to be the working directory
+set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# Target the include folder (used to make headers visible in visual studio)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_include_directories(${PROJECT_NAME} PRIVATE libraries/glad/include)
+target_compile_definitions(${PROJECT_NAME} PUBLIC AL_DEBUG)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# add_subdirectory(libraries/glfw)
+target_link_libraries(${PROJECT_NAME} glfw)
+find_package(OpenGL REQUIRED)
+target_link_libraries(${PROJECT_NAME} OpenGL::GL)
+
+# add_subdirectory(libraries/openal-soft)
 target_link_libraries(${PROJECT_NAME} OpenAL)
 target_include_directories(${PROJECT_NAME} PRIVATE libraries/openal-soft/include)
 

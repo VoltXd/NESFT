@@ -22,6 +22,7 @@ Emulator::Emulator(const std::string &romFilename)
 	mIsDmaGetCycle = false;
 	mApuTimestamp = 0.0f;
 	mSoundSamplesCount = 0;
+	mIsUsingSoundBuffer0 = true;
 
 	testAndExitWithMessage(mSoundManager.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
 }
@@ -33,7 +34,7 @@ int Emulator::run()
 
 	std::chrono::steady_clock::time_point time0 = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point time1;
-	std::chrono::duration<double> elapsedTime;
+	double elapsedTime, elapsedTimeOffset = 0;
 
 	// Infinite loop
 	while (!appWindow.shouldWindowClose())
@@ -48,10 +49,11 @@ int Emulator::run()
 			do
 			{
 				time1 = std::chrono::steady_clock::now();
-				elapsedTime = time1 - time0;
+				elapsedTime = std::chrono::duration<double>(time1 - time0).count();
 
-			} while (elapsedTime.count() < (1.0 / 60.0988));
+			} while (elapsedTime + elapsedTimeOffset < FRAME_PERIOD_NTSC);
 			time0 = time1;
+			elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
 			
 			// Render
 			appWindow.draw(mPpu.getPicture());
@@ -91,17 +93,20 @@ void Emulator::runOneInstruction()
 	{
 		mApu.executeOneCpuCycle();
 		mApuTimestamp += TIME_PER_CYCLE;
-		while (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
+		if (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
 		{
 			// Get sample & substract sample period to time stamp
-			mSoundBuffer[mSoundSamplesCount++] = (u8)(256 * mApu.getOutput());
+			soundBuffer_t* soundBuffer = mIsUsingSoundBuffer0 ? &mSoundBuffer0 : &mSoundBuffer1;
+			(*soundBuffer)[mSoundSamplesCount++] = (u8)(256 * mApu.getOutput());
+
 			mApuTimestamp -= BUFFER_SAMPLE_PERIOD;
 
 			// Push buffer to audio output when full
 			if (mSoundSamplesCount >= BUFFER_SIZE)
 			{
 				mSoundSamplesCount = 0;
-				while (mSoundManager.streamSound(mSoundBuffer) == StreamStatus::NOT_QUEUED);
+				mIsUsingSoundBuffer0 = !mIsUsingSoundBuffer0;
+				while (mSoundManager.streamSound(*soundBuffer) == StreamStatus::NOT_QUEUED);
 			}
 		}
 	}

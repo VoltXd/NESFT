@@ -14,6 +14,7 @@ void APUPulse::reset()
 	
 	mDutyCycle = 0;
 	mSequenceIndex = 0;
+	mOutput = 0;
 }
 
 void APUPulse::update(APUFrameCounterState fcState)
@@ -112,9 +113,11 @@ void APUPulse::setReg3(u8 value)
 	// Set Envelope start flag
 	mEnvelope.setStartFlag();
 
+	// Set timer period
 	u16 previousPeriod = mTimer.getPeriod();
 	u16 newPeriod = (previousPeriod & 0b0000'1111'1111) | (timerPeriodMsb << 8);
 	mTimer.loadPeriod(newPeriod);
 
-	// TODO: Restart sequencer
+	// Restart sequencer
+	mSequenceIndex = 0;
 }

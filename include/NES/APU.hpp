@@ -5,6 +5,7 @@
 #include "NES/Config.hpp"
 #include "NES/APUFrameCounter.hpp"
 #include "NES/APUPulse.hpp"
+#include "NES/APUTriangle.hpp"
 #include "NES/APUNoise.hpp"
 
 constexpr u16 APU_PULSE1_0_CPU_ADDR      = 0x4000;
@@ -93,6 +94,7 @@ private:
 	APUFrameCounter mFrameCounter;
 	APUPulse mPulse1Channel;
 	APUPulse mPulse2Channel;
+	APUTriangle mTriangleChannel;
 	APUNoise mNoiseChannel;
 
 	u8 mStatus;

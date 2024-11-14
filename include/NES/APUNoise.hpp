@@ -20,6 +20,7 @@ public:
 	inline void disable() { mLengthCounter.disable(); }
 
 	inline u8 getOutput() const { return mOutput; }
+	inline bool getStatus() const { return mLengthCounter.getCounter() > 0; }
 
 private:
 	static constexpr std::array<u16, 0x10> TIMER_NTSC_PERIOD_LUT = 

@@ -2,23 +2,19 @@
 
 #include <array>
 
-#include "NES/APUEnvelopeGenerator.hpp"
 #include "NES/APULengthCounter.hpp"
 #include "NES/APUDivider.hpp"
 #include "NES/APUFrameCounter.hpp"
-#include "NES/APUSweep.hpp"
 
-class APUPulse
+class APUTriangle
 {
 public:
-	APUPulse(bool isPulse1);
 	void reset();
 
 	void update(APUFrameCounterState fcState);
 	void setReg0(u8 value);
 	void setReg1(u8 value);
 	void setReg2(u8 value);
-	void setReg3(u8 value);
 	inline void enable() { mLengthCounter.enable(); }
 	inline void disable() { mLengthCounter.disable(); }
 
@@ -29,25 +25,22 @@ private:
 	inline void incrementSequenceIndex()
 	{
 		mSequenceIndex++;
-		if (mSequenceIndex >= 8)
+		if (mSequenceIndex >= 32)
 			mSequenceIndex = 0;
 	}
 
-	static constexpr std::array<std::array<u8, 8>, 4> SEQUENCER_LUT = 
+	static constexpr std::array<u8, 32> SEQUENCER_LUT = 
 	{{
-		{ 0, 0, 0, 0, 0, 0, 0, 1, },
-		{ 0, 0, 0, 0, 0, 0, 1, 1, },
-		{ 0, 0, 0, 0, 1, 1, 1, 1, },
-		{ 1, 1, 1, 1, 1, 1, 0, 0, }
+		15, 14, 13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0,
+        0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15
 	}};
-
-	APUEnvelopeGenerator mEnvelope;
 	APUDivider mTimer;
 	APULengthCounter mLengthCounter;
-	APUSweep mSweep;
+	bool mIsControlFlagSet;
+	bool mIsCounterReloadFlagSet;
+	u8 mLinCounterReloadValue;
+	u8 mLinearCounterValue;
 	u8 mOutput;
 
-	bool mIsPulse1;
-	u8 mDutyCycle;
 	u8 mSequenceIndex;
 };

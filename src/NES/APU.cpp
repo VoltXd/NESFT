@@ -39,6 +39,7 @@ void APU::reset()
 	mFrameCounter.reset();
 	mPulse1Channel.reset();
 	mPulse2Channel.reset();
+	mTriangleChannel.reset();
 	mNoiseChannel.reset();
 }
 
@@ -48,6 +49,9 @@ void APU::executeOneCpuCycle()
 
 	// Frame counter
 	fcState = mFrameCounter.executeOneCpuCycle();
+
+	// On every tick -> tick triangle
+	mTriangleChannel.update(fcState);
 
 	if (!mFrameCounter.isEvenCycle())
 	{
@@ -60,17 +64,14 @@ void APU::executeOneCpuCycle()
 
 float APU::getOutput()
 {
-	u8 pulse1;
-	u8 pulse2;
-	u8 noise;
+	u8 pulse1 = mPulse1Channel.getOutput();
+	u8 pulse2 = mPulse2Channel.getOutput();
+	u8 triangle = mTriangleChannel.getOutput();
+	u8 noise = mNoiseChannel.getOutput();
 	float output;
 
-	pulse1 = mPulse1Channel.getOutput();
-	pulse2 = mPulse2Channel.getOutput();
-	noise = mNoiseChannel.getOutput();
-
 	// Store the APU mixed output
-	output = mix(pulse1, pulse2, 0, noise, 0);
+	output = mix(pulse1, pulse2, triangle, noise, 0);
 
 	return output;
 }
@@ -121,6 +122,7 @@ void APU::writeRegister(u16 address, u8 value)
 			
 		case APU_TRIANGLE_0_CPU_ADDR:
 			mTriangleReg.reg0 = value;
+			mTriangleChannel.setReg0(value);
 			break;
 			
 		case APU_TRIANGLE_1_CPU_ADDR:
@@ -129,10 +131,12 @@ void APU::writeRegister(u16 address, u8 value)
 			
 		case APU_TRIANGLE_2_CPU_ADDR:
 			mTriangleReg.reg1 = value;
+			mTriangleChannel.setReg1(value);
 			break;
 			
 		case APU_TRIANGLE_3_CPU_ADDR:
 			mTriangleReg.reg2 = value;
+			mTriangleChannel.setReg2(value);
 			break;
 			
 		case APU_NOISE_0_CPU_ADDR:
@@ -183,6 +187,12 @@ void APU::writeRegister(u16 address, u8 value)
 				mPulse2Channel.disable();
 			else
 				mPulse2Channel.enable();
+
+			// triangle
+			if ((mStatus & 0b0000'0100) == 0)
+				mTriangleChannel.disable();
+			else
+				mTriangleChannel.enable();
 			
 			// Noise
 			if ((mStatus & 0b0000'1000) == 0)
@@ -212,6 +222,18 @@ u8 APU::readRegister(u16 address)
 	if (address == APU_STATUS_CPU_ADDR)
 	{
 		// TODO: status
+		bool pulse1Status = mPulse1Channel.getStatus();
+		bool pulse2Status = mPulse2Channel.getStatus();
+		bool triangleStatus = mTriangleChannel.getStatus();
+		bool noiseStatus = mNoiseChannel.getStatus();
+
+		bool fcIrq = mFrameCounter.getIRQSignal();
+
+		mStatus = (fcIrq          ? (1 << 6) : 0) |
+		          (noiseStatus    ? (1 << 3) : 0) |
+		          (triangleStatus ? (1 << 2) : 0) |
+				  (pulse2Status   ? (1 << 1) : 0) |
+				  (pulse1Status   ? (1 << 0) : 0);
 		value = mStatus;
 	}
 	else 

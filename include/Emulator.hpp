@@ -20,6 +20,7 @@ private:
 	void printCpuInfo(u16 pc, u8 instruction, s32 elapsedCycles);
 
 	// NES Components
+	static constexpr double FRAME_PERIOD_NTSC = 1.0 / 60.0988;
 	CPU mCpu;
 	APU mApu;
 	PPU mPpu;
@@ -30,7 +31,9 @@ private:
 
 	// Sound 
 	static constexpr float TIME_PER_CYCLE = 1.0f / 1'789'773;
-	soundBuffer_t mSoundBuffer;
+	soundBuffer_t mSoundBuffer0;
+	soundBuffer_t mSoundBuffer1;
+	bool mIsUsingSoundBuffer0;
 	float mApuTimestamp;
 	u16 mSoundSamplesCount;
 

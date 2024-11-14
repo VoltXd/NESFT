@@ -3,6 +3,12 @@
 #include <sstream>
 #include "NES/Toolbox.hpp"
 
+APU::APU()
+	: mPulse1Channel(true),
+	  mPulse2Channel(false)
+{
+}
+
 void APU::reset()
 {
 	mPulse1Reg.reg0 = 0x00;
@@ -31,6 +37,8 @@ void APU::reset()
 	mStatus = 0x00;
 
 	mFrameCounter.reset();
+	mPulse1Channel.reset();
+	mPulse2Channel.reset();
 	mNoiseChannel.reset();
 }
 
@@ -44,19 +52,25 @@ void APU::executeOneCpuCycle()
 	if (!mFrameCounter.isEvenCycle())
 	{
 		// On even cycle -> tick pulse, noise & DMC
+		mPulse1Channel.update(fcState);
+		mPulse2Channel.update(fcState);
 		mNoiseChannel.update(fcState);
 	}
 }
 
 float APU::getOutput()
 {
+	u8 pulse1;
+	u8 pulse2;
 	u8 noise;
 	float output;
 
+	pulse1 = mPulse1Channel.getOutput();
+	pulse2 = mPulse2Channel.getOutput();
 	noise = mNoiseChannel.getOutput();
 
 	// Store the APU mixed output
-	output = mix(0, 0, 0, noise, 0);
+	output = mix(pulse1, pulse2, 0, noise, 0);
 
 	return output;
 }
@@ -67,34 +81,42 @@ void APU::writeRegister(u16 address, u8 value)
 	{
 		case APU_PULSE1_0_CPU_ADDR:
 			mPulse1Reg.reg0 = value;
+			mPulse1Channel.setReg0(value);
 			break;
 			
 		case APU_PULSE1_1_CPU_ADDR:
 			mPulse1Reg.reg1 = value;
+			mPulse1Channel.setReg1(value);
 			break;
 			
 		case APU_PULSE1_2_CPU_ADDR:
 			mPulse1Reg.reg2 = value;
+			mPulse1Channel.setReg2(value);
 			break;
 			
 		case APU_PULSE1_3_CPU_ADDR:
 			mPulse1Reg.reg3 = value;
+			mPulse1Channel.setReg3(value);
 			break;
 			
 		case APU_PULSE2_0_CPU_ADDR:
 			mPulse2Reg.reg0 = value;
+			mPulse2Channel.setReg0(value);
 			break;
 			
 		case APU_PULSE2_1_CPU_ADDR:
 			mPulse2Reg.reg1 = value;
+			mPulse2Channel.setReg1(value);
 			break;
 			
 		case APU_PULSE2_2_CPU_ADDR:
 			mPulse2Reg.reg2 = value;
+			mPulse2Channel.setReg2(value);
 			break;
 			
 		case APU_PULSE2_3_CPU_ADDR:
 			mPulse2Reg.reg3 = value;
+			mPulse2Channel.setReg3(value);
 			break;
 			
 		case APU_TRIANGLE_0_CPU_ADDR:
@@ -150,6 +172,19 @@ void APU::writeRegister(u16 address, u8 value)
 		
 		case APU_STATUS_CPU_ADDR:
 			mStatus = value;
+			// Pulse 1
+			if ((mStatus & 0b0000'0001) == 0)
+				mPulse1Channel.disable();
+			else
+				mPulse1Channel.enable();
+
+			// Pulse 2
+			if ((mStatus & 0b0000'0010) == 0)
+				mPulse2Channel.disable();
+			else
+				mPulse2Channel.enable();
+			
+			// Noise
 			if ((mStatus & 0b0000'1000) == 0)
 				mNoiseChannel.disable();
 			else
@@ -159,6 +194,7 @@ void APU::writeRegister(u16 address, u8 value)
 
 		case APU_FRAME_COUNTER_CPU_ADDR:
 			mFrameCounterReg = value;
+			mFrameCounter.writeRegister(mFrameCounterReg);
 			break;
 		
 		default:
@@ -174,7 +210,10 @@ u8 APU::readRegister(u16 address)
 	u8 value = 0;
 	
 	if (address == APU_STATUS_CPU_ADDR)
+	{
+		// TODO: status
 		value = mStatus;
+	}
 	else 
 	{
 		std::stringstream errorStream;

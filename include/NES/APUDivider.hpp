@@ -11,6 +11,7 @@ public:
 	inline void loadPeriod(u16 period) { mPeriod = period; } 
 
 	inline u16 getCounter() { return mCounter; }
+	inline u16 getPeriod() { return mPeriod; }
 
 	bool countDown();
 	bool registerShift();

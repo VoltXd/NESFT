@@ -46,7 +46,7 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [ ] APU
 	- [x] Stream audio with OpenAL
 	- [ ] Generate sound signals
-		- [ ] Pulses
+		- [x] Pulses
 		- [ ] Triangle
 		- [x] Noise
 		- [ ] DMC

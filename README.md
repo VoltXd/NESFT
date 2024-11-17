@@ -34,7 +34,9 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 ```
 
 ## Plan
-- [x] Emulate the CPU
+- [x] CPU
+	- [x] Official instructions
+	- [ ] Illegal instructions (not planned to do them)
 - [x] PPU
 	- [x] Rendering with OpenGL
 	- [x] Pixels rendering
@@ -46,12 +48,15 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [ ] APU
 	- [x] Stream audio with OpenAL
 		- [ ] Fix OpenAL
-	- [ ] Generate sound signals
+	- [x] Generate sound signals
 		- [x] Pulses
 		- [x] Triangle
 		- [x] Noise
-		- [ ] DMC
-- [ ] More Mappers
+		- [ ] DMC (implemented but need more verification)
+- [ ] Mappers
+	- [x] 000 (SMB, DK, Excitebike...)
+	- [ ] Total: **1** / 255 iNES 1.0 mappers
+- [ ] Rearrange classes members (for alignment)
 
 ## References
 ### Inspiration
@@ -60,11 +65,11 @@ Inspired by [Dave Poo](https://www.youtube.com/@DavePoo):\
 [Emulating a CPU in C++ #2 (6502) - Unit Testing
 ](https://youtu.be/L7J1pPokEyw?si=gRlonH_mJQViYa5g)
 
-And [OneLoneCoder](https://www.youtube.com/@javidx9)
+And [OneLoneCoder](https://www.youtube.com/@javidx9)\
 [NES Emulator from scratch](https://www.youtube.com/playlist?list=PLrOv9FMX8xJHqMvSGB_9G9nZZ_4IgteYf)
 
 ### NES Hardware
-[NESdev Wiki](https://www.nesdev.org/wiki/NES_reference_guide)
+[NESdev Wiki](https://www.nesdev.org/wiki/NES_reference_guide)\
 [Palette color](https://forums.nesdev.org/viewtopic.php?t=746)
 
 ### 6502
@@ -76,7 +81,7 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)
 [Google Test](https://github.com/google/googletest)
 
 ### OpenAL
-[OpenAL Documentation](https://www.openal.org/documentation/)
+[OpenAL Documentation](https://www.openal.org/documentation/)\
 [OpenAL destroy computer audio FIX](https://stackoverflow.com/questions/9397681/openal-randomly-stops-playing-some-sounds-can-only-fix-with-reboot)
 
 ## License

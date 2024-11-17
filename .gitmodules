@@ -4,3 +4,6 @@
 [submodule "libraries/openal-soft"]
 	path = libraries/openal-soft
 	url = https://github.com/kcat/openal-soft.git
+[submodule "libraries/nes-test-roms"]
+	path = libraries/nes-test-roms
+	url = https://github.com/christopherpow/nes-test-roms.git

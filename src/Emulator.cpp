@@ -77,7 +77,7 @@ void Emulator::runOneInstruction()
 		elapsedCycles = mCpu.nmi(mMemory);
 		mPpu.clearNMISignal();	
 	}
-	else if (mApu.getFrameCounterIRQSignal())
+	else if (mApu.getFrameCounterIRQSignal() || mApu.getDMCIRQSignal())
 	{
 		elapsedCycles = mCpu.irq(mMemory);
 		mApu.clearIRQSignal();
@@ -89,9 +89,11 @@ void Emulator::runOneInstruction()
 	mIsDmaGetCycle = (bool)(((mIsDmaGetCycle ? 1 : 0) + elapsedCycles) % 2);
 	
 	// APU
-	for (int i = 0; i < elapsedCycles; i++)
+	s32 extraCycles = 0;
+	for (int i = 0; i < (elapsedCycles + extraCycles); i++)
 	{
-		mApu.executeOneCpuCycle();
+		// Execute APU + get extra cycles due to DMC DMA
+		extraCycles = mApu.executeOneCpuCycle(mMemory, mIsDmaGetCycle);
 		mApuTimestamp += TIME_PER_CYCLE;
 		if (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
 		{
@@ -112,7 +114,7 @@ void Emulator::runOneInstruction()
 	}
 
 	// PPU
-	for (int i = 0; i < 3 * elapsedCycles; i++)
+	for (int i = 0; i < 3 * (elapsedCycles + extraCycles); i++)
 		mPpu.executeOneCycle(mMemory);
 
 	// printCpuInfo(pc, instruction, elapsedCycles);

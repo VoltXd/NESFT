@@ -3,10 +3,12 @@
 #include <array>
 
 #include "NES/Config.hpp"
+#include "NES/Memory.hpp"
 #include "NES/APUFrameCounter.hpp"
 #include "NES/APUPulse.hpp"
 #include "NES/APUTriangle.hpp"
 #include "NES/APUNoise.hpp"
+#include "NES/APUDMC.hpp"
 
 constexpr u16 APU_PULSE1_0_CPU_ADDR      = 0x4000;
 constexpr u16 APU_PULSE1_1_CPU_ADDR      = 0x4001;
@@ -44,13 +46,14 @@ public:
 	
 	void reset();
 
-	void executeOneCpuCycle();
+	s32 executeOneCpuCycle(Memory& memory, bool isGetCycle);
 	float getOutput();
 	
 	void writeRegister(u16 address, u8 value);
 	u8 readRegister(u16 address);
 
 	inline bool getFrameCounterIRQSignal() const { return mFrameCounter.getIRQSignal(); }
+	inline bool getDMCIRQSignal() const { return mDmcChannel.getIRQSignal(); }
 	inline void clearIRQSignal() { mFrameCounter.clearIRQSignal(); }
 
 private:
@@ -96,6 +99,7 @@ private:
 	APUPulse mPulse2Channel;
 	APUTriangle mTriangleChannel;
 	APUNoise mNoiseChannel;
+	APUDMC mDmcChannel;
 
 	u8 mStatus;
 	u8 mFrameCounterReg;

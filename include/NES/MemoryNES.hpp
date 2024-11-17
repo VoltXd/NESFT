@@ -5,7 +5,6 @@
 #include "NES/Config.hpp"
 #include "NES/Cartridge.hpp"
 #include "NES/Controller.hpp"
-#include "NES/APU.hpp"
 
 constexpr u16 PPUCTRL_CPU_ADDR   = 0x2000;
 constexpr u16 PPUMASK_CPU_ADDR   = 0x2001;
@@ -17,6 +16,7 @@ constexpr u16 PPUADDR_CPU_ADDR   = 0x2006;
 constexpr u16 PPUDATA_CPU_ADDR   = 0x2007;
 
 class PPU;
+class APU;
 
 /// @brief Memory class for 6502 CPU Tests (RAM is 64 KB, while NES CPU RAM is 2 KB)
 class MemoryNES

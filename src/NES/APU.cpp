@@ -41,11 +41,13 @@ void APU::reset()
 	mPulse2Channel.reset();
 	mTriangleChannel.reset();
 	mNoiseChannel.reset();
+	mDmcChannel.reset();
 }
 
-void APU::executeOneCpuCycle()
+s32 APU::executeOneCpuCycle(Memory& memory, bool isGetCycle)
 {
 	APUFrameCounterState fcState;
+	s32 extraCycles = 0;
 
 	// Frame counter
 	fcState = mFrameCounter.executeOneCpuCycle();
@@ -59,7 +61,10 @@ void APU::executeOneCpuCycle()
 		mPulse1Channel.update(fcState);
 		mPulse2Channel.update(fcState);
 		mNoiseChannel.update(fcState);
+		extraCycles = mDmcChannel.update(memory, isGetCycle);
 	}
+
+	return extraCycles;
 }
 
 float APU::getOutput()
@@ -68,10 +73,11 @@ float APU::getOutput()
 	u8 pulse2 = mPulse2Channel.getOutput();
 	u8 triangle = mTriangleChannel.getOutput();
 	u8 noise = mNoiseChannel.getOutput();
+	u8 dmc = mDmcChannel.getOutput();
 	float output;
 
 	// Store the APU mixed output
-	output = mix(pulse1, pulse2, triangle, noise, 0);
+	output = mix(pulse1, pulse2, triangle, noise, dmc);
 
 	return output;
 }
@@ -160,18 +166,22 @@ void APU::writeRegister(u16 address, u8 value)
 			
 		case APU_DMC_0_CPU_ADDR:
 			mDmcReg.reg0 = value;
+			mDmcChannel.setReg0(value);
 			break;
 			
 		case APU_DMC_1_CPU_ADDR:
 			mDmcReg.reg1 = value;
+			mDmcChannel.setReg1(value);
 			break;
 			
 		case APU_DMC_2_CPU_ADDR:
 			mDmcReg.reg2 = value;
+			mDmcChannel.setReg2(value);
 			break;
 			
 		case APU_DMC_3_CPU_ADDR:
 			mDmcReg.reg3 = value;
+			mDmcChannel.setReg3(value);
 			break;
 		
 		case APU_STATUS_CPU_ADDR:
@@ -199,6 +209,12 @@ void APU::writeRegister(u16 address, u8 value)
 				mNoiseChannel.disable();
 			else
 				mNoiseChannel.enable();
+			
+			// DMC
+			if ((mStatus & 0b0001'0000) == 0)
+				mDmcChannel.disable();
+			else
+				mDmcChannel.enable();
 
 			break;
 
@@ -222,14 +238,18 @@ u8 APU::readRegister(u16 address)
 	if (address == APU_STATUS_CPU_ADDR)
 	{
 		// TODO: status
-		bool pulse1Status = mPulse1Channel.getStatus();
-		bool pulse2Status = mPulse2Channel.getStatus();
+		bool pulse1Status   = mPulse1Channel.getStatus();
+		bool pulse2Status   = mPulse2Channel.getStatus();
 		bool triangleStatus = mTriangleChannel.getStatus();
-		bool noiseStatus = mNoiseChannel.getStatus();
+		bool noiseStatus    = mNoiseChannel.getStatus();
+		bool dmcStatus      = mDmcChannel.getStatus();
 
-		bool fcIrq = mFrameCounter.getIRQSignal();
+		bool dmcIrq = mDmcChannel.getIRQSignal();
+		bool fcIrq  = mFrameCounter.getIRQSignal();
 
-		mStatus = (fcIrq          ? (1 << 6) : 0) |
+		mStatus = (dmcIrq         ? (1 << 7) : 0) |
+		          (fcIrq          ? (1 << 6) : 0) |
+		          (dmcStatus      ? (1 << 4) : 0) |
 		          (noiseStatus    ? (1 << 3) : 0) |
 		          (triangleStatus ? (1 << 2) : 0) |
 				  (pulse2Status   ? (1 << 1) : 0) |
@@ -259,13 +279,15 @@ float APU::mix(u8 pulse1, u8 pulse2, u8 triangle, u8 noise, u8 dmc)
 		pulseOut = (95.88f * pulse12) / (8128 + 100.0f * pulse12);
 	
 	// Triangle, noise & DMC mix
-	tndTemp = triangle * (1.0f / 8227) + 
-	                noise * (1.0f / 12241) + 
-					dmc * (1.0f / 22638);
 	if (tnd == 0)
 		tndOut = 0.0f;
 	else
+	{
+		tndTemp = triangle * (1.0f / 8227)  + 
+				  noise    * (1.0f / 12241) + 
+				  dmc      * (1.0f / 22638);
 		tndOut = (159.79f * tndTemp) / (1.0f + 100.0f * tndTemp);
+	}
 	
 	return pulseOut + tndOut;
 }

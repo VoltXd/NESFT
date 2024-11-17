@@ -10,7 +10,6 @@ void APUTriangle::reset()
 
 void APUTriangle::update(APUFrameCounterState fcState)
 {
-	// TODO: mute if timer period < 2 (ultra sound)
 	// Timer
 	bool isTimerClocking = mTimer.countDown();
 	bool isUltraSonic = mTimer.getPeriod() < 2;

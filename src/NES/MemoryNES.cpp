@@ -1,6 +1,7 @@
 #include "NES/MemoryNES.hpp"
 
 #include "NES/PPU.hpp"
+#include "NES/APU.hpp"
 
 #include <random>
 #include <iostream>

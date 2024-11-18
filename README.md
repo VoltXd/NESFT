@@ -82,7 +82,8 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)\
 
 ### OpenAL
 [OpenAL Documentation](https://www.openal.org/documentation/)\
-[OpenAL destroy computer audio FIX](https://stackoverflow.com/questions/9397681/openal-randomly-stops-playing-some-sounds-can-only-fix-with-reboot)
+[OpenAL destroy computer audio FIX](https://stackoverflow.com/questions/9397681/openal-randomly-stops-playing-some-sounds-can-only-fix-with-reboot)\
+[Sound latency (just don't use 165463 sound buffers please...)](https://en.sfml-dev.org/forums/index.php?topic=3929.0)
 
 ## License
 

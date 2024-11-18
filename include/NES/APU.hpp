@@ -54,7 +54,11 @@ public:
 
 	inline bool getFrameCounterIRQSignal() const { return mFrameCounter.getIRQSignal(); }
 	inline bool getDMCIRQSignal() const { return mDmcChannel.getIRQSignal(); }
-	inline void clearIRQSignal() { mFrameCounter.clearIRQSignal(); }
+	inline void clearIRQSignal() 
+	{ 
+		mFrameCounter.clearIRQSignal(); 
+		mDmcChannel.clearIRQSignal(); 
+	}
 
 private:
 	float mix(u8 pulse1, 

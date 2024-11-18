@@ -121,7 +121,7 @@ StreamStatus SoundManager::streamSound(const soundBuffer_t& bufferData)
 
 		streamStatus = StreamStatus::QUEUED;
 	}
-	else if (numProcessed == 0)
+	else if (numProcessed <= 0)
 	{
 		// Not finished playing buffers
 		streamStatus = StreamStatus::NOT_QUEUED;

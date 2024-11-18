@@ -40,7 +40,6 @@ void APUPulse::update(APUFrameCounterState fcState)
 	if (fcState == APUFrameCounterState::HALF)
 	{
 		// Sweep -> Timer
-		
 		bool needsToUpdateTimer = mSweep.update(timerPeriod, targetPeriod);	
 		if (needsToUpdateTimer)
 			mTimer.loadPeriod(targetPeriod);

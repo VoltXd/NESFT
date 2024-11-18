@@ -30,7 +30,7 @@ private:
 	void checkError();
 	
 	// Buffers
-	static constexpr u8 NUM_BUFFERS = 16;
+	static constexpr u8 NUM_BUFFERS = 3;
 	std::array<ALuint, NUM_BUFFERS> mBuffers;
 
 	ALuint mSource;

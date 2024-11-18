@@ -23,6 +23,8 @@ public:
 	inline u8 getOutput() const { return mOutput; }
 	inline bool getIRQSignal() const { return mIsIRQSignalSet; }
 
+	inline void clearIRQSignal() { mIsIRQSignalSet = false; }
+
 private:
 	u8 dmaRead(Memory& memory, bool isGetCycle, s32& extraCycles);
 

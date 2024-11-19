@@ -1,5 +1,9 @@
 #include "IO/GlfwApp.hpp"
 
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
 #include <iostream>
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -90,46 +94,129 @@ GlfwApp::GlfwApp(Controller& controllerRef)
 
     // OpenGL settings
     glEnable(GL_CULL_FACE);
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(mWindow, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
 }
 
 GlfwApp::~GlfwApp()
 {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glDeleteVertexArrays(1, &mScreenVao);
     glDeleteBuffers(1, &mScreenVbo);
     glDeleteBuffers(1, &mScreenEbo);
+    glDeleteTextures(1, &mScreenTexture);
     glfwDestroyWindow(mWindow);
     glfwTerminate();
 }
 
 void GlfwApp::draw(const picture_t& pictureBuffer)
 {
+    // Poll events
+    glfwPollEvents();
+
     // Clear frame buffer
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGuiID dockSpaceID = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+
+    // TODO: wrap & add options
+    ImGui::BeginMainMenuBar();
+    ImGui::EndMainMenuBar();
 
     // Bind screen vao & shader
     mScreenShader->use();
     glBindVertexArray(mScreenVao);  
 
     // Update screen texture
-    // TODO: implement with TexSubImage2D, FBO & PBO
+    // TODO: implement with TexSubImage2D (try FBO & PBO) ?
     // SubImage
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mScreenTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pictureBuffer.data()->data()->data());
 
-    // Draw screen
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mScreenEbo);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    // Draw screen texture to ImGUI window
+    ImGui::SetNextWindowDockID(dockSpaceID, ImGuiCond_Once);
+    drawEmulatorWindow();
     
     // Render
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     glfwSwapBuffers(mWindow);
-    glfwPollEvents();
 }
 
 void GlfwApp::updateControllerState(ControllerInput input, bool isPressed)
 {
     mControllerRef.updateControllerState(input, isPressed);
+}
+
+void GlfwApp::drawEmulatorWindow()
+{
+    ImGui::Begin("Emulator", nullptr, ImGuiWindowFlags_NoTitleBar);
+
+    // Get top left position window position
+    ImVec2 windowTopLeft = ImGui::GetCursorScreenPos();
+    ImVec2 windowBotRight;
+
+    // Get current window size
+    const float windowWidth = ImGui::GetContentRegionAvail().x;
+    const float windowHeight = ImGui::GetContentRegionAvail().y;
+
+    // Calculate NES window positions 
+    if (windowWidth / windowHeight > NES_ASPECT_RATIO)
+    {
+        // Width is too big
+        float windowWidthRatioed = windowHeight * NES_ASPECT_RATIO;
+        float windowXOffset = (windowWidth - windowWidthRatioed) / 2; 
+
+        // Top left
+        windowTopLeft.x += windowXOffset;
+        
+        // Bottom right
+        windowBotRight.x = windowTopLeft.x + windowWidthRatioed;
+        windowBotRight.y = windowTopLeft.y + windowHeight;
+    }
+    else
+    {
+        // Height is too big
+        float windowHeightRatioed = windowWidth * (1.0f / NES_ASPECT_RATIO);
+        float windowYOffset = (windowHeight - windowHeightRatioed) / 2; 
+
+        // Top left
+        windowTopLeft.y += windowYOffset;
+        
+        // Bottom right
+        windowBotRight.x = windowTopLeft.x + windowWidth;
+        windowBotRight.y = windowTopLeft.y + windowHeightRatioed;
+    }
+
+    // Send NES image texture to window
+    ImGui::GetWindowDrawList()->AddImage(mScreenTexture, 
+                                         windowTopLeft, 
+                                         windowBotRight,
+                                         ImVec2(0, 0),
+                                         ImVec2(1, 1));
+
+    ImGui::End();
 }
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

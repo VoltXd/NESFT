@@ -24,6 +24,7 @@ public:
     bool shouldWindowClose() { return glfwWindowShouldClose(mWindow); }
     
 private:
+    void drawEmulatorWindow();
 
     GLFWwindow* mWindow;
 

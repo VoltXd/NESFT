@@ -7,3 +7,6 @@
 [submodule "libraries/nes-test-roms"]
 	path = libraries/nes-test-roms
 	url = https://github.com/christopherpow/nes-test-roms.git
+[submodule "libraries/imgui"]
+	path = libraries/imgui
+	url = https://github.com/ocornut/imgui.git

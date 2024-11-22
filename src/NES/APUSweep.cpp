@@ -6,25 +6,25 @@ void APUSweep::reset()
 	mDivider.reset();
 	mIsNegating = false;
 	mShiftCount = 0;
+	mIsReloadFlagSet = false;
 }
 
 bool APUSweep::update(u16 timerPeriod, u16 targetPeriod)
 {
 	bool needsToUpdateTimer = false;
+	bool isDividerClocking = mDivider.countDown();
+	
 	if (mIsReloadFlagSet)
 	{
 		mDivider.reloadCounter();	
 		mIsReloadFlagSet = false;
 	}
-	else
+	
+	if (isDividerClocking)
 	{
-		bool isDividerClocking = mDivider.countDown();
-		if (isDividerClocking)
-		{
-			mIsReloadFlagSet = false;
-			if (mIsEnabled && (mShiftCount != 0) && !isMuting(timerPeriod, targetPeriod))
-				needsToUpdateTimer = true;
-		}
+		mIsReloadFlagSet = false;
+		if (mIsEnabled && (mShiftCount != 0) && !isMuting(timerPeriod, targetPeriod))
+			needsToUpdateTimer = true;
 	}
 
 	return needsToUpdateTimer;

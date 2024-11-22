@@ -5,6 +5,7 @@ void APUTriangle::reset()
 	mTimer.reset();
 	mLengthCounter.reset();
 	mLinearCounterValue = 0;
+	mSequenceIndex = 0;
 	mOutput = 0;
 }
 

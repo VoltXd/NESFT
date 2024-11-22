@@ -85,7 +85,7 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 		if ((0x4000 <= address && address <= 0x4013) || 
 		    address == APU_STATUS_CPU_ADDR           || 
 			address == APU_FRAME_COUNTER_CPU_ADDR)
-			 // APU
+			// APU
 			mApuRef.writeRegister(address, value);
 
 		else if (address == OAMDMA_CPU_ADDR)

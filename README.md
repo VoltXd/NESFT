@@ -47,7 +47,9 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [x] Controller
 - [ ] APU
 	- [x] Stream audio with OpenAL
-		- [ ] Fix OpenAL
+	- [ ] Fix OpenAL
+		- [x] Sound latency
+		- [ ] No sound if app closed unexpectedly...
 	- [x] Generate sound signals
 		- [x] Pulses
 		- [x] Triangle
@@ -56,7 +58,7 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [ ] Mappers
 	- [x] 000 (SMB, DK, Excitebike...)
 	- [ ] Total: **1** / 255 iNES 1.0 mappers
-- [ ] Rearrange classes members (for alignment)
+- [ ] Rearrange classes members (for alignment (unnecessary optimisation))
 
 ## References
 ### Inspiration

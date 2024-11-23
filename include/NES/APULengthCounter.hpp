@@ -13,7 +13,11 @@ public:
 	void disable();
 	void update();
 
-	inline void setCounter(u8 index) { if (mIsEnabled) mCounter = LENGTH_LUT[index]; }
+	inline void setCounter(u8 index) 
+	{ 
+		if (mIsEnabled) 
+			mCounter = LENGTH_LUT[index]; 
+	}
 	inline void setHaltFlag(bool flag) { mIsHaltSet = flag; }
 
 	inline u8 getCounter() const { return mCounter; }

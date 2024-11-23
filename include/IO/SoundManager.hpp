@@ -5,12 +5,13 @@
 
 #include "NES/Config.hpp"
 
-constexpr u32     BUFFER_SIZE   = 1 << 10;
+constexpr u32     BUFFER_SIZE   = 1 << 11;
 constexpr ALenum  BUFFER_FORMAT = AL_FORMAT_MONO8;
-constexpr ALsizei BUFFER_SAMPLE_RATE   = 48'000;
+constexpr ALsizei BUFFER_SAMPLE_RATE   = 44'100;
 constexpr float BUFFER_SAMPLE_PERIOD   = 1.0f / BUFFER_SAMPLE_RATE; 
 
 using soundBuffer_t = std::array<u8, BUFFER_SIZE>;
+using soundBufferF32_t = std::array<float, BUFFER_SIZE>;
 
 enum class StreamStatus
 {

@@ -48,6 +48,11 @@ public:
 
 	s32 executeOneCpuCycle(Memory& memory, bool isGetCycle);
 	float getOutput();
+	float getPulse1Output();
+	float getPulse2Output();
+	float getTriangleOutput();
+	float getNoiseOutput();
+	float getDMCOutput();
 	
 	void writeRegister(u16 address, u8 value);
 	u8 readRegister(u16 address);
@@ -61,6 +66,8 @@ public:
 	}
 
 private:
+	float mixPulses(u8 pulse1, u8 pulse2);
+	float mixTnd(u8 triangle, u8 noise, u8 dmc);
 	float mix(u8 pulse1, 
 	          u8 pulse2,
 			  u8 triangle,

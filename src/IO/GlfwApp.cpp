@@ -4,7 +4,11 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
+#include "NES/Toolbox.hpp"
+
 #include <iostream>
+#include <vector>
+#include <algorithm>
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 static void resizeCallback(GLFWwindow* window, int windowWidth, int windowHeight);
@@ -95,6 +99,22 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     // OpenGL settings
     glEnable(GL_CULL_FACE);
 
+    // GUI variables
+    mIsFrameTimeWindowOpen = false;
+    mFrameTimeHistoryDeque.resize(FRAMETIME_HISTORY_MAXSIZE);
+
+    mIsSoundChannelsWindowOpen = false;
+    mSoundBufferPtr = nullptr;
+    mP1BufferPtr = nullptr;
+    mP2BufferPtr = nullptr;
+    mTriangleBufferPtr = nullptr;
+    mNoiseBufferPtr = nullptr;
+    mDmcBufferPtr = nullptr;
+
+    mIsSpectrumWindowOpen = false;
+
+    mIsPaused = false; 
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -138,9 +158,8 @@ void GlfwApp::draw(const picture_t& pictureBuffer)
 
     ImGuiID dockSpaceID = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-    // TODO: wrap & add options
-    ImGui::BeginMainMenuBar();
-    ImGui::EndMainMenuBar();
+    // Draw main menu bar
+    drawMainMenuBar();
 
     // Bind screen vao & shader
     mScreenShader->use();
@@ -156,7 +175,19 @@ void GlfwApp::draw(const picture_t& pictureBuffer)
     // Draw screen texture to ImGUI window
     ImGui::SetNextWindowDockID(dockSpaceID, ImGuiCond_Once);
     drawEmulatorWindow();
-    
+
+    // Draw frame timing window if opened
+    if (mIsFrameTimeWindowOpen)
+        drawFrameTimeWindow();
+
+    // Draw sound channel window if opened
+    if (mIsSoundChannelsWindowOpen)
+        drawSoundChannelsWindow();
+
+    // Draw spectrum window if opened
+    if (mIsSpectrumWindowOpen)
+        drawSpectrumWindow();
+
     // Render
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -169,57 +200,193 @@ void GlfwApp::updateControllerState(ControllerInput input, bool isPressed)
     mControllerRef.updateControllerState(input, isPressed);
 }
 
+void GlfwApp::drawMainMenuBar()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        drawMenuFile();
+        drawMenuWindows();
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void GlfwApp::drawMenuFile()
+{
+    if (ImGui::BeginMenu("File"))
+    {
+        if (ImGui::MenuItem("Open"))
+        {
+            // Try opening a ROM file 
+        }
+
+        if (ImGui::MenuItem("Exit", "Alt+F4"))
+        {
+            // Exit program
+            glfwSetWindowShouldClose(mWindow, true);
+        }
+
+        ImGui::EndMenu();
+    }
+}
+
+void GlfwApp::drawMenuWindows()
+{
+    if (ImGui::BeginMenu("Windows"))
+    {
+        if (ImGui::MenuItem("Frame timing"))
+        {
+            // Open/Close frame timing window
+            mIsFrameTimeWindowOpen = !mIsFrameTimeWindowOpen;
+        }
+        if (ImGui::MenuItem("Sound channels"))
+        {
+            // Open/Close sound channels window
+            mIsSoundChannelsWindowOpen = !mIsSoundChannelsWindowOpen;
+        }
+
+        if (ImGui::MenuItem("Spectrum"))
+        {
+            // Open/Close spectrum window
+            mIsSpectrumWindowOpen = !mIsSpectrumWindowOpen;
+        }
+
+        ImGui::EndMenu();
+    }
+}
+
 void GlfwApp::drawEmulatorWindow()
 {
-    ImGui::Begin("Emulator", nullptr, ImGuiWindowFlags_NoTitleBar);
-
-    // Get top left position window position
-    ImVec2 windowTopLeft = ImGui::GetCursorScreenPos();
-    ImVec2 windowBotRight;
-
-    // Get current window size
-    const float windowWidth = ImGui::GetContentRegionAvail().x;
-    const float windowHeight = ImGui::GetContentRegionAvail().y;
-
-    // Calculate NES window positions 
-    if (windowWidth / windowHeight > NES_ASPECT_RATIO)
+    if (ImGui::Begin("Emulator"))
     {
-        // Width is too big
-        float windowWidthRatioed = windowHeight * NES_ASPECT_RATIO;
-        float windowXOffset = (windowWidth - windowWidthRatioed) / 2; 
+        // Get top left position window position
+        ImVec2 windowTopLeft = ImGui::GetCursorScreenPos();
+        ImVec2 windowBotRight;
 
-        // Top left
-        windowTopLeft.x += windowXOffset;
-        
-        // Bottom right
-        windowBotRight.x = windowTopLeft.x + windowWidthRatioed;
-        windowBotRight.y = windowTopLeft.y + windowHeight;
+        // Get current window size
+        const float windowWidth = ImGui::GetContentRegionAvail().x;
+        const float windowHeight = ImGui::GetContentRegionAvail().y;
+
+        // Calculate NES window positions 
+        if (windowWidth / windowHeight > NES_ASPECT_RATIO)
+        {
+            // Width is too big
+            float windowWidthRatioed = windowHeight * NES_ASPECT_RATIO;
+            float windowXOffset = (windowWidth - windowWidthRatioed) / 2; 
+
+            // Top left
+            windowTopLeft.x += windowXOffset;
+            
+            // Bottom right
+            windowBotRight.x = windowTopLeft.x + windowWidthRatioed;
+            windowBotRight.y = windowTopLeft.y + windowHeight;
+        }
+        else
+        {
+            // Height is too big
+            float windowHeightRatioed = windowWidth * (1.0f / NES_ASPECT_RATIO);
+            float windowYOffset = (windowHeight - windowHeightRatioed) / 2; 
+
+            // Top left
+            windowTopLeft.y += windowYOffset;
+            
+            // Bottom right
+            windowBotRight.x = windowTopLeft.x + windowWidth;
+            windowBotRight.y = windowTopLeft.y + windowHeightRatioed;
+        }
+
+        // Send NES image texture to window
+        ImGui::GetWindowDrawList()->AddImage(mScreenTexture, 
+                                            windowTopLeft, 
+                                            windowBotRight,
+                                            ImVec2(0, 0),
+                                            ImVec2(1, 1));
+
     }
-    else
-    {
-        // Height is too big
-        float windowHeightRatioed = windowWidth * (1.0f / NES_ASPECT_RATIO);
-        float windowYOffset = (windowHeight - windowHeightRatioed) / 2; 
-
-        // Top left
-        windowTopLeft.y += windowYOffset;
-        
-        // Bottom right
-        windowBotRight.x = windowTopLeft.x + windowWidth;
-        windowBotRight.y = windowTopLeft.y + windowHeightRatioed;
-    }
-
-    // Send NES image texture to window
-    ImGui::GetWindowDrawList()->AddImage(mScreenTexture, 
-                                         windowTopLeft, 
-                                         windowBotRight,
-                                         ImVec2(0, 0),
-                                         ImVec2(1, 1));
-
     ImGui::End();
 }
 
-static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void GlfwApp::drawFrameTimeWindow()
+{
+    if (ImGui::Begin("Frame timing"))
+    {
+        float deltaTimeMs = ImGui::GetIO().DeltaTime * 1000;
+        float currentFreq = 1.0f / ImGui::GetIO().DeltaTime;
+        // History vector full -> pop first data
+        mFrameTimeHistoryDeque.pop_front();
+        mFrameTimeHistoryDeque.push_back(deltaTimeMs);
+
+        // Copy to vector
+        std::copy(mFrameTimeHistoryDeque.begin(), 
+                  mFrameTimeHistoryDeque.end(), 
+                  mFrameTimeHistoryArray.begin());
+
+        ImGui::Text("Time between frames: %.1f ms (%.1f Hz)", deltaTimeMs, currentFreq);
+        ImGui::PlotLines("Frame timing", mFrameTimeHistoryArray.data(), (int)mFrameTimeHistoryArray.size(), 0, nullptr, 0, 30, {0.0f, 0.0f});
+    }
+    ImGui::End();   
+}
+
+void GlfwApp::drawSoundChannelsWindow()
+{
+    if (ImGui::Begin("Sound channels"))
+    {
+        // TODO: Plot the 5 sound channels
+        // TODO: Add a button to plot mixed channels ?
+        s32 offset;
+        
+        if (mSoundBufferPtr != nullptr)
+        {
+            offset = getScopeTriggerOffset(*mSoundBufferPtr);
+            ImGui::PlotLines("Sound output", (*mSoundBufferPtr).data() + offset, (int)(*mSoundBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+        }
+
+
+        if (mP1BufferPtr != nullptr)
+        {
+            offset = getScopeTriggerOffset(*mP1BufferPtr);
+            ImGui::PlotLines("Pulse 1", (*mP1BufferPtr).data() + offset, (int)(*mP1BufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+        }
+            
+        if (mP2BufferPtr != nullptr)
+        {
+            offset = getScopeTriggerOffset(*mP2BufferPtr);
+            ImGui::PlotLines("Pulse 2", (*mP2BufferPtr).data() + offset, (int)(*mP2BufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+        }
+            
+        if (mTriangleBufferPtr != nullptr)
+        {
+            offset = getScopeTriggerOffset(*mTriangleBufferPtr);
+            ImGui::PlotLines("Triangle", (*mTriangleBufferPtr).data() + offset, (int)(*mTriangleBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+        }
+            
+        if (mNoiseBufferPtr != nullptr)
+        {
+            offset = getScopeTriggerOffset(*mNoiseBufferPtr);
+            ImGui::PlotLines("Noise", (*mNoiseBufferPtr).data() + offset, (int)(*mNoiseBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+        }
+            
+        if (mDmcBufferPtr != nullptr)
+        {
+            offset = getScopeTriggerOffset(*mDmcBufferPtr);
+            ImGui::PlotLines("DMC", (*mDmcBufferPtr).data() + offset, (int)(*mDmcBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+        }
+
+    }
+    ImGui::End();    
+}
+
+void GlfwApp::drawSpectrumWindow()
+{
+    if (ImGui::Begin("Spectrum"))
+    {
+        // TODO: Plot the spectrum of the APU output
+        // TODO: Enable to see the individual channels spectrum ?
+    }
+    ImGui::End();    
+}
+
+static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     GlfwApp* renderer = reinterpret_cast<GlfwApp*>(glfwGetWindowUserPointer(window));
     if (renderer)
@@ -236,6 +403,9 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         // Window
         if ((action == GLFW_PRESS) && (key == GLFW_KEY_ESCAPE))
             glfwSetWindowShouldClose(window, true);
+
+        if ((action == GLFW_PRESS) && (key == GLFW_KEY_P))
+            renderer->switchPauseState();
 
         // Controller 1
         if (action == GLFW_PRESS)

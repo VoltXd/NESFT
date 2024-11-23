@@ -40,6 +40,13 @@ int Emulator::run()
 	while (!appWindow.shouldWindowClose())
 	{
 		// Update
+		if (appWindow.isPaused())
+		{
+			appWindow.draw(mPpu.getPicture());
+			time0 = std::chrono::steady_clock::now();
+			continue;
+		}
+
 		runOneInstruction();
 		if (mPpu.isImageReady())
 		{
@@ -54,7 +61,10 @@ int Emulator::run()
 			} while (elapsedTime + elapsedTimeOffset < FRAME_PERIOD_NTSC);
 			time0 = time1;
 			elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
-			
+
+			if (appWindow.isSoundChannelsWindowOpen())
+				fillBuffersAndSendToWindow(appWindow);
+						
 			// Render
 			appWindow.draw(mPpu.getPicture());
 		}
@@ -65,9 +75,6 @@ int Emulator::run()
 
 void Emulator::runOneInstruction()
 {
-	// u16 pc = mCpu.getPc();
-	// u8 instruction = mMemory.cpuRead(pc);
-
 	// CPU
 	s32 elapsedCycles;
 	if (mMemory.isOamDmaStarted())
@@ -99,8 +106,25 @@ void Emulator::runOneInstruction()
 		{
 			// Get sample & substract sample period to time stamp
 			soundBuffer_t* soundBuffer = mIsUsingSoundBuffer0 ? &mSoundBuffer0 : &mSoundBuffer1;
-			(*soundBuffer)[mSoundSamplesCount++] = (u8)(256 * mApu.getOutput());
+			(*soundBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getOutput() + 1));
 
+			// Get sample per channel (TODO: fix caches misses ?)
+			soundBuffer_t* p1Buffer = mIsUsingSoundBuffer0 ? &mP1Buffer0 : &mP1Buffer1;
+			(*p1Buffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getPulse1Output() + 1));
+
+			soundBuffer_t* p2Buffer = mIsUsingSoundBuffer0 ? &mP2Buffer0 : &mP2Buffer1;
+			(*p2Buffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getPulse2Output() + 1));
+			
+			soundBuffer_t* triangleBuffer = mIsUsingSoundBuffer0 ? &mTriangleBuffer0 : &mTriangleBuffer1;
+			(*triangleBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getTriangleOutput() + 1));
+
+			soundBuffer_t* noiseBuffer = mIsUsingSoundBuffer0 ? &mNoiseBuffer0 : &mNoiseBuffer1;
+			(*noiseBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getNoiseOutput() + 1));
+			
+			soundBuffer_t* dmcBuffer = mIsUsingSoundBuffer0 ? &mDmcBuffer0 : &mDmcBuffer1;
+			(*dmcBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getDMCOutput() + 1));
+
+			mSoundSamplesCount++;
 			mApuTimestamp -= BUFFER_SAMPLE_PERIOD;
 
 			// Push buffer to audio output when full
@@ -108,7 +132,8 @@ void Emulator::runOneInstruction()
 			{
 				mSoundSamplesCount = 0;
 				mIsUsingSoundBuffer0 = !mIsUsingSoundBuffer0;
-				while (mSoundManager.streamSound(*soundBuffer) == StreamStatus::NOT_QUEUED);
+				// while (mSoundManager.streamSound(*soundBuffer) == StreamStatus::NOT_QUEUED);
+				mSoundManager.streamSound(*soundBuffer);
 			}
 		}
 	}
@@ -116,15 +141,33 @@ void Emulator::runOneInstruction()
 	// PPU
 	for (int i = 0; i < 3 * (elapsedCycles + extraCycles); i++)
 		mPpu.executeOneCycle(mMemory);
-
-	// printCpuInfo(pc, instruction, elapsedCycles);
 }
 
-void Emulator::printCpuInfo(u16 pc, u8 instruction, s32 elapsedCycles)
+void Emulator::fillBuffersAndSendToWindow(GlfwApp& window)
 {
-	std::cout << std::uppercase << std::hex 
-	          << "PC: 0x" << pc
-	          << ", INST: 0x" << +instruction
-			  << std::dec << ", cycles: " << +elapsedCycles 
-			  << std::endl;
+	// Fill a sound buffer with latest data
+	fillDrawnSoundBuffer(mSoundBuffer0, mSoundBuffer1, mBufferToDraw);
+	fillDrawnSoundBuffer(mP1Buffer0, mP1Buffer1, mP1BufferToDraw);
+	fillDrawnSoundBuffer(mP2Buffer0, mP2Buffer1, mP2BufferToDraw);
+	fillDrawnSoundBuffer(mTriangleBuffer0, mTriangleBuffer1, mTriangleBufferToDraw);
+	fillDrawnSoundBuffer(mNoiseBuffer0, mNoiseBuffer1, mNoiseBufferToDraw);
+	fillDrawnSoundBuffer(mDmcBuffer0, mDmcBuffer1, mDmcBufferToDraw);
+
+	window.setSoundBufferPtr(&mBufferToDraw);
+	window.setP1BufferPtr(&mP1BufferToDraw);
+	window.setP2BufferPtr(&mP2BufferToDraw);
+	window.setTriangleBufferPtr(&mTriangleBufferToDraw);
+	window.setNoiseBufferPtr(&mNoiseBufferToDraw);
+	window.setDmcBufferPtr(&mDmcBufferToDraw);
+}
+
+void Emulator::fillDrawnSoundBuffer(const soundBuffer_t &soundBuffer0, const soundBuffer_t &soundBuffer1, soundBufferF32_t &soundDrawnBuffer)
+{
+	const soundBuffer_t* bufferPtr = mIsUsingSoundBuffer0 ? &soundBuffer1 : &soundBuffer0;
+	for (u32 i = 0; i < (BUFFER_SIZE - mSoundSamplesCount); i++)
+		soundDrawnBuffer[i] = (*bufferPtr)[i + mSoundSamplesCount];
+	
+	bufferPtr = mIsUsingSoundBuffer0 ? &soundBuffer0 : &soundBuffer1;
+	for (u32 i = 0; i < mSoundSamplesCount; i++)
+		soundDrawnBuffer[i + (BUFFER_SIZE - mSoundSamplesCount)] = (*bufferPtr)[i];
 }

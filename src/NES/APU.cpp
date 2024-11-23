@@ -82,6 +82,41 @@ float APU::getOutput()
 	return output;
 }
 
+float APU::getPulse1Output()
+{
+	u8 pulse1 = mPulse1Channel.getOutput();
+
+    return mixPulses(pulse1, 0);
+}
+
+float APU::getPulse2Output()
+{
+	u8 pulse2 = mPulse2Channel.getOutput();
+
+    return mixPulses(pulse2, 0);
+}
+
+float APU::getTriangleOutput()
+{
+    u8 triangle = mTriangleChannel.getOutput();
+
+	return mixTnd(triangle, 0, 0);
+}
+
+float APU::getNoiseOutput()
+{   
+    u8 noise = mNoiseChannel.getOutput();
+
+	return mixTnd(0, noise, 0);
+}
+
+float APU::getDMCOutput()
+{
+    u8 dmc = mDmcChannel.getOutput();
+
+	return mixTnd(0, 0, dmc);
+}
+
 void APU::writeRegister(u16 address, u8 value)
 {
 	switch (address)
@@ -266,19 +301,24 @@ u8 APU::readRegister(u16 address)
 	return value;
 }
 
-float APU::mix(u8 pulse1, u8 pulse2, u8 triangle, u8 noise, u8 dmc)
+float APU::mixPulses(u8 pulse1, u8 pulse2)
 {
-	float pulseOut, tndOut, tndTemp;
+	float pulseOut;
+	
 	u8 pulse12 = pulse1 + pulse2;
-	u8 tnd = triangle + noise + dmc;
-
-	// Pulses mix
 	if (pulse12 == 0)
 		pulseOut = 0.0f;
 	else
 		pulseOut = (95.88f * pulse12) / (8128 + 100.0f * pulse12);
-	
-	// Triangle, noise & DMC mix
+
+    return pulseOut;
+}
+
+float APU::mixTnd(u8 triangle, u8 noise, u8 dmc)
+{
+	float tndTemp, tndOut;
+
+	u8 tnd = triangle + noise + dmc;
 	if (tnd == 0)
 		tndOut = 0.0f;
 	else
@@ -288,6 +328,14 @@ float APU::mix(u8 pulse1, u8 pulse2, u8 triangle, u8 noise, u8 dmc)
 				  dmc      * (1.0f / 22638);
 		tndOut = (159.79f * tndTemp) / (1.0f + 100.0f * tndTemp);
 	}
+
+    return tndOut;
+}
+
+float APU::mix(u8 pulse1, u8 pulse2, u8 triangle, u8 noise, u8 dmc) 
+{
+	float pulseOut = mixPulses(pulse1, pulse2);	
+	float tndOut = mixTnd(triangle, noise, dmc);
 	
 	return pulseOut + tndOut;
 }

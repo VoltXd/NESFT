@@ -4,8 +4,10 @@
 #include <glfw/glfw3.h>
 #include <memory>
 #include <array>
+#include <deque>
 
 #include "IO/Shader.hpp"
+#include "IO/SoundManager.hpp"
 #include "NES/PPU.hpp"
 #include "NES/Controller.hpp"
 
@@ -22,9 +24,44 @@ public:
     void updateControllerState(ControllerInput input, bool isPressed);
     
     bool shouldWindowClose() { return glfwWindowShouldClose(mWindow); }
-    
+
+    inline bool isSoundChannelsWindowOpen() const { return mIsSoundChannelsWindowOpen; }
+    inline void setSoundBufferPtr(const soundBufferF32_t* const ptr) { mSoundBufferPtr = ptr; }
+    inline void setP1BufferPtr(const soundBufferF32_t* const ptr) { mP1BufferPtr = ptr; }
+    inline void setP2BufferPtr(const soundBufferF32_t* const ptr) { mP2BufferPtr = ptr; }
+    inline void setTriangleBufferPtr(const soundBufferF32_t* const ptr) { mTriangleBufferPtr = ptr; }
+    inline void setNoiseBufferPtr(const soundBufferF32_t* const ptr) { mNoiseBufferPtr = ptr; }
+    inline void setDmcBufferPtr(const soundBufferF32_t* const ptr) { mDmcBufferPtr = ptr; }
+    inline bool isPaused() const { return mIsPaused; }
+    inline void switchPauseState() { mIsPaused = !mIsPaused; }
+
 private:
+    // Main menu bar
+    void drawMainMenuBar();
+    void drawMenuFile();
+    void drawMenuWindows();
+
+
+    // Windows
     void drawEmulatorWindow();
+    void drawFrameTimeWindow();
+    void drawSoundChannelsWindow();
+    void drawSpectrumWindow();
+
+    bool mIsFrameTimeWindowOpen;
+    static constexpr u16 FRAMETIME_HISTORY_MAXSIZE = 256;
+    std::deque<float> mFrameTimeHistoryDeque;
+    std::array<float, FRAMETIME_HISTORY_MAXSIZE> mFrameTimeHistoryArray;
+
+    bool mIsSoundChannelsWindowOpen;
+    const soundBufferF32_t* mSoundBufferPtr;
+    const soundBufferF32_t* mP1BufferPtr;
+    const soundBufferF32_t* mP2BufferPtr;
+    const soundBufferF32_t* mTriangleBufferPtr;
+    const soundBufferF32_t* mNoiseBufferPtr;
+    const soundBufferF32_t* mDmcBufferPtr;
+    
+    bool mIsSpectrumWindowOpen;
 
     GLFWwindow* mWindow;
 
@@ -55,4 +92,5 @@ private:
     std::unique_ptr<Shader> mScreenShader;
 
     Controller& mControllerRef;
+    bool mIsPaused;
 };

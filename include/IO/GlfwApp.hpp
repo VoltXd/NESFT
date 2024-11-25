@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 #include <memory>
+#include <string>
 #include <array>
 #include <deque>
 
@@ -23,7 +24,11 @@ public:
 
     void updateControllerState(ControllerInput input, bool isPressed);
     
-    bool shouldWindowClose() { return glfwWindowShouldClose(mWindow); }
+    inline bool shouldWindowClose() const { return glfwWindowShouldClose(mWindow); }
+
+    inline bool isRomOpened() const { return mIsRomOpened; }
+    inline void clearIsRomOpened() { mIsRomOpened = false; }
+    inline const std::string& getRomName() const { return mPathToRom; }
 
     inline bool isSoundChannelsWindowOpen() const { return mIsSoundChannelsWindowOpen; }
     inline void setSoundBufferPtr(const soundBufferF32_t* const ptr) { mSoundBufferPtr = ptr; }
@@ -41,12 +46,14 @@ private:
     void drawMenuFile();
     void drawMenuWindows();
 
-
     // Windows
     void drawEmulatorWindow();
     void drawFrameTimeWindow();
     void drawSoundChannelsWindow();
     void drawSpectrumWindow();
+
+    bool mIsRomOpened;
+    std::string mPathToRom;
 
     bool mIsFrameTimeWindowOpen;
     static constexpr u16 FRAMETIME_HISTORY_MAXSIZE = 256;

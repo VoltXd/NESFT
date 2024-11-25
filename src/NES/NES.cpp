@@ -1,19 +1,14 @@
-#include "Emulator.hpp"
+#include "NES/NES.hpp"
 
-#include <cstdlib>
-#include <iostream>
-#include <chrono>
-#include "NES/Cartridge.hpp"
-#include "NES/Toolbox.hpp"
-#include "IO/GlfwApp.hpp"
-
-#include "IO/SoundManager.hpp"
-#include <cmath>
-
-Emulator::Emulator(const std::string &romFilename)
-	: mMemory(romFilename, mApu, mPpu, mController)
+NES::NES(Controller& controller, const std::string &romFilename)
+    : mMemory(romFilename, mApu, mPpu, controller)
 {
-	// Reset
+    // Power up == Reset
+    reset();
+}
+
+void NES::reset()
+{   
 	mMemory.reset();
 	mCpu.reset(mMemory);
 	mApu.reset();
@@ -23,59 +18,12 @@ Emulator::Emulator(const std::string &romFilename)
 	mApuTimestamp = 0.0f;
 	mSoundSamplesCount = 0;
 	mIsUsingSoundBuffer0 = true;
-
-	testAndExitWithMessage(mSoundManager.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
+    mIsSoundBufferReady = false;
 }
 
-int Emulator::run()
+void NES::runOneCpuInstruction()
 {
-	// *************** NES Emulation *************** //
-	GlfwApp appWindow(mController);
-
-	std::chrono::steady_clock::time_point time0 = std::chrono::steady_clock::now();
-	std::chrono::steady_clock::time_point time1;
-	double elapsedTime, elapsedTimeOffset = 0;
-
-	// Infinite loop
-	while (!appWindow.shouldWindowClose())
-	{
-		// Update
-		if (appWindow.isPaused())
-		{
-			appWindow.draw(mPpu.getPicture());
-			time0 = std::chrono::steady_clock::now();
-			continue;
-		}
-
-		runOneInstruction();
-		if (mPpu.isImageReady())
-		{
-			mPpu.clearIsImageReady();
-
-			// Wait before rendering -> 60 FPS
-			do
-			{
-				time1 = std::chrono::steady_clock::now();
-				elapsedTime = std::chrono::duration<double>(time1 - time0).count();
-
-			} while (elapsedTime + elapsedTimeOffset < FRAME_PERIOD_NTSC);
-			time0 = time1;
-			elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
-
-			if (appWindow.isSoundChannelsWindowOpen())
-				fillBuffersAndSendToWindow(appWindow);
-						
-			// Render
-			appWindow.draw(mPpu.getPicture());
-		}
-	}
-
-	return EXIT_SUCCESS;
-}
-
-void Emulator::runOneInstruction()
-{
-	// CPU
+    // CPU
 	s32 elapsedCycles;
 	if (mMemory.isOamDmaStarted())
 		elapsedCycles = mMemory.executeOamDma(mIsDmaGetCycle);
@@ -127,13 +75,13 @@ void Emulator::runOneInstruction()
 			mSoundSamplesCount++;
 			mApuTimestamp -= BUFFER_SAMPLE_PERIOD;
 
-			// Push buffer to audio output when full
+			// Prepare buffer to be sent to the sound manager
 			if (mSoundSamplesCount >= BUFFER_SIZE)
 			{
 				mSoundSamplesCount = 0;
 				mIsUsingSoundBuffer0 = !mIsUsingSoundBuffer0;
-				// while (mSoundManager.streamSound(*soundBuffer) == StreamStatus::NOT_QUEUED);
-				mSoundManager.streamSound(*soundBuffer);
+				mSoundBufferToSubmit = soundBuffer;
+                mIsSoundBufferReady = true;
 			}
 		}
 	}
@@ -143,7 +91,7 @@ void Emulator::runOneInstruction()
 		mPpu.executeOneCycle(mMemory);
 }
 
-void Emulator::fillBuffersAndSendToWindow(GlfwApp& window)
+void NES::prepareDrawnSoundBuffers()
 {
 	// Fill a sound buffer with latest data
 	fillDrawnSoundBuffer(mSoundBuffer0, mSoundBuffer1, mBufferToDraw);
@@ -152,22 +100,15 @@ void Emulator::fillBuffersAndSendToWindow(GlfwApp& window)
 	fillDrawnSoundBuffer(mTriangleBuffer0, mTriangleBuffer1, mTriangleBufferToDraw);
 	fillDrawnSoundBuffer(mNoiseBuffer0, mNoiseBuffer1, mNoiseBufferToDraw);
 	fillDrawnSoundBuffer(mDmcBuffer0, mDmcBuffer1, mDmcBufferToDraw);
-
-	window.setSoundBufferPtr(&mBufferToDraw);
-	window.setP1BufferPtr(&mP1BufferToDraw);
-	window.setP2BufferPtr(&mP2BufferToDraw);
-	window.setTriangleBufferPtr(&mTriangleBufferToDraw);
-	window.setNoiseBufferPtr(&mNoiseBufferToDraw);
-	window.setDmcBufferPtr(&mDmcBufferToDraw);
 }
 
-void Emulator::fillDrawnSoundBuffer(const soundBuffer_t &soundBuffer0, const soundBuffer_t &soundBuffer1, soundBufferF32_t &soundDrawnBuffer)
+void NES::fillDrawnSoundBuffer(const soundBuffer_t &soundBuffer0, const soundBuffer_t &soundBuffer1, soundBufferF32_t &drawnSoundBuffer)
 {
 	const soundBuffer_t* bufferPtr = mIsUsingSoundBuffer0 ? &soundBuffer1 : &soundBuffer0;
 	for (u32 i = 0; i < (BUFFER_SIZE - mSoundSamplesCount); i++)
-		soundDrawnBuffer[i] = (*bufferPtr)[i + mSoundSamplesCount];
+		drawnSoundBuffer[i] = (*bufferPtr)[i + mSoundSamplesCount];
 	
 	bufferPtr = mIsUsingSoundBuffer0 ? &soundBuffer0 : &soundBuffer1;
 	for (u32 i = 0; i < mSoundSamplesCount; i++)
-		soundDrawnBuffer[i + (BUFFER_SIZE - mSoundSamplesCount)] = (*bufferPtr)[i];
+		drawnSoundBuffer[i + (BUFFER_SIZE - mSoundSamplesCount)] = (*bufferPtr)[i];
 }

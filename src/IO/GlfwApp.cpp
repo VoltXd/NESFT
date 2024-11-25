@@ -6,6 +6,7 @@
 
 #include "NES/Toolbox.hpp"
 
+#include <nfd.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -100,6 +101,7 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     glEnable(GL_CULL_FACE);
 
     // GUI variables
+    mIsRomOpened = false;
     mIsFrameTimeWindowOpen = false;
     mFrameTimeHistoryDeque.resize(FRAMETIME_HISTORY_MAXSIZE);
 
@@ -218,6 +220,13 @@ void GlfwApp::drawMenuFile()
         if (ImGui::MenuItem("Open"))
         {
             // Try opening a ROM file 
+            nfdchar_t* pathToRom = nullptr;
+            nfdresult_t dialogResult = NFD_OpenDialog(nullptr, nullptr, &pathToRom);
+            if (dialogResult == NFD_OKAY)
+            {
+                mIsRomOpened = true;
+                mPathToRom = std::string(pathToRom);
+            }
         }
 
         if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -338,38 +347,38 @@ void GlfwApp::drawSoundChannelsWindow()
         if (mSoundBufferPtr != nullptr)
         {
             offset = getScopeTriggerOffset(*mSoundBufferPtr);
-            ImGui::PlotLines("Sound output", (*mSoundBufferPtr).data() + offset, (int)(*mSoundBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImGui::PlotLines("Sound output", (*mSoundBufferPtr).data() + offset, (int)(*mSoundBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
         }
 
 
         if (mP1BufferPtr != nullptr)
         {
             offset = getScopeTriggerOffset(*mP1BufferPtr);
-            ImGui::PlotLines("Pulse 1", (*mP1BufferPtr).data() + offset, (int)(*mP1BufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImGui::PlotLines("Pulse 1", (*mP1BufferPtr).data() + offset, (int)(*mP1BufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
         }
             
         if (mP2BufferPtr != nullptr)
         {
             offset = getScopeTriggerOffset(*mP2BufferPtr);
-            ImGui::PlotLines("Pulse 2", (*mP2BufferPtr).data() + offset, (int)(*mP2BufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImGui::PlotLines("Pulse 2", (*mP2BufferPtr).data() + offset, (int)(*mP2BufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
         }
             
         if (mTriangleBufferPtr != nullptr)
         {
             offset = getScopeTriggerOffset(*mTriangleBufferPtr);
-            ImGui::PlotLines("Triangle", (*mTriangleBufferPtr).data() + offset, (int)(*mTriangleBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImGui::PlotLines("Triangle", (*mTriangleBufferPtr).data() + offset, (int)(*mTriangleBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
         }
             
         if (mNoiseBufferPtr != nullptr)
         {
             offset = getScopeTriggerOffset(*mNoiseBufferPtr);
-            ImGui::PlotLines("Noise", (*mNoiseBufferPtr).data() + offset, (int)(*mNoiseBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImGui::PlotLines("Noise", (*mNoiseBufferPtr).data() + offset, (int)(*mNoiseBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
         }
             
         if (mDmcBufferPtr != nullptr)
         {
             offset = getScopeTriggerOffset(*mDmcBufferPtr);
-            ImGui::PlotLines("DMC", (*mDmcBufferPtr).data() + offset, (int)(*mDmcBufferPtr).size()/2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImGui::PlotLines("DMC", (*mDmcBufferPtr).data() + offset, (int)(*mDmcBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, { 0.0f, 100.0f });
         }
 
     }
@@ -380,6 +389,12 @@ void GlfwApp::drawSpectrumWindow()
 {
     if (ImGui::Begin("Spectrum"))
     {
+        if (mSoundBufferPtr != nullptr)
+        {
+            // Compute FFT
+            soundBufferF32_t spectrum = fftMagnitude(*mSoundBufferPtr);
+            ImGui::PlotHistogram("Sound Fourier transform", spectrum.data(), (int)spectrum.size() / 2, 0, nullptr, 0, 1.0f, { 0.0f, 100.0f });
+        }
         // TODO: Plot the spectrum of the APU output
         // TODO: Enable to see the individual channels spectrum ?
     }
@@ -402,9 +417,6 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
 
         // Window
         if ((action == GLFW_PRESS) && (key == GLFW_KEY_ESCAPE))
-            glfwSetWindowShouldClose(window, true);
-
-        if ((action == GLFW_PRESS) && (key == GLFW_KEY_P))
             renderer->switchPauseState();
 
         // Controller 1

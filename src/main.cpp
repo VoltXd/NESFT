@@ -4,25 +4,19 @@
 #include "gtest/gtest.h"
 
 GTEST_API_ int main(int argc, char **argv) {
-  printf("Running main() from %s\n", __FILE__);
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+	printf("Running main() from %s\n", __FILE__);
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
 
 #else
 #include <iostream>
 
-#include "Emulator.hpp"
+#include "App.hpp"
 
-int main(int argc, char** argv)
+int main()
 {
-	if (argc != 2)
-	{
-		std::cout << "Error: bad argument number (" << argc << ", must be 2)" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-    Emulator emulator(argv[1]);
+    App emulator;
     return emulator.run();
 }
 #endif

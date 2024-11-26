@@ -23,7 +23,7 @@ private:
 	
 	void processIdleState(GlfwApp& appWindow);
 	void playGame(GlfwApp& appWindow);
-	void prepareBuffersAndSendToWindow(NES& nes, GlfwApp& window);
+	void sendFifosToWindow(NES& nes, GlfwApp& window);
 
 	Controller mController;
 	SoundManager mSoundManager;

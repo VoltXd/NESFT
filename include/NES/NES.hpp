@@ -19,26 +19,22 @@ public:
     void reset();
     void runOneCpuInstruction();
 
-	void prepareDrawnSoundBuffers();
-
 	inline bool isImageReady() const { return mPpu.isImageReady(); }
 	inline void clearIsImageReady() { mPpu.clearIsImageReady(); }
 	inline const picture_t& getPicture() { return mPpu.getPicture(); }
 
 	inline bool isSoundBufferReady() const { return mIsSoundBufferReady; }
 	inline void clearIsSoundBufferReady() { mIsSoundBufferReady = false; }
-	inline const soundBuffer_t* getSoundBufferPtr() const { return mSoundBufferToSubmit; }
-	inline const soundBufferF32_t* getBufferToDrawPtr() const { return &mBufferToDraw; }
-	inline const soundBufferF32_t* getP1BufferToDrawPtr() const { return &mP1BufferToDraw; }
-	inline const soundBufferF32_t* getP2BufferToDrawPtr() const { return &mP2BufferToDraw; }
-	inline const soundBufferF32_t* getTriangleBufferToDrawPtr() const { return &mTriangleBufferToDraw; }
-	inline const soundBufferF32_t* getNoiseBufferToDrawPtr() const { return &mNoiseBufferToDraw; }
-	inline const soundBufferF32_t* getDmcBufferToDrawPtr() const { return &mDmcBufferToDraw; }
+	inline const soundBufferF32_t* getSoundBufferPtr() const { return mSoundBufferToSubmit; }
+	inline const soundFIFO_t* getSoundFIFOPtr() const { return &mSoundFIFO; }
+	inline const soundFIFO_t* getP1FIFOPtr() const { return &mP1FIFO; }
+	inline const soundFIFO_t* getP2FIFOPtr() const { return &mP2FIFO; }
+	inline const soundFIFO_t* getTriangleFIFOPtr() const { return &mTriangleFIFO; }
+	inline const soundFIFO_t* getNoiseFIFOPtr() const { return &mNoiseFIFO; }
+	inline const soundFIFO_t* getDmcFIFOPtr() const { return &mDmcFIFO; }
 	
 
 private:
-	void fillDrawnSoundBuffer(const soundBuffer_t& soundBuffer0, const soundBuffer_t& soundBuffer1, soundBufferF32_t& drawnSoundBuffer);
-	
     CPU mCpu;
 	APU mApu;
 	PPU mPpu;
@@ -50,25 +46,15 @@ private:
 	static constexpr float TIME_PER_CYCLE = 1.0f / 1'789'773;
 	bool mIsUsingSoundBuffer0;
 	bool mIsSoundBufferReady;
-	soundBuffer_t* mSoundBufferToSubmit;
-	soundBuffer_t mSoundBuffer0;
-	soundBuffer_t mSoundBuffer1;
-	soundBuffer_t mP1Buffer0;
-	soundBuffer_t mP1Buffer1;
-	soundBuffer_t mP2Buffer0;
-	soundBuffer_t mP2Buffer1;
-	soundBuffer_t mTriangleBuffer0;
-	soundBuffer_t mTriangleBuffer1;
-	soundBuffer_t mNoiseBuffer0;
-	soundBuffer_t mNoiseBuffer1;
-	soundBuffer_t mDmcBuffer0;
-	soundBuffer_t mDmcBuffer1;
-	soundBufferF32_t mBufferToDraw;
-	soundBufferF32_t mP1BufferToDraw;
-	soundBufferF32_t mP2BufferToDraw;
-	soundBufferF32_t mTriangleBufferToDraw;
-	soundBufferF32_t mNoiseBufferToDraw;
-	soundBufferF32_t mDmcBufferToDraw;
+	soundBufferF32_t* mSoundBufferToSubmit;
+	soundBufferF32_t mSoundBuffer0;
+	soundBufferF32_t mSoundBuffer1;
+	soundFIFO_t mSoundFIFO;
+	soundFIFO_t mP1FIFO;
+	soundFIFO_t mP2FIFO;
+	soundFIFO_t mTriangleFIFO;
+	soundFIFO_t mNoiseFIFO;
+	soundFIFO_t mDmcFIFO;
 	float mApuTimestamp;
 	u16 mSoundSamplesCount;
 };

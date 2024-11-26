@@ -1,10 +1,18 @@
 #include "NES/NES.hpp"
 
+#include "NES/Toolbox.hpp"
+
 NES::NES(Controller& controller, const std::string &romFilename)
     : mMemory(romFilename, mApu, mPpu, controller)
 {
     // Power up == Reset
     reset();
+	mSoundFIFO    = soundFIFO_t(BUFFER_SIZE);
+	mP1FIFO       = soundFIFO_t(BUFFER_SIZE);
+	mP2FIFO       = soundFIFO_t(BUFFER_SIZE);
+	mTriangleFIFO = soundFIFO_t(BUFFER_SIZE);
+	mNoiseFIFO    = soundFIFO_t(BUFFER_SIZE);
+	mDmcFIFO      = soundFIFO_t(BUFFER_SIZE);
 }
 
 void NES::reset()
@@ -53,24 +61,17 @@ void NES::runOneCpuInstruction()
 		if (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
 		{
 			// Get sample & substract sample period to time stamp
-			soundBuffer_t* soundBuffer = mIsUsingSoundBuffer0 ? &mSoundBuffer0 : &mSoundBuffer1;
-			(*soundBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getOutput() + 1));
+			soundBufferF32_t* soundBuffer = mIsUsingSoundBuffer0 ? &mSoundBuffer0 : &mSoundBuffer1;
+			float apuOutput = mApu.getOutput();
+			(*soundBuffer)[mSoundSamplesCount] = apuOutput;
 
 			// Get sample per channel (TODO: fix caches misses ?)
-			soundBuffer_t* p1Buffer = mIsUsingSoundBuffer0 ? &mP1Buffer0 : &mP1Buffer1;
-			(*p1Buffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getPulse1Output() + 1));
-
-			soundBuffer_t* p2Buffer = mIsUsingSoundBuffer0 ? &mP2Buffer0 : &mP2Buffer1;
-			(*p2Buffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getPulse2Output() + 1));
-			
-			soundBuffer_t* triangleBuffer = mIsUsingSoundBuffer0 ? &mTriangleBuffer0 : &mTriangleBuffer1;
-			(*triangleBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getTriangleOutput() + 1));
-
-			soundBuffer_t* noiseBuffer = mIsUsingSoundBuffer0 ? &mNoiseBuffer0 : &mNoiseBuffer1;
-			(*noiseBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getNoiseOutput() + 1));
-			
-			soundBuffer_t* dmcBuffer = mIsUsingSoundBuffer0 ? &mDmcBuffer0 : &mDmcBuffer1;
-			(*dmcBuffer)[mSoundSamplesCount] = (u8)(0.5 * 255 * (mApu.getDMCOutput() + 1));
+			popAndPush(mSoundFIFO, apuOutput);
+			popAndPush(mP1FIFO, mApu.getPulse1Output());
+			popAndPush(mP2FIFO, mApu.getPulse2Output());
+			popAndPush(mTriangleFIFO, mApu.getTriangleOutput());
+			popAndPush(mNoiseFIFO, mApu.getNoiseOutput());
+			popAndPush(mDmcFIFO, mApu.getDMCOutput());
 
 			mSoundSamplesCount++;
 			mApuTimestamp -= BUFFER_SAMPLE_PERIOD;
@@ -89,26 +90,4 @@ void NES::runOneCpuInstruction()
 	// PPU
 	for (int i = 0; i < 3 * (elapsedCycles + extraCycles); i++)
 		mPpu.executeOneCycle(mMemory);
-}
-
-void NES::prepareDrawnSoundBuffers()
-{
-	// Fill a sound buffer with latest data
-	fillDrawnSoundBuffer(mSoundBuffer0, mSoundBuffer1, mBufferToDraw);
-	fillDrawnSoundBuffer(mP1Buffer0, mP1Buffer1, mP1BufferToDraw);
-	fillDrawnSoundBuffer(mP2Buffer0, mP2Buffer1, mP2BufferToDraw);
-	fillDrawnSoundBuffer(mTriangleBuffer0, mTriangleBuffer1, mTriangleBufferToDraw);
-	fillDrawnSoundBuffer(mNoiseBuffer0, mNoiseBuffer1, mNoiseBufferToDraw);
-	fillDrawnSoundBuffer(mDmcBuffer0, mDmcBuffer1, mDmcBufferToDraw);
-}
-
-void NES::fillDrawnSoundBuffer(const soundBuffer_t &soundBuffer0, const soundBuffer_t &soundBuffer1, soundBufferF32_t &drawnSoundBuffer)
-{
-	const soundBuffer_t* bufferPtr = mIsUsingSoundBuffer0 ? &soundBuffer1 : &soundBuffer0;
-	for (u32 i = 0; i < (BUFFER_SIZE - mSoundSamplesCount); i++)
-		drawnSoundBuffer[i] = (*bufferPtr)[i + mSoundSamplesCount];
-	
-	bufferPtr = mIsUsingSoundBuffer0 ? &soundBuffer0 : &soundBuffer1;
-	for (u32 i = 0; i < mSoundSamplesCount; i++)
-		drawnSoundBuffer[i + (BUFFER_SIZE - mSoundSamplesCount)] = (*bufferPtr)[i];
 }

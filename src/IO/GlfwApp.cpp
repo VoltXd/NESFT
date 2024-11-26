@@ -1,6 +1,7 @@
 #include "IO/GlfwApp.hpp"
 
 #include "imgui.h"
+#include "implot.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
@@ -106,20 +107,23 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     mFrameTimeHistoryDeque.resize(FRAMETIME_HISTORY_MAXSIZE);
 
     mIsSoundChannelsWindowOpen = false;
-    mSoundBufferPtr = nullptr;
-    mP1BufferPtr = nullptr;
-    mP2BufferPtr = nullptr;
-    mTriangleBufferPtr = nullptr;
-    mNoiseBufferPtr = nullptr;
-    mDmcBufferPtr = nullptr;
+    mTimeArray = calculateTimeArray();
+    mSoundFIFOPtr = nullptr;
+    mP1FIFOPtr = nullptr;
+    mP2FIFOPtr = nullptr;
+    mTriangleFIFOPtr = nullptr;
+    mNoiseFIFOPtr = nullptr;
+    mDmcFIFOPtr = nullptr;
 
     mIsSpectrumWindowOpen = false;
+    mFrequencies = calculateFrequencyArray();
 
     mIsPaused = false; 
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -134,6 +138,7 @@ GlfwApp::~GlfwApp()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
     glDeleteVertexArrays(1, &mScreenVao);
@@ -342,45 +347,90 @@ void GlfwApp::drawSoundChannelsWindow()
     {
         // TODO: Plot the 5 sound channels
         // TODO: Add a button to plot mixed channels ?
+        soundBufferF32_t buffer;
         s32 offset;
-        
-        if (mSoundBufferPtr != nullptr)
+        if (ImPlot::BeginSubplots("##NoTitle", 6, 1, { -1, -1}))
         {
-            offset = getScopeTriggerOffset(*mSoundBufferPtr);
-            ImGui::PlotLines("Sound output", (*mSoundBufferPtr).data() + offset, (int)(*mSoundBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
-        }
+            if (ImPlot::BeginPlot("Sound output", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
+                ImPlot::SetupAxesLimits(mTimeArray.front(), mTimeArray.back(), -0.1f, 1);
+                if (mSoundFIFOPtr != nullptr)
+                {
+                    std::copy(mSoundFIFOPtr->begin(), mSoundFIFOPtr->end(), buffer.begin());
+                    offset = getScopeTriggerOffset(buffer);
+                    ImPlot::PlotLine("Sound output", mTimeArray.data(), buffer.data() + offset, (int)mTimeArray.size());
+                }
+                ImPlot::EndPlot();
+            }
 
+            if (ImPlot::BeginPlot("Pulse 1", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
+                ImPlot::SetupAxesLimits(mTimeArray.front(), mTimeArray.back(), -0.1f, 1);
+                if (mP1FIFOPtr != nullptr)
+                {
+                    std::copy(mP1FIFOPtr->begin(), mP1FIFOPtr->end(), buffer.begin());
+                    offset = getScopeTriggerOffset(buffer);
+                    ImPlot::PlotLine("Pulse 1", mTimeArray.data(), buffer.data() + offset, (int)mTimeArray.size());
+                }
+                ImPlot::EndPlot();
+            }
+                    
+            if (ImPlot::BeginPlot("Pulse 2", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
+                ImPlot::SetupAxesLimits(mTimeArray.front(), mTimeArray.back(), -0.1f, 1);
+                if (mP2FIFOPtr != nullptr)
+                {
+                    std::copy(mP2FIFOPtr->begin(), mP2FIFOPtr->end(), buffer.begin());
+                    offset = getScopeTriggerOffset(buffer);
+                    ImPlot::PlotLine("Pulse 2", mTimeArray.data(), buffer.data() + offset, (int)mTimeArray.size());
+                }
+                ImPlot::EndPlot();
+            }
+                    
+            if (ImPlot::BeginPlot("Triangle", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
+                ImPlot::SetupAxesLimits(mTimeArray.front(), mTimeArray.back(), -0.1f, 1);
+                if (mTriangleFIFOPtr != nullptr)
+                {
+                    std::copy(mTriangleFIFOPtr->begin(), mTriangleFIFOPtr->end(), buffer.begin());
+                    offset = getScopeTriggerOffset(buffer);
+                    ImPlot::PlotLine("Triangle", mTimeArray.data(), buffer.data() + offset, (int)mTimeArray.size());
+                }
+                ImPlot::EndPlot();
+            }
+            
+            if (ImPlot::BeginPlot("Noise", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
+                ImPlot::SetupAxesLimits(mTimeArray.front(), mTimeArray.back(), -0.1f, 1);
+                if (mNoiseFIFOPtr != nullptr)
+                {
+                    std::copy(mNoiseFIFOPtr->begin(), mNoiseFIFOPtr->end(), buffer.begin());
+                    offset = getScopeTriggerOffset(buffer);
+                    ImPlot::PlotLine("Noise", mTimeArray.data(), buffer.data() + offset, (int)mTimeArray.size());
+                }
+                ImPlot::EndPlot();
+            }
+                    
+            if (ImPlot::BeginPlot("DMC", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock);
+                ImPlot::SetupAxesLimits(mTimeArray.front(), mTimeArray.back(), -0.1f, 1);
+                if (mDmcFIFOPtr != nullptr)
+                {
+                    std::copy(mDmcFIFOPtr->begin(), mDmcFIFOPtr->end(), buffer.begin());
+                    offset = getScopeTriggerOffset(buffer);
+                    ImPlot::PlotLine("DMC", mTimeArray.data(), buffer.data() + offset, (int)mTimeArray.size());
+                }
+                ImPlot::EndPlot();
+            }
 
-        if (mP1BufferPtr != nullptr)
-        {
-            offset = getScopeTriggerOffset(*mP1BufferPtr);
-            ImGui::PlotLines("Pulse 1", (*mP1BufferPtr).data() + offset, (int)(*mP1BufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
+            ImPlot::EndSubplots();
         }
-            
-        if (mP2BufferPtr != nullptr)
-        {
-            offset = getScopeTriggerOffset(*mP2BufferPtr);
-            ImGui::PlotLines("Pulse 2", (*mP2BufferPtr).data() + offset, (int)(*mP2BufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
-        }
-            
-        if (mTriangleBufferPtr != nullptr)
-        {
-            offset = getScopeTriggerOffset(*mTriangleBufferPtr);
-            ImGui::PlotLines("Triangle", (*mTriangleBufferPtr).data() + offset, (int)(*mTriangleBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
-        }
-            
-        if (mNoiseBufferPtr != nullptr)
-        {
-            offset = getScopeTriggerOffset(*mNoiseBufferPtr);
-            ImGui::PlotLines("Noise", (*mNoiseBufferPtr).data() + offset, (int)(*mNoiseBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, {0.0f, 100.0f});
-        }
-            
-        if (mDmcBufferPtr != nullptr)
-        {
-            offset = getScopeTriggerOffset(*mDmcBufferPtr);
-            ImGui::PlotLines("DMC", (*mDmcBufferPtr).data() + offset, (int)(*mDmcBufferPtr).size() / 2, 0, nullptr, 0, 256.0f, { 0.0f, 100.0f });
-        }
-
     }
     ImGui::End();    
 }
@@ -389,16 +439,47 @@ void GlfwApp::drawSpectrumWindow()
 {
     if (ImGui::Begin("Spectrum"))
     {
-        if (mSoundBufferPtr != nullptr)
+        if (mSoundFIFOPtr != nullptr)
         {
             // Compute FFT
-            soundBufferF32_t spectrum = fftMagnitude(*mSoundBufferPtr);
-            ImGui::PlotHistogram("Sound Fourier transform", spectrum.data(), (int)spectrum.size() / 2, 0, nullptr, 0, 1.0f, { 0.0f, 100.0f });
+            soundBufferF32_t signal;
+            std::copy(mSoundFIFOPtr->begin(), mSoundFIFOPtr->end(), signal.begin());
+            
+            soundBufferF32_t spectrum;
+            fftMagnitude(signal, spectrum);
+
+            if (ImPlot::BeginPlot("Sound Fourier transform", { -1, -1 }))
+            {
+                ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock);
+                // ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Log10);
+                ImPlot::SetupAxesLimits((float)BUFFER_SAMPLE_RATE / BUFFER_SIZE, BUFFER_SAMPLE_RATE / 2, 0, 0.1f);
+                ImPlot::SetNextMarkerStyle(ImPlotMarker_Up);
+                ImPlot::PlotStems("FFT", mFrequencies.data(), spectrum.data(), (int)spectrum.size() / 2);
+                ImPlot::EndPlot();
+            }
         }
         // TODO: Plot the spectrum of the APU output
         // TODO: Enable to see the individual channels spectrum ?
     }
     ImGui::End();    
+}
+
+constexpr timeArray_t GlfwApp::calculateTimeArray()
+{
+    timeArray_t timeArray = {{ 0 }};
+    for (s32 i = 0; i < BUFFER_SIZE / 2; i++)
+        timeArray[i] = BUFFER_SAMPLE_PERIOD * (i - (s32)(BUFFER_SIZE / 4));
+
+    return timeArray;
+}
+
+constexpr soundBufferF32_t GlfwApp::calculateFrequencyArray()
+{
+    soundBufferF32_t frequencyArray = {{ 0 }};
+    for (u32 i = 0; i < BUFFER_SIZE; i++)
+        frequencyArray[i] = ((float)BUFFER_SAMPLE_RATE / BUFFER_SIZE) * i;
+
+    return frequencyArray;
 }
 
 static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)

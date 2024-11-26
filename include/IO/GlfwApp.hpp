@@ -12,7 +12,9 @@
 #include "NES/PPU.hpp"
 #include "NES/Controller.hpp"
 
-constexpr float NES_ASPECT_RATIO = 256.0f / 240;
+using timeArray_t = std::array<float, BUFFER_SIZE / 2>;
+
+constexpr float NES_ASPECT_RATIO = (float)PPU_OUTPUT_WIDTH / PPU_OUTPUT_HEIGHT;
 
 class GlfwApp
 {
@@ -31,16 +33,18 @@ public:
     inline const std::string& getRomName() const { return mPathToRom; }
 
     inline bool isSoundChannelsWindowOpen() const { return mIsSoundChannelsWindowOpen; }
-    inline void setSoundBufferPtr(const soundBufferF32_t* const ptr) { mSoundBufferPtr = ptr; }
-    inline void setP1BufferPtr(const soundBufferF32_t* const ptr) { mP1BufferPtr = ptr; }
-    inline void setP2BufferPtr(const soundBufferF32_t* const ptr) { mP2BufferPtr = ptr; }
-    inline void setTriangleBufferPtr(const soundBufferF32_t* const ptr) { mTriangleBufferPtr = ptr; }
-    inline void setNoiseBufferPtr(const soundBufferF32_t* const ptr) { mNoiseBufferPtr = ptr; }
-    inline void setDmcBufferPtr(const soundBufferF32_t* const ptr) { mDmcBufferPtr = ptr; }
+    inline bool isSpectrumWindowOpen() const { return mIsSpectrumWindowOpen; }
+    inline void setSoundFIFOPtr(const soundFIFO_t* const ptr) { mSoundFIFOPtr = ptr; }
+    inline void setP1FIFOPtr(const soundFIFO_t* const ptr) { mP1FIFOPtr = ptr; }
+    inline void setP2FIFOPtr(const soundFIFO_t* const ptr) { mP2FIFOPtr = ptr; }
+    inline void setTriangleFIFOPtr(const soundFIFO_t* const ptr) { mTriangleFIFOPtr = ptr; }
+    inline void setNoiseFIFOPtr(const soundFIFO_t* const ptr) { mNoiseFIFOPtr = ptr; }
+    inline void setDmcFIFOPtr(const soundFIFO_t* const ptr) { mDmcFIFOPtr = ptr; }
     inline bool isPaused() const { return mIsPaused; }
     inline void switchPauseState() { mIsPaused = !mIsPaused; }
 
 private:
+
     // Main menu bar
     void drawMainMenuBar();
     void drawMenuFile();
@@ -52,6 +56,9 @@ private:
     void drawSoundChannelsWindow();
     void drawSpectrumWindow();
 
+    constexpr timeArray_t calculateTimeArray();
+    constexpr soundBufferF32_t calculateFrequencyArray();
+
     bool mIsRomOpened;
     std::string mPathToRom;
 
@@ -61,14 +68,16 @@ private:
     std::array<float, FRAMETIME_HISTORY_MAXSIZE> mFrameTimeHistoryArray;
 
     bool mIsSoundChannelsWindowOpen;
-    const soundBufferF32_t* mSoundBufferPtr;
-    const soundBufferF32_t* mP1BufferPtr;
-    const soundBufferF32_t* mP2BufferPtr;
-    const soundBufferF32_t* mTriangleBufferPtr;
-    const soundBufferF32_t* mNoiseBufferPtr;
-    const soundBufferF32_t* mDmcBufferPtr;
+    timeArray_t mTimeArray;
+    const soundFIFO_t* mSoundFIFOPtr;
+    const soundFIFO_t* mP1FIFOPtr;
+    const soundFIFO_t* mP2FIFOPtr;
+    const soundFIFO_t* mTriangleFIFOPtr;
+    const soundFIFO_t* mNoiseFIFOPtr;
+    const soundFIFO_t* mDmcFIFOPtr;
     
     bool mIsSpectrumWindowOpen;
+    soundBufferF32_t mFrequencies;
 
     GLFWwindow* mWindow;
 

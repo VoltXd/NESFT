@@ -3,9 +3,17 @@
 #include <string>
 #include <array>
 #include <complex>
+#include <deque>
 #include "NES/Config.hpp"
 
 void testAndExitWithMessage(bool condition, const std::string& message);
+
+template <typename T>
+void popAndPush(std::deque<T>& fifo, T value)
+{
+	fifo.pop_front();
+	fifo.push_back(value);
+}
 
 template <typename T, size_t S>
 s32 getScopeTriggerOffset(const std::array<T, S>& array)
@@ -30,7 +38,7 @@ s32 getScopeTriggerOffset(const std::array<T, S>& array)
 }
 
 template <unsigned int S>
-std::array<float, S> fftMagnitude(const std::array<float, S>& signal)
+void fftMagnitude(const std::array<float, S>& signal, std::array<float, S>& spectrum)
 {
 	using complex = std::complex<float>;
 	
@@ -81,9 +89,6 @@ std::array<float, S> fftMagnitude(const std::array<float, S>& signal)
 	}
 
     // Retrieve magnitude
-	std::array<float, S> spectrum;
     for (u32 i = 0; i < S; i++)
-        spectrum[i] = std::abs(x[i]) * (1.0f / 128 / std::sqrtf(S));
-
-	return spectrum;
+        spectrum[i] = std::abs(x[i]) * (1.0f / S);
 }

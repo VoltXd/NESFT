@@ -95,8 +95,10 @@ void App::playGame(GlfwApp& appWindow)
 			elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
 
 			if (appWindow.isSoundChannelsWindowOpen())
-				prepareBuffersAndSendToWindow(nes, appWindow);
-						
+				sendFifosToWindow(nes, appWindow);
+			else if (appWindow.isSpectrumWindowOpen())
+				appWindow.setSoundFIFOPtr(nes.getSoundFIFOPtr());
+
 			// Render
 			appWindow.draw(nes.getPicture());
 		}
@@ -110,14 +112,12 @@ void App::playGame(GlfwApp& appWindow)
 	}
 }
 
-void App::prepareBuffersAndSendToWindow(NES &nes, GlfwApp &window)
+void App::sendFifosToWindow(NES &nes, GlfwApp &window)
 {
-	nes.prepareDrawnSoundBuffers();
-
-	window.setSoundBufferPtr(nes.getBufferToDrawPtr());
-	window.setP1BufferPtr(nes.getP1BufferToDrawPtr());
-	window.setP2BufferPtr(nes.getP2BufferToDrawPtr());
-	window.setTriangleBufferPtr(nes.getTriangleBufferToDrawPtr());
-	window.setNoiseBufferPtr(nes.getNoiseBufferToDrawPtr());
-	window.setDmcBufferPtr(nes.getDmcBufferToDrawPtr());
+	window.setSoundFIFOPtr(nes.getSoundFIFOPtr());
+	window.setP1FIFOPtr(nes.getP1FIFOPtr());
+	window.setP2FIFOPtr(nes.getP2FIFOPtr());
+	window.setTriangleFIFOPtr(nes.getTriangleFIFOPtr());
+	window.setNoiseFIFOPtr(nes.getNoiseFIFOPtr());
+	window.setDmcFIFOPtr(nes.getDmcFIFOPtr());
 }

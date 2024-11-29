@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <chrono>
 
 #include "NES/NES.hpp"
 #include "NES/Controller.hpp"
@@ -23,8 +24,11 @@ private:
 	
 	void processIdleState(GlfwApp& appWindow);
 	void playGame(GlfwApp& appWindow);
-	void sendFifosToWindow(NES& nes, GlfwApp& window);
+	void sendPictureToWindow(GlfwApp& appWindow, const picture_t& picture);
+	void linkFifosToWindow(NES& nes, GlfwApp& window);
 
 	Controller mController;
 	SoundManager mSoundManager;
+
+	std::chrono::steady_clock::time_point mTimePrevious;
 };

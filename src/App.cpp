@@ -17,27 +17,24 @@ App::App()
 
 int App::run()
 {
+	mAppState = AppState::IDLE;
+	
+	// Init window & sound
 	GlfwApp appWindow(mController);
 	testAndExitWithMessage(mSoundManager.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
-	mAppState = AppState::IDLE;
-
-	
 
 	// Infinite loop
 	while (!appWindow.shouldWindowClose())
 	{
 		switch (mAppState)
 		{
-		case AppState::IDLE:
-			processIdleState(appWindow);
-			break;
+			case AppState::IDLE:
+				processIdleState(appWindow);
+				break;
 
-		case AppState::PLAYING:
-			playGame(appWindow);
-			break;
-		
-		default:
-			break;
+			case AppState::PLAYING:
+				playGame(appWindow);
+				break;
 		}
 	}
 
@@ -49,70 +46,76 @@ void App::processIdleState(GlfwApp& appWindow)
 	constexpr picture_t BLANK_SCREEN = { 0 };
 
 	while (!appWindow.shouldWindowClose() && !appWindow.isRomOpened())
-	{
 		appWindow.draw(BLANK_SCREEN);
-	}
 	
 	mAppState = AppState::PLAYING;
 }
 
 void App::playGame(GlfwApp& appWindow)
 {
+	using std::chrono::steady_clock;
+	
 	// *************** NES Emulation *************** //
-	std::chrono::steady_clock::time_point time0 = std::chrono::steady_clock::now();
-	std::chrono::steady_clock::time_point time1;
-
-	double elapsedTime, elapsedTimeOffset = 0;
 	NES nes(mController, appWindow.getRomName());
 	appWindow.clearIsRomOpened();
+	linkFifosToWindow(nes, appWindow);
 
-	while (!appWindow.shouldWindowClose())
+    mTimePrevious = steady_clock::now();
+
+	while (!appWindow.shouldWindowClose() && !appWindow.isRomOpened())
 	{
-		// Change ROM if new one opened 
-		if (appWindow.isRomOpened())
-			break;
-
-		// Update
+		// Pause
 		if (appWindow.isPaused())
 		{
 			appWindow.draw(nes.getPicture());
-			time0 = std::chrono::steady_clock::now();
+			mTimePrevious = steady_clock::now();
+
 			continue;
 		}
 
+		// Emulation
 		nes.runOneCpuInstruction();
+
+		// Video
 		if (nes.isImageReady())
 		{
 			nes.clearIsImageReady();
 
-			// Wait before rendering -> 60 FPS
-			do
-			{
-				time1 = std::chrono::steady_clock::now();
-				elapsedTime = std::chrono::duration<double>(time1 - time0).count();
-			} while (elapsedTime + elapsedTimeOffset < FRAME_PERIOD_NTSC);
-			time0 = time1;
-			elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
-
-			if (appWindow.isSoundChannelsWindowOpen())
-				sendFifosToWindow(nes, appWindow);
-			else if (appWindow.isSpectrumWindowOpen())
-				appWindow.setSoundFIFOPtr(nes.getSoundFIFOPtr());
-
-			// Render
-			appWindow.draw(nes.getPicture());
+			sendPictureToWindow(appWindow, nes.getPicture());
 		}
 
+		// Sound
 		if (nes.isSoundBufferReady())
 		{
 			nes.clearIsSoundBufferReady();
 
+			// Push sample to sound stream
 			mSoundManager.streamSound(*nes.getSoundBufferPtr());
 		}
 	}
 }
 
-void App::sendFifosToWindow(NES &nes, GlfwApp &window)
+void App::sendPictureToWindow(GlfwApp &appWindow, const picture_t &picture)
+{
+	using std::chrono::steady_clock;
+	
+	steady_clock::time_point timeNow;
+	double elapsedTime, elapsedTimeOffset = 0;
+
+	// Wait before rendering -> 60 FPS
+	do
+	{
+		timeNow = steady_clock::now();
+		elapsedTime = std::chrono::duration<double>(timeNow - mTimePrevious).count();
+	} while (elapsedTime + elapsedTimeOffset < FRAME_PERIOD_NTSC);
+	mTimePrevious = timeNow;
+	elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
+
+	// Render
+	appWindow.draw(picture);
+}
+
+void App::linkFifosToWindow(NES &nes, GlfwApp &window)
 {
 	window.setSoundFIFOPtr(nes.getSoundFIFOPtr());
 	window.setP1FIFOPtr(nes.getP1FIFOPtr());

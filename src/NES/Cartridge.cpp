@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 #include "NES/Config.hpp"
+#include "NES/Mapper000.hpp"
+#include "NES/Mapper001.hpp"
 #include "NES/Toolbox.hpp"
 
 Cartridge::Cartridge(const std::string& romFilename)
@@ -43,11 +45,11 @@ Cartridge::Cartridge(const std::string& romFilename)
 	    header.identification[3] == '\x1A')
 		isINesHeader = true;
 
-	uint32_t prgRomSize = header.prgNumBanks << 14; // 16 kB unit
-	uint32_t chrRomSize = header.chrNumBanks << 13; //  8 kB unit 
+	u32 prgRomSize = header.prgNumBanks << 14; // 16 kB unit
+	u32 chrRomSize = header.chrNumBanks << 13; //  8 kB unit 
 
 	// Flag 6
-	mNtArrangement = (NametableArrangement)(header.flag6 & 0b0000'0001);
+	NametableArrangement ntArr = (NametableArrangement)(header.flag6 & 0b0000'0001);
 	bool hasPrgRam = (header.flag6 & 0b0000'0010) != 0;
 	bool hasTrainer = (header.flag6 & 0b0000'0100) != 0;
 	bool hasAltNtLayout = (header.flag6 & 0b0000'1000) != 0;
@@ -60,20 +62,19 @@ Cartridge::Cartridge(const std::string& romFilename)
 	mapperNum |= (header.flag7 & 0xF0);
 
 	// Flag 8
-	uint32_t prgRamSize = header.flag8 << 13; // 8 kB unit
+	u32 prgRamSize = header.flag8 << 13; // 8 kB unit
 
 	// Flag 9
 	TVSystem tvSystem = (TVSystem)(header.flag9 & 0b0000'0001);
 
 	// Flag 10 (redundant)
 	// Print ROM info
-	printHeaderInfo(isINesHeader, prgRomSize, chrRomSize, mNtArrangement, hasPrgRam, hasTrainer,
+	printHeaderInfo(isINesHeader, prgRomSize, chrRomSize, ntArr, hasPrgRam, hasTrainer,
 	                hasAltNtLayout, mapperNum, isVsUnisystem, isPlaychoice10, isNes2Header, 
 					prgRamSize, tvSystem);
 
 	// Crash the program on unwanted header
 	testAndExitWithMessage(!isINesHeader, "ROM file is not iNES.");
-	testAndExitWithMessage(hasPrgRam, "PRG-RAM not implemented.");
 	testAndExitWithMessage(hasTrainer, "Trainer not implemented.");
 	testAndExitWithMessage(hasAltNtLayout, "Alternative Nametable Layout not implemented.");
 	testAndExitWithMessage(isVsUnisystem, "VS Unisystem not implemented.");
@@ -81,10 +82,21 @@ Cartridge::Cartridge(const std::string& romFilename)
 	testAndExitWithMessage(isNes2Header, "NES 2.0 not implemented.");
 
 	// Create a mapper object
+	u32 chrRamSize = 0;
 	switch (mapperNum)
 	{
 		case 0:
-			mMapper = std::make_shared<Mapper000>(header.prgNumBanks, header.chrNumBanks);
+			mMapper = std::make_shared<Mapper000>(header.prgNumBanks, header.chrNumBanks, ntArr);
+			break;
+
+		case 1:
+			mMapper = std::make_shared<Mapper001>(header.prgNumBanks, header.chrNumBanks);
+
+			// Assume CHR-RAM 8 KB
+			chrRamSize = 0x2000;
+			
+			// Assume PRG-RAM 32 KB
+			mPrgRam.resize(0x8000);
 			break;
 		
 		default:
@@ -98,9 +110,18 @@ Cartridge::Cartridge(const std::string& romFilename)
 	romFile.read((char*)mPrgRom.data(), prgRomSize);
 
 	// ******** Read CHR-ROM (if present) ******** //
-	testAndExitWithMessage(chrRomSize == 0, "CHR-RAM not implemented.");
-	mChrRom.resize(chrRomSize);
-	romFile.read((char*)mChrRom.data(), chrRomSize);
+	if (chrRomSize != 0)
+	{
+		// CHR-ROM is present
+		mChrRom.resize(chrRomSize);
+		romFile.read((char*)mChrRom.data(), chrRomSize);
+	}
+	else
+	{
+		// No CHR-ROM => CHR-RAM is present (some mappers have both
+		// but only for 2 games -> will likely not be implemented)
+		mChrRam.resize(chrRamSize);
+	}
 
 	// ******** Read PlayChoice INST-ROM (if present (WTF????? (Not implemented))) ******** //
 	// ******** Read PlayChoice PROM (if present (WTF????? (Not Implemented))) ******** //
@@ -114,53 +135,86 @@ void Cartridge::reset()
 
 bool Cartridge::readPrg(u16 cpuAddress, u8 &output)
 {
-	uint32_t prgRomAddr;
-	if (!mMapper->mapCpuRead(cpuAddress, prgRomAddr))
+	u32 prgAddr;
+	if (!mMapper->mapCpuRead(cpuAddress, prgAddr))
 		return false;
 
-	output = mPrgRom[prgRomAddr];
+	// Check if target is PRG RAM or ROM
+	output = mMapper->isPrgRamRead() ?
+	         mPrgRam[prgAddr] :
+			 mPrgRom[prgAddr];
+
 	return true;
 }
 
 bool Cartridge::writePrg(u16 cpuAddress, u8 input)
 {
 	// Write into the PRG-RAM
-	uint32_t prgRamAddr;
-	if (!mMapper->mapCpuWrite(cpuAddress, prgRamAddr))
+	u32 prgRamAddr;
+	if (!mMapper->mapCpuWrite(cpuAddress, prgRamAddr, input))
 		return false;
 
 	mPrgRam[prgRamAddr] = input;
 	return true;
 }
 
-bool Cartridge::readChr(u16 ppuAddress, u8 &output)
+bool Cartridge::readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress)
 {
-	uint32_t chrRomAddr;
-	if (!mMapper->mapPpuRead(ppuAddress, chrRomAddr))
+	u32 chrAddr;
+	if (!mMapper->mapPpuRead(ppuAddress, chrAddr))
+	{
+		mappedNtAddress = mapNtAddress(ppuAddress);
 		return false;
+	}
 
-	output = mChrRom[chrRomAddr];
+	output = mMapper->isChrRamSelected() ?
+	         mChrRam[chrAddr] :
+			 mChrRom[chrAddr];
 	return true;
 }
 
-bool Cartridge::writeChr(u16 ppuAddress, u8 input)
+bool Cartridge::writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress)
 {
-	uint32_t chrRamAddr;
-	if (!mMapper->mapPpuRead(ppuAddress, chrRamAddr))
+	u32 chrRamAddr;
+	if (!mMapper->mapPpuWrite(ppuAddress, chrRamAddr))
+	{
+		mappedNtAddress = mapNtAddress(ppuAddress);
 		return false;
+	}
 
-	std::stringstream errorMessage;
-	errorMessage << "Write to CHR-RAM not implemented: " << __FILE__ << ":" << __LINE__;
-	testAndExitWithMessage(true, errorMessage.str());
+	if (mMapper->isChrRamSelected())
+	{
+		mChrRam[chrRamAddr] = input;
+	}
+	else
+	{
+		std::stringstream errorMessage;
+		errorMessage << "Write to CHR-RAM not implemented: " << __FILE__ << ":" << __LINE__;
+		testAndExitWithMessage(true, errorMessage.str());
+	}
 
-	// TODO (one day...) modify to CHR-RAM
-	mChrRom[chrRamAddr] = input;
     return true;
 }
 
+u16 Cartridge::mapNtAddress(u16 ppuAddress)
+{
+	u16 mappedNtAddress;
+	NametableArrangement ntArr = mMapper->getNtArragenement();
+
+	// Map address to VRAM address (Nametable)
+	if (ntArr == NametableArrangement::VERT)
+		mappedNtAddress = (ppuAddress & 0b0000'0011'1111'1111) | ((ppuAddress >> 1) & 0b0000'0100'0000'0000);
+	else if (ntArr == NametableArrangement::HOR)
+		mappedNtAddress = ppuAddress & 0b0000'0111'1111'1111;
+	else
+		mappedNtAddress = ppuAddress & 0b0000'0011'1111'1111 + mMapper->getVramBankAddressOffset();
+
+	return mappedNtAddress;
+}
+
 void Cartridge::printHeaderInfo(bool isINesHeader, 
-                                uint32_t prgRomSize, 
-                                uint32_t chrRomSize, 
+                                u32 prgRomSize, 
+                                u32 chrRomSize, 
 								NametableArrangement ntArrangement,
                                 bool hasPrgRam, 
 								bool hasTrainer, 
@@ -169,7 +223,7 @@ void Cartridge::printHeaderInfo(bool isINesHeader,
                                 bool isVsUnisystem, 
 								bool isPlaychoice10, 
 								bool isNes2Header, 
-								uint32_t prgRamSize,
+								u32 prgRamSize,
                                 TVSystem tvSystem)
 {
 	std::cout << "iNES Header found: "     << std::boolalpha << isINesHeader << std::dec << '\n'

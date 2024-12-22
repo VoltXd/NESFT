@@ -5,23 +5,17 @@ void Mapper000::reset()
 	// Nothing to do I guess...
 }
 
-bool Mapper000::mapCpuWrite(u16 address, uint32_t &mappedAddress)
+bool Mapper000::mapCpuWrite(u16 address, u32 &mappedAddress, u8 value)
 {
-	// ROM -> No CPU write to cartridge
-	// Implemented as CPU read to remove unused-parameter error
-	if (0x8000 <= address)
-	{
-		mappedAddress = address & (mPrgNumBanks == 1 ? 0x7FFF : 0x3FFF);
-
-		// The CPU accesses cartridge ROM
-		return true;
-	}
-
-	// The address is not targetting the cartridge
+	// Only PRG-ROM -> No CPU write to cartridge
+	// (unreferenced parameters bypass)
+	address;
+	mappedAddress;
+	value;
 	return false;
 }
 
-bool Mapper000::mapCpuRead(u16 address, uint32_t &mappedAddress)
+bool Mapper000::mapCpuRead(u16 address, u32 &mappedAddress)
 {
 	if (0x8000 <= address)
 	{
@@ -36,23 +30,16 @@ bool Mapper000::mapCpuRead(u16 address, uint32_t &mappedAddress)
 	return false;
 }
 
-bool Mapper000::mapPpuWrite(u16 address, uint32_t &mappedAddress)
+bool Mapper000::mapPpuWrite(u16 address, u32 &mappedAddress)
 {
-	// No mapping required
-	if (address <= 0x1FFF)
-	{
-		if (mChrNumBanks == 0)
-		{
-			mappedAddress = address;
-			return true;
-		}
-	}
-
-	// The address is not targetting the cartridge
+	// Only CHR-ROM -> No CPU write to cartridge
+	// (unreferenced parameters bypass)
+	address;
+	mappedAddress;
 	return false;
 }
 
-bool Mapper000::mapPpuRead(u16 address, uint32_t &mappedAddress)
+bool Mapper000::mapPpuRead(u16 address, u32 &mappedAddress)
 {
 	// No mapping required
 	if (address <= 0x1FFF)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <memory>
 #include "NES/Config.hpp"
@@ -41,7 +42,7 @@ private:
 private:
 	// CPU
 	static constexpr u32 CPU_RAM_SIZE = 0x0800; // 2 kB
-	u8 mCpuRam[CPU_RAM_SIZE];
+	std::array<u8, CPU_RAM_SIZE> mCpuRam;
 
 	// APU
 	APU& mApuRef;
@@ -49,8 +50,8 @@ private:
 	// PPU
 	static constexpr u32 PPU_VRAM_SIZE = 0x0800; // 2 kB
 	static constexpr u32 PPU_PALETTE_RAM_SIZE = 0x0020; // 32 B
-	u8 mPpuVram[PPU_VRAM_SIZE];
-	u8 mPpuPaletteRam[PPU_PALETTE_RAM_SIZE];
+	std::array<u8, PPU_VRAM_SIZE> mPpuVram;
+	std::array<u8, PPU_PALETTE_RAM_SIZE> mPpuPaletteRam;
 
 	PPU& mPpuRef;
 

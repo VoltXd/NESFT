@@ -6,13 +6,6 @@
 
 #include "NES/Config.hpp"
 #include "NES/Mapper.hpp"
-#include "NES/Mapper000.hpp"
-
-enum NametableArrangement
-{
-	VERT = 0,
-	HOR = 1,
-};
 
 enum TVSystem
 {
@@ -30,15 +23,14 @@ public:
 	bool readPrg(u16 cpuAddress, u8& output);
 	bool writePrg(u16 cpuAddress, u8 input);
 
-	bool readChr(u16 ppuAddress, u8& output);
-	bool writeChr(u16 ppuAddress, u8 input);
-
-	inline NametableArrangement getNtArrangement() const { return mNtArrangement; }
+	bool readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress);
+	bool writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress);
 
 private:
+	u16 mapNtAddress(u16 ppuAddress);
 	void printHeaderInfo(bool isINesHeader, 
-                         uint32_t prgRomSize,
-	                     uint32_t chrRomSize,
+                         u32 prgRomSize,
+	                     u32 chrRomSize,
 						 NametableArrangement ntArrangement,
 						 bool hasPrgRam,
 						 bool hasTrainer,
@@ -47,14 +39,13 @@ private:
 						 bool isVsUnisystem,
 						 bool isPlaychoice10,
 						 bool isNes2Header,
-						 uint32_t prgRamSize,
+						 u32 prgRamSize,
 						 TVSystem tvSystem);
 
 	std::vector<u8> mPrgRom;
 	std::vector<u8> mPrgRam;
 	std::vector<u8> mChrRom;
-
-	NametableArrangement mNtArrangement;
+	std::vector<u8> mChrRam;
 
 	std::shared_ptr<Mapper> mMapper;
 };

@@ -148,7 +148,7 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
 
 u8 PPU::readRegister(Memory &memory, u16 address)
 {
-    u8 value = 0xFF;
+    u8 value = 0x00;
     switch (address)
     {
         case PPUSTATUS_CPU_ADDR:
@@ -239,7 +239,8 @@ void PPU::executeVBlankScanline()
 
 void PPU::executePreRenderScanline(Memory &memory)
 {
-    memory.ppuRead(0);
+    memory; // Bypass "unused argument" warning
+    
     mIsFirstPrerenderPassed = true;
     if (mCycleCount == 1)
     {
@@ -409,7 +410,8 @@ void PPU::processPixelData(Memory& memory)
 
 void PPU::processSpriteEvaluation(Memory &memory)
 {
-    memory.ppuRead(0); // TODO Remove
+    memory; // Bypass "argument unused" warning
+     
     bool isOddCycle = (mCycleCount % 2) == 1;
     if (mCycleCount == 0)
     {
@@ -484,7 +486,8 @@ void PPU::processSpriteEvaluation(Memory &memory)
             if (!mIsStoringOamSprite)
             {
                 // Check that Y position fits to next scanline
-                if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + 8)
+                u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
+                if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + spriteHeight)
                 {
                     // It fits -> get sprites 4 bytes
                     mIsStoringOamSprite = true;
@@ -629,7 +632,9 @@ u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos,
 
                 
     // Vertical flip
-    u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? (pixelYPos - yPos) : spriteHeight - 1 - (pixelYPos - yPos));
+    u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? 
+                    (pixelYPos - yPos) : 
+                    spriteHeight - 1 - (pixelYPos - yPos));
     if (spriteHeight == 8)
         address |= spriteYPos;
     else

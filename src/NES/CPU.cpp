@@ -746,13 +746,14 @@ void CPU::brk(s32 &cycles, Memory& memory)
 
 	// Push program counter & processor status
 	u8 pcLsb = mPc & 0x00FF;
-	u8 pcMsb = ((u16)mPc & 0xFF00) >> 8;
+	u8 pcMsb = (mPc & 0xFF00) >> 8;
 	mB = 1;
 	u8 processorStatus = getProcessorStatus();
 	stackPush(cycles, memory, pcMsb);
 	stackPush(cycles, memory, pcLsb);
 	stackPush(cycles, memory, processorStatus);
-
+	mI = 1;
+	
 	// Fetch interrupt address
 	u8 interruptAddressLsb = readByte(cycles, memory, IRQ_VECTOR_LSB); 
 	u8 interruptAddressMsb = readByte(cycles, memory, IRQ_VECTOR_MSB); 

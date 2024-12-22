@@ -42,10 +42,13 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 	- [x] Pixels rendering
 		- [x] Background rendering
 		- [x] Sprites rendering
-	- [ ] Verify 8x16 sprite rendering (one day)
+		- [x] 8x16 sprite rendering
 	- [ ] Color emphasis & greyscale
 - [x] Controller
-- [ ] APU
+	- [x] Keyboard default keys
+	- [ ] Keyboard custom keys
+	- [ ] Gamepad
+- [x] APU
 	- [x] Stream audio with OpenAL
 	- [ ] Fix OpenAL
 		- [x] Sound latency
@@ -54,10 +57,11 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 		- [x] Pulses
 		- [x] Triangle
 		- [x] Noise
-		- [ ] DMC (implemented but need more verification)
+		- [x] DMC
 - [ ] Mappers
 	- [x] 000 (SMB, DK, Excitebike...)
-	- [ ] Total: **1** / 255 iNES 1.0 mappers
+	- [x] 001 (Zelda I & II, Metroid, Kid Icarus...)
+	- [ ] Total: **2** / 256 iNES 1.0 mappers
 - [ ] Rearrange classes members (for alignment (unnecessary optimisation))
 
 ## References

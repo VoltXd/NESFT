@@ -1,7 +1,7 @@
 #include "NES/Mapper.hpp"
 
-Mapper::Mapper(u8 prgNumBanks, u8 chrNumBanks)
+Mapper::Mapper(u8 prgNumBanks, u8 chrNumBanks, NametableArrangement ntArr)
+	: mPrgNumBanks(prgNumBanks), mChrNumBanks(chrNumBanks), mNtArrangement(ntArr)
 {
-	mPrgNumBanks = prgNumBanks;
-	mChrNumBanks = chrNumBanks;
+	mIsChrRamSelected = false;
 }

@@ -105,23 +105,16 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 u8 MemoryNES::ppuRead(u16 address)
 {
 	address &= 0x3FFF;
+	u16 mappedNtAddress;
 
 	u8 value = 0;
-	bool isInCartridgeMemory = mCartridge.readChr(address, value);
+	bool isInCartridgeMemory = mCartridge.readChr(address, value, mappedNtAddress);
 	if (isInCartridgeMemory)
 		return value;
 
 	if (0x2000 <= address && address < 0x3F00)
 	{
-		NametableArrangement ntArr = mCartridge.getNtArrangement();
-		// u16 vramAddress = address & (ntArr == NametableArrangement::VERT ? 0b : );
-		u16 vramAddress;
-		if (ntArr == NametableArrangement::VERT)
-			vramAddress = (address & 0b0000'0011'1111'1111) | ((address >> 1) & 0b0000'0100'0000'0000);
-		else
-			vramAddress = address & 0b0000'0111'1111'1111;
-	
-		value = mPpuVram[vramAddress];
+		value = mPpuVram[mappedNtAddress];
 	}
 	else if (0x3F00 <= address && address < 0x4000)
 	{
@@ -136,22 +129,15 @@ u8 MemoryNES::ppuRead(u16 address)
 void MemoryNES::ppuWrite(u16 address, u8 value)
 {
 	address &= 0x3FFF;
+	u16 mappedNtAddress = 0;
 	
-	bool isInCartridgeMemory = mCartridge.writeChr(address, value);
+	bool isInCartridgeMemory = mCartridge.writeChr(address, value, mappedNtAddress);
 	if (isInCartridgeMemory)
 		return;
 
 	if (0x2000 <= address && address < 0x3F00)
 	{
-		NametableArrangement ntArr = mCartridge.getNtArrangement();
-		// u16 vramAddress = address & (ntArr == NametableArrangement::VERT ? 0b : );
-		u16 vramAddress;
-		if (ntArr == NametableArrangement::VERT)
-			vramAddress = (address & 0b0000'0011'1111'1111) | ((address >> 1) & 0b0000'0100'0000'0000);
-		else
-			vramAddress = address & 0b0000'0111'1111'1111;
-	
-		mPpuVram[vramAddress] = value;
+		mPpuVram[mappedNtAddress] = value;
 	}
 	else if (0x3F00 <= address && address < 0x4000)
 	{

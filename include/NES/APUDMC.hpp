@@ -27,10 +27,11 @@ public:
 
 private:
 	u8 dmaRead(Memory& memory, bool isGetCycle, s32& extraCycles);
+	void incrementReaderAddress();
 
 	std::array<u16, 16> RATE_LUT_NTSC = 
 	{{
-		428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106,  84,  72,  54
+		214, 190, 170, 160, 143, 127, 113, 107, 95, 80, 71, 64, 53, 42, 36, 27
 	}};
 
 	// Timer & registers

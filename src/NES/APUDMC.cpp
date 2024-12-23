@@ -37,7 +37,7 @@ s32 APUDMC::update(Memory& memory, bool isGetCycle)
 		//   - else if 0 -> IRQ
 		mSampleBuffer = dmaRead(memory, isGetCycle, extraCycles);
 		mIsBufferFull = true;
-		mMemReaderAddress++;
+		incrementReaderAddress();
 		mMemReaderCount--;
 
 		if (mMemReaderCount == 0 && mIsLooping)
@@ -46,7 +46,9 @@ s32 APUDMC::update(Memory& memory, bool isGetCycle)
 			mMemReaderCount = mSampleLength;
 		}
 		else if (mMemReaderCount == 0 && mIsIRQSet)
+		{
 			mIsIRQSignalSet = true;
+		}
 	}
 	
 	// Timer
@@ -76,7 +78,9 @@ s32 APUDMC::update(Memory& memory, bool isGetCycle)
 			mShifterBitsRemaining = 8;
 
 			if (!mIsBufferFull)
+			{
 				mIsSilenced = true;
+			}
 			else
 			{
 				mIsSilenced = false;
@@ -94,6 +98,9 @@ void APUDMC::setReg0(u8 value)
 	// reg0: IL-- RRRR
 	mIsIRQSet = (value & 0b1000'0000) != 0;
 	mIsLooping = (value & 0b0100'0000) != 0;
+
+	if (!mIsIRQSet)
+		clearIRQSignal();
 
 	mRateIndex = value & 0b0000'1111;
 	mTimer.loadPeriod(RATE_LUT_NTSC[mRateIndex]);
@@ -123,7 +130,7 @@ void APUDMC::setReg3(u8 value)
 
 void APUDMC::enable()
 {
-	mIsIRQSignalSet = false;
+	clearIRQSignal();
 	if (mMemReaderCount == 0)
 	{
 		mMemReaderAddress = mSampleAddress;
@@ -133,7 +140,7 @@ void APUDMC::enable()
 
 void APUDMC::disable()
 {
-	mIsIRQSignalSet = false;
+	clearIRQSignal();
 	mMemReaderCount = 0;
 }
 
@@ -149,4 +156,12 @@ u8 APUDMC::dmaRead(Memory &memory, bool isGetCycle, s32& extraCycles)
 	extraCycles = isGetCycle ? 3 : 4;
 
 	return sample;
+}
+
+inline void APUDMC::incrementReaderAddress()
+{
+	if (mMemReaderAddress != 0xFFFF)
+		mMemReaderAddress++;
+	else
+		mMemReaderAddress = 0x8000;
 }

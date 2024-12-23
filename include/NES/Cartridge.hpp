@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <string>
 #include <vector>
 #include <memory>
@@ -28,24 +29,29 @@ public:
 
 private:
 	u16 mapNtAddress(u16 ppuAddress);
-	void printHeaderInfo(bool isINesHeader, 
-                         u32 prgRomSize,
-	                     u32 chrRomSize,
-						 NametableArrangement ntArrangement,
-						 bool hasPrgRam,
-						 bool hasTrainer,
-						 bool hasAltNtLayout,
-						 u8 mapperNum,
-						 bool isVsUnisystem,
-						 bool isPlaychoice10,
-						 bool isNes2Header,
-						 u32 prgRamSize,
-						 TVSystem tvSystem);
+	void savePrgRam();
+	std::string getHeaderInfo(bool isINesHeader, 
+                              u32 prgRomSize,
+	                          u32 chrRomSize,
+					          NametableArrangement ntArrangement,
+					          bool hasPrgRam,
+					          bool hasTrainer,
+					          bool hasAltNtLayout,
+					          u8 mapperNum,
+					          bool isVsUnisystem,
+					          bool isPlaychoice10,
+					          bool isNes2Header,
+					          u32 prgRamSize,
+					          TVSystem tvSystem);
+
+	std::string mHeaderInfo;
 
 	std::vector<u8> mPrgRom;
 	std::vector<u8> mPrgRam;
 	std::vector<u8> mChrRom;
 	std::vector<u8> mChrRam;
+
+	std::ofstream mCartRamFile;
 
 	std::shared_ptr<Mapper> mMapper;
 };

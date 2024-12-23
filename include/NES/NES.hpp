@@ -15,6 +15,7 @@ class NES
 {
 public:
     NES(Controller& controller, const std::string& romFilename);
+	~NES() { reset(); }
 
     void reset();
     void runOneCpuInstruction();

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include "NES/Config.hpp"
 #include "NES/Mapper000.hpp"
 #include "NES/Mapper001.hpp"
@@ -24,6 +25,9 @@ Cartridge::Cartridge(const std::string& romFilename)
 	} header;
 
 	// Open file 
+	std::filesystem::path romPath = romFilename;
+	testAndExitWithMessage(romPath.extension() != ".nes", "Only .nes files are accepted !");
+
 	std::ifstream romFile(romFilename, std::ios::binary);
 	
 	// ******** Read header ******** //
@@ -50,7 +54,7 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 	// Flag 6
 	NametableArrangement ntArr = (NametableArrangement)(header.flag6 & 0b0000'0001);
-	bool hasPrgRam = (header.flag6 & 0b0000'0010) != 0;
+	bool hasBatteryPrgRam = (header.flag6 & 0b0000'0010) != 0;
 	bool hasTrainer = (header.flag6 & 0b0000'0100) != 0;
 	bool hasAltNtLayout = (header.flag6 & 0b0000'1000) != 0;
 	u8 mapperNum = (header.flag6 & 0xF0) >> 4;
@@ -69,9 +73,10 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 	// Flag 10 (redundant)
 	// Print ROM info
-	printHeaderInfo(isINesHeader, prgRomSize, chrRomSize, ntArr, hasPrgRam, hasTrainer,
-	                hasAltNtLayout, mapperNum, isVsUnisystem, isPlaychoice10, isNes2Header, 
-					prgRamSize, tvSystem);
+	mHeaderInfo = getHeaderInfo(isINesHeader, prgRomSize, chrRomSize, ntArr, hasBatteryPrgRam, hasTrainer,
+	                            hasAltNtLayout, mapperNum, isVsUnisystem, isPlaychoice10, isNes2Header, 
+					            prgRamSize, tvSystem);
+	std::cout << mHeaderInfo;
 
 	// Crash the program on unwanted header
 	testAndExitWithMessage(!isINesHeader, "ROM file is not iNES.");
@@ -95,13 +100,34 @@ Cartridge::Cartridge(const std::string& romFilename)
 			// Assume CHR-RAM 8 KB
 			chrRamSize = 0x2000;
 			
-			// Assume PRG-RAM 32 KB
-			mPrgRam.resize(0x8000);
+			// Assume PRG-RAM 8 KB
+			mPrgRam.resize(0x2000);
 			break;
 		
 		default:
 			testAndExitWithMessage(false, "Mappers other than 0 not implemented.");
 			break;
+	}
+
+	// Initialise save PRG-RAM file
+	if (hasBatteryPrgRam)
+	{
+		std::string saveFilename = romFilename + "save";
+		if (std::filesystem::exists(saveFilename))
+		{
+			// A save has been found, dump to PRG-RAM
+			std::ifstream saveFile(saveFilename, std::ios::binary);
+			saveFile.read((char*)mPrgRam.data(), mPrgRam.size());
+		}
+		else
+		{
+			// Save file not found, create it
+			std::ofstream saveFile(saveFilename, std::ios::binary);
+			saveFile.write((char*)mPrgRam.data(), mPrgRam.size());
+		}
+
+		// Open save file in R/W mode
+		mCartRamFile = std::ofstream(saveFilename, std::ios::binary);
 	}
 
 	// ******** Read trainer (if present (Not implemented)) ******** //
@@ -131,6 +157,8 @@ void Cartridge::reset()
 {
 	if (mMapper != nullptr)
 		mMapper->reset();
+	
+	savePrgRam();
 }
 
 bool Cartridge::readPrg(u16 cpuAddress, u8 &output)
@@ -212,32 +240,45 @@ u16 Cartridge::mapNtAddress(u16 ppuAddress)
 	return mappedNtAddress;
 }
 
-void Cartridge::printHeaderInfo(bool isINesHeader, 
-                                u32 prgRomSize, 
-                                u32 chrRomSize, 
-								NametableArrangement ntArrangement,
-                                bool hasPrgRam, 
-								bool hasTrainer, 
-								bool hasAltNtLayout, 
-								u8 mapperNum,
-                                bool isVsUnisystem, 
-								bool isPlaychoice10, 
-								bool isNes2Header, 
-								u32 prgRamSize,
-                                TVSystem tvSystem)
+inline void Cartridge::savePrgRam()
 {
-	std::cout << "iNES Header found: "     << std::boolalpha << isINesHeader << std::dec << '\n'
-	          << "PRG-ROM size: "          << prgRomSize << '\n'
-	          << "CHR-ROM size: "          << chrRomSize << '\n'
-	          << "PRG-RAM present: "       << hasPrgRam << '\n'
-	          << "PRG-RAM size: "          << prgRamSize << '\n'
-	          << "Trainer present: "       << hasTrainer << '\n'
-	          << "Nametable Layout: "      << ((ntArrangement == NametableArrangement::VERT) ? "Vertical" : "Horizontal") << '\n'
-	          << "Alt. Nametable Layout: " << hasAltNtLayout << '\n'
-	          << "Mapper: "                << +mapperNum << '\n'
-	          << "VS UniSystem: "         << isVsUnisystem << '\n'
-	          << "PlayChoice-10: "         << isPlaychoice10 << '\n'
-	          << "NES 2.0 format: "        << isNes2Header << '\n'
-	          << "TV System: "             << ((tvSystem == TVSystem::NTFS) ? "NTFS" : "PAL") << '\n'
-			  << std::endl;
+	// Save only when a battery-backed RAM cartridge is present
+	if (mCartRamFile.is_open())
+	{
+		mCartRamFile.write((char*)mPrgRam.data(), mPrgRam.size());	
+		mCartRamFile.seekp(0);
+	}
+}
+
+inline std::string Cartridge::getHeaderInfo(bool isINesHeader, 
+                                            u32 prgRomSize, 
+                                            u32 chrRomSize, 
+								            NametableArrangement ntArrangement,
+                                            bool hasBatteryPrgRam, 
+								            bool hasTrainer, 
+								            bool hasAltNtLayout, 
+								            u8 mapperNum,
+                                            bool isVsUnisystem, 
+								            bool isPlaychoice10, 
+								            bool isNes2Header, 
+								            u32 prgRamSize,
+                                            TVSystem tvSystem)
+{
+	std::stringstream headerInfo;
+	headerInfo << "iNES Header found: "          << std::boolalpha << isINesHeader << std::dec << '\n'
+	           << "PRG-ROM size: "               << prgRomSize << '\n'
+	           << "CHR-ROM size: "               << chrRomSize << '\n'
+	           << "Battery backed RAM present: " << hasBatteryPrgRam << '\n'
+	           << "PRG-RAM size: "               << prgRamSize << '\n'
+	           << "Trainer present: "            << hasTrainer << '\n'
+	           << "Nametable Layout: "           << ((ntArrangement == NametableArrangement::VERT) ? "Vertical" : "Horizontal") << '\n'
+	           << "Alt. Nametable Layout: "      << hasAltNtLayout << '\n'
+	           << "Mapper: "                     << +mapperNum << '\n'
+	           << "VS UniSystem: "               << isVsUnisystem << '\n'
+	           << "PlayChoice-10: "              << isPlaychoice10 << '\n'
+	           << "NES 2.0 format: "             << isNes2Header << '\n'
+	           << "TV System: "                  << ((tvSystem == TVSystem::NTFS) ? "NTFS" : "PAL") << '\n'
+			   << std::endl;
+	
+	return headerInfo.str();
 }

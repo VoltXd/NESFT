@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 # *************** Release *************** #
 project(simple-nes-emulator LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Source & Header location
@@ -58,7 +58,7 @@ endif()
 
 # *************** ALDebug *************** #
 project(simple-nes-emulator-ALDebug LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Source & Header location
@@ -103,7 +103,7 @@ endif()
 
 # *************** Google Test *************** #
 project(simple-nes-emulator-TEST LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE TEST_FILES test/*)

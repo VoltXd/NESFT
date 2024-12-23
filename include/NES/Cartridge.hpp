@@ -53,5 +53,5 @@ private:
 
 	std::ofstream mCartRamFile;
 
-	std::shared_ptr<Mapper> mMapper;
+	std::unique_ptr<Mapper> mMapper;
 };

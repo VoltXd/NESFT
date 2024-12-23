@@ -2,12 +2,11 @@
 
 #include "NES/Mapper.hpp"
 
-class Mapper000 : public Mapper
+class Mapper002 : public Mapper
 {
 public:
-	Mapper000(u8 prgNumBanks, u8 chrNumBanks, NametableArrangement ntArr) 
-	    : Mapper(prgNumBanks, chrNumBanks, ntArr) {}
-
+	Mapper002(u8 prgNumBanks, u8 chrNumBanks, NametableArrangement ntArr);
+	
 	void reset() override;
 	
 	bool mapCpuWrite(u16 address, u32& mappedAddress, u8 value) override;
@@ -16,4 +15,7 @@ public:
 	bool mapPpuRead(u16 address, u32& mappedAddress) override;
 	
 private:
+	bool mapPpuAddress(u16 address, u32& mappedAddress);
+	
+	u8 mPrgBankIdx;
 };

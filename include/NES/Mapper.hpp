@@ -13,6 +13,7 @@ class Mapper
 {
 public:
 	Mapper(u8 prgNumBanks, u8 chrNumBanks, NametableArrangement ntArr);
+	virtual ~Mapper() {}
 
 	virtual void reset() = 0;
 

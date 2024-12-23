@@ -7,6 +7,7 @@
 #include "NES/Config.hpp"
 #include "NES/Mapper000.hpp"
 #include "NES/Mapper001.hpp"
+#include "NES/Mapper002.hpp"
 #include "NES/Toolbox.hpp"
 
 Cartridge::Cartridge(const std::string& romFilename)
@@ -91,17 +92,22 @@ Cartridge::Cartridge(const std::string& romFilename)
 	switch (mapperNum)
 	{
 		case 0:
-			mMapper = std::make_shared<Mapper000>(header.prgNumBanks, header.chrNumBanks, ntArr);
+			mMapper = std::make_unique<Mapper000>(header.prgNumBanks, header.chrNumBanks, ntArr);
 			break;
 
 		case 1:
-			mMapper = std::make_shared<Mapper001>(header.prgNumBanks, header.chrNumBanks);
+			mMapper = std::make_unique<Mapper001>(header.prgNumBanks, header.chrNumBanks);
 
 			// Assume CHR-RAM 8 KB
 			chrRamSize = 0x2000;
 			
 			// Assume PRG-RAM 8 KB
 			mPrgRam.resize(0x2000);
+			break;
+
+		case 2:
+			mMapper = std::make_unique<Mapper002>(header.prgNumBanks, header.chrNumBanks, ntArr);
+			chrRamSize = 0x2000;
 			break;
 		
 		default:

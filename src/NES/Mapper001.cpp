@@ -190,7 +190,7 @@ bool Mapper001::mapPpuAddress(u16 address, u32 &mappedAddress)
 	if (address <= 0x1FFF)
 	{
 		// Map address
-		switch (mChrBankMode)
+		switch (mChrBankMode & 0x01)
 		{
 			case 0:
 			{

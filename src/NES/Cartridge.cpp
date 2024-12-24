@@ -8,6 +8,7 @@
 #include "NES/Mapper000.hpp"
 #include "NES/Mapper001.hpp"
 #include "NES/Mapper002.hpp"
+#include "NES/Mapper003.hpp"
 #include "NES/Toolbox.hpp"
 
 Cartridge::Cartridge(const std::string& romFilename)
@@ -88,7 +89,7 @@ Cartridge::Cartridge(const std::string& romFilename)
 	testAndExitWithMessage(isNes2Header, "NES 2.0 not implemented.");
 
 	// Create a mapper object
-	u32 chrRamSize = 0;
+	u32 chrRamSize = 0x2000;
 	switch (mapperNum)
 	{
 		case 0:
@@ -97,9 +98,6 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 		case 1:
 			mMapper = std::make_unique<Mapper001>(header.prgNumBanks, header.chrNumBanks);
-
-			// Assume CHR-RAM 8 KB
-			chrRamSize = 0x2000;
 			
 			// Assume PRG-RAM 8 KB
 			mPrgRam.resize(0x2000);
@@ -107,7 +105,10 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 		case 2:
 			mMapper = std::make_unique<Mapper002>(header.prgNumBanks, header.chrNumBanks, ntArr);
-			chrRamSize = 0x2000;
+			break;
+
+		case 3:
+			mMapper = std::make_unique<Mapper003>(header.prgNumBanks, header.chrNumBanks, ntArr);
 			break;
 		
 		default:

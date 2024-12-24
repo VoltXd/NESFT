@@ -32,14 +32,15 @@ bool Mapper000::mapCpuRead(u16 address, u32 &mappedAddress)
 
 bool Mapper000::mapPpuWrite(u16 address, u32 &mappedAddress)
 {
-	// Only CHR-ROM -> No CPU write to cartridge
-	// (unreferenced parameters bypass)
-	address;
-	mappedAddress;
-	return false;
+	return mapPpuAddress(address, mappedAddress);
 }
 
 bool Mapper000::mapPpuRead(u16 address, u32 &mappedAddress)
+{
+	return mapPpuAddress(address, mappedAddress);
+}
+
+bool Mapper000::mapPpuAddress(u16 address, u32 &mappedAddress)
 {
 	// No mapping required
 	if (address <= 0x1FFF)

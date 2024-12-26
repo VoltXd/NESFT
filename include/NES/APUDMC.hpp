@@ -3,7 +3,7 @@
 #include <array>
 
 #include "NES/Config.hpp"
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 #include "NES/Memory.hpp"
 
 class APUDMC
@@ -35,7 +35,7 @@ private:
 	}};
 
 	// Timer & registers
-	APUDivider mTimer;
+	Divider mTimer;
 	bool mIsIRQSet;
 	bool mIsIRQSignalSet;
 	bool mIsLooping;

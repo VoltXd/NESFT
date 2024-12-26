@@ -4,7 +4,7 @@
 
 #include "NES/APUEnvelopeGenerator.hpp"
 #include "NES/APULengthCounter.hpp"
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 #include "NES/APUFrameCounter.hpp"
 
 class APUNoise
@@ -29,7 +29,7 @@ private:
 	}};
 
 	APUEnvelopeGenerator mEnvelope;
-	APUDivider mTimer;
+	Divider mTimer;
 	APULengthCounter mLengthCounter;
 	u16 mShiftRegister;
 	u8 mOutput;

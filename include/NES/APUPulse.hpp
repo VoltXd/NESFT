@@ -4,7 +4,7 @@
 
 #include "NES/APUEnvelopeGenerator.hpp"
 #include "NES/APULengthCounter.hpp"
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 #include "NES/APUFrameCounter.hpp"
 #include "NES/APUSweep.hpp"
 
@@ -42,7 +42,7 @@ private:
 	}};
 
 	APUEnvelopeGenerator mEnvelope;
-	APUDivider mTimer;
+	Divider mTimer;
 	APULengthCounter mLengthCounter;
 	APUSweep mSweep;
 	u8 mOutput;

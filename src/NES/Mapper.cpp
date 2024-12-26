@@ -7,4 +7,6 @@ Mapper::Mapper(u8 prgNumBanks, u8 chrNumBanks, NametableArrangement ntArr)
 
 	mIsChrRamSelected = false;
 	mIsPrgRamRead = false;
+
+	mIsIrqSignalSet = false;
 }

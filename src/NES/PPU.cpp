@@ -12,6 +12,10 @@ void PPU::reset()
             for (u8& color : pixel)
                 color = 0;
 
+    // Palette RAM reset
+	for (u32 i = 0; i < PALETTE_RAM_SIZE; i++)
+		mPaletteRam[i] = rand() % 0x40;
+        
     // Registers reset
     mPpuCtrl    = 0b0000'0000;
     mPpuMask    = 0b0000'0000;
@@ -196,6 +200,22 @@ u8 PPU::readRegister(Memory &memory, u16 address)
 
 	return value;
 }
+
+u8 PPU::readPaletteRam(u16 address)
+{
+    u16 paletteRamAddress = address;
+    paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
+    u8 value = mPaletteRam[paletteRamAddress];
+    return value;
+}
+
+void PPU::writePaletteRam(u16 address, u8 value)
+{
+    u16 paletteRamAddress = address;
+    paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
+    mPaletteRam[paletteRamAddress] = value;
+}
+
 u8 PPU::readByte(Memory &memory, u16 address) 
 {
     return memory.ppuRead(address);
@@ -398,7 +418,7 @@ void PPU::processPixelData(Memory& memory)
                 }
             }
 
-            u8 colorCode = readByte(memory, colorAddress);
+            u8 colorCode = readPaletteRam(colorAddress);
 
             setPictureColor(colorCode, row, col);
         }

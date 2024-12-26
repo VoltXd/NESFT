@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NES/Config.hpp"
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 
 class APUEnvelopeGenerator
 	{
@@ -20,7 +20,7 @@ class APUEnvelopeGenerator
 	private:
 		static constexpr u8 DECAY_COUNTER_PERIOD = 15;
 
-		APUDivider mDivider;
+		Divider mDivider;
 		u8 mDecayCounter;
 		u8 mVolume;
 		bool mIsStartFlagClear;

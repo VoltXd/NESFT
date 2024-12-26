@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NES/Config.hpp"
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 
 class APUSweep
 {
@@ -26,7 +26,7 @@ public:
 	inline void setReloadFlag() { mIsReloadFlagSet = true; }
 	
 private:
-	APUDivider mDivider;
+	Divider mDivider;
 	u8 mShiftCount;
 	bool mIsEnabled;
 	bool mIsNegating;

@@ -21,6 +21,9 @@ public:
     void writeRegister(Memory& memory, u16 address, u8 value);
     u8 readRegister(Memory& memory, u16 address);
 
+    u8 readPaletteRam(u16 address);
+    void writePaletteRam(u16 address, u8 value);
+
     inline const picture_t& getPicture() const { return mPicture; }
     inline bool getVBlankNMISignal() const { return mVBlankNMISignal; }
     inline bool isImageReady() const { return mIsImageReady; }
@@ -110,7 +113,8 @@ private:
     bool mIsStoringOamSprite;
 
     // Palette RAM
-    std::array<u8, 32> mPaletteRam;
+	static constexpr u32 PALETTE_RAM_SIZE = 0x0020; // 32 B
+    std::array<u8, PALETTE_RAM_SIZE> mPaletteRam;
 
     // NMI
     bool mVBlankNMISignal;

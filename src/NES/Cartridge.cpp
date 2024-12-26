@@ -9,6 +9,7 @@
 #include "NES/Mapper001.hpp"
 #include "NES/Mapper002.hpp"
 #include "NES/Mapper003.hpp"
+#include "NES/Mapper004.hpp"
 #include "NES/Toolbox.hpp"
 
 Cartridge::Cartridge(const std::string& romFilename)
@@ -90,6 +91,7 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 	// Create a mapper object
 	u32 chrRamSize = 0x2000;
+	std::stringstream mapperErrorMsg;
 	switch (mapperNum)
 	{
 		case 0:
@@ -110,9 +112,15 @@ Cartridge::Cartridge(const std::string& romFilename)
 		case 3:
 			mMapper = std::make_unique<Mapper003>(header.prgNumBanks, header.chrNumBanks, ntArr);
 			break;
+
+		case 4:
+			mMapper = std::make_unique<Mapper004>(header.prgNumBanks, header.chrNumBanks, ntArr);
+			mPrgRam.resize(0x2000);
+			break;
 		
 		default:
-			testAndExitWithMessage(false, "Mappers other than 0 not implemented.");
+			mapperErrorMsg << "Mapper " << +mapperNum << " not implemented.";
+			testAndExitWithMessage(true, mapperErrorMsg.str());
 			break;
 	}
 

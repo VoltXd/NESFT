@@ -2,7 +2,7 @@
 
 #include "NES/Config.hpp"
 
-class APUDivider
+class Divider
 {
 public:
 	void reset();

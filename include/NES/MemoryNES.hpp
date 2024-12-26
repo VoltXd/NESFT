@@ -35,6 +35,9 @@ public:
 	inline bool isOamDmaStarted() const { return mIsOamDmaStarted; }
 	s32 executeOamDma(bool isGetCycle);
 
+	inline bool getCartridgeIrq() const { return mCartridge.getIrqSignal(); }
+	inline void clearCartridgeIrq() { mCartridge.clearIrqSignal(); }
+
 private:
 	// DMA
 	void startOamDma(u8 pageAddress);
@@ -49,9 +52,7 @@ private:
 
 	// PPU
 	static constexpr u32 PPU_VRAM_SIZE = 0x0800; // 2 kB
-	static constexpr u32 PPU_PALETTE_RAM_SIZE = 0x0020; // 32 B
 	std::array<u8, PPU_VRAM_SIZE> mPpuVram;
-	std::array<u8, PPU_PALETTE_RAM_SIZE> mPpuPaletteRam;
 
 	PPU& mPpuRef;
 

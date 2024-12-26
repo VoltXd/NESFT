@@ -1,12 +1,12 @@
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 
-void APUDivider::reset()
+void Divider::reset()
 {
 	mCounter = 0;
 	mPeriod = 0;
 }
 
-bool APUDivider::countDown()
+bool Divider::countDown()
 {
 	bool hasFinishedCycle = false;
 	

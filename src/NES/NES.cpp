@@ -40,7 +40,13 @@ void NES::runOneCpuInstruction()
 		elapsedCycles = mCpu.nmi(mMemory);
 		mPpu.clearNMISignal();	
 	}
-	else if (mApu.getFrameCounterIRQSignal() || mApu.getDMCIRQSignal())
+	else if (mMemory.getCartridgeIrq()) 
+	{
+		elapsedCycles = mCpu.irq(mMemory);
+		mMemory.clearCartridgeIrq();
+	}
+	else if (mApu.getFrameCounterIRQSignal() || 
+	         mApu.getDMCIRQSignal())
 	{
 		elapsedCycles = mCpu.irq(mMemory);
 		mApu.clearIRQSignal();

@@ -17,9 +17,6 @@ void MemoryNES::reset()
 	for (u32 i = 0; i < CPU_RAM_SIZE; i++)
 		mCpuRam[i] = 0;
 
-	for (u32 i = 0; i < PPU_PALETTE_RAM_SIZE; i++)
-		mPpuPaletteRam[i] = rand() % 0x40;
-
 	mCartridge.reset();
 
 	mIsOamDmaStarted = false;
@@ -118,9 +115,7 @@ u8 MemoryNES::ppuRead(u16 address)
 	}
 	else if (0x3F00 <= address && address < 0x4000)
 	{
-		u16 paletteRamAddress = address;
-		paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
-		value = mPpuPaletteRam[paletteRamAddress];
+		value = mPpuRef.readPaletteRam(address);
 	}
 
     return value;
@@ -141,9 +136,7 @@ void MemoryNES::ppuWrite(u16 address, u8 value)
 	}
 	else if (0x3F00 <= address && address < 0x4000)
 	{
-		u16 paletteRamAddress = address;
-		paletteRamAddress &= ((paletteRamAddress & 0x0003) == 0) ? 0x000F : 0x001F;
-		mPpuPaletteRam[paletteRamAddress] = value;
+		mPpuRef.writePaletteRam(address, value);
 	}
 }
 

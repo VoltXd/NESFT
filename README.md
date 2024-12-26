@@ -61,7 +61,10 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 - [ ] Mappers
 	- [x] 000 (SMB, DK, Excitebike...)
 	- [x] 001 (Zelda I & II, Metroid, Kid Icarus...)
-	- [ ] Total: **2** / 256 iNES 1.0 mappers
+	- [x] 002 (Castlevania, Duck Tales, Mega man...)
+	- [x] 003 (Arkanoid, Gradius...)
+	- [ ] 004 (SMB2/3, Kirby's adventure, Mother)
+	- [ ] Total: **4** / 256 iNES 1.0 mappers
 - [ ] Rearrange classes members (for alignment (unnecessary optimisation))
 
 ## References

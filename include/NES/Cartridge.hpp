@@ -27,6 +27,9 @@ public:
 	bool readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress);
 	bool writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress);
 
+	inline bool getIrqSignal() const { return mMapper->getIrqSignal(); }
+	inline void clearIrqSignal() { return mMapper->clearIrqSignal(); }
+
 private:
 	u16 mapNtAddress(u16 ppuAddress);
 	void savePrgRam();

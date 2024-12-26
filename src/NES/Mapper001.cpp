@@ -89,7 +89,7 @@ bool Mapper001::mapCpuRead(u16 address, u32 &mappedAddress)
 			else
 			{
 				// PRG bank
-				mappedAddress = ((mPrgBankIdx & 0b1111) << 14) | (0x3FFF & address);
+				mappedAddress = ((u32)(mPrgBankIdx & 0b1111) << 14) | (0x3FFF & address);
 			}
 			break;
 
@@ -97,12 +97,12 @@ bool Mapper001::mapCpuRead(u16 address, u32 &mappedAddress)
 			if (address < 0xC000)
 			{
 				// PRG bank
-				mappedAddress = ((mPrgBankIdx & 0b1111) << 14) | (0x3FFF & address);
+				mappedAddress = ((u32)(mPrgBankIdx & 0b1111) << 14) | (0x3FFF & address);
 			}
 			else
 			{
 				// Fixed to last bank
-				const u32 LAST_BANK_OFFSET = ((mPrgNumBanks - 1) << 14);
+				const u32 LAST_BANK_OFFSET = ((u32)(mPrgNumBanks - 1) << 14);
 				mappedAddress = LAST_BANK_OFFSET | (0x3FFF & address);
 			}
 			break;

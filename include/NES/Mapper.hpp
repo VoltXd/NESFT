@@ -6,7 +6,8 @@ enum NametableArrangement
 {
 	VERT = 0,
 	HOR = 1,
-	ONE_SCREEN = 2
+	ONE_SCREEN = 2,
+	FOUR_SCREEN = 3
 };
 
 class Mapper
@@ -27,6 +28,9 @@ public:
 	inline bool isPrgRamRead() const { return mIsPrgRamRead; };
 	inline bool isChrRamSelected() const { return mIsChrRamSelected; };
 
+	inline bool getIrqSignal() const { return mIsIrqSignalSet; }
+	inline void clearIrqSignal() { mIsIrqSignalSet = false; }
+
 protected:
 	const u8 mPrgNumBanks;
 	const u8 mChrNumBanks;
@@ -36,4 +40,6 @@ protected:
 	
 	bool mIsPrgRamRead;
 	bool mIsChrRamSelected;
+
+	bool mIsIrqSignalSet;
 };

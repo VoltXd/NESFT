@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "NES/Config.hpp"
-#include "NES/APUDivider.hpp"
+#include "NES/Divider.hpp"
 
 enum class APUFrameCounterState
 {
@@ -31,7 +31,7 @@ private:
 	static constexpr u16 FC_STEP4_CYCLE_COUNT = 14914; 
 	static constexpr u16 FC_STEP5_CYCLE_COUNT = 18640; 
 
-	APUDivider mApuClockDivider;
+	Divider mApuClockDivider;
 
 	s16 mCycleCount;
 	bool mIs5StepsMode;

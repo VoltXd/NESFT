@@ -1,5 +1,11 @@
 #include "NES/Mapper000.hpp"
 
+Mapper000::Mapper000(u8 prgNumBanks, u8 chrNumBanks, NametableArrangement ntArr) 
+	: Mapper(prgNumBanks, chrNumBanks, ntArr) 
+{
+	mIsChrRamSelected = (chrNumBanks == 0);
+}
+
 void Mapper000::reset()
 {
 	// Nothing to do I guess...

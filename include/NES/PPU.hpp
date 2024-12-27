@@ -6,9 +6,9 @@
 #include "NES/Config.hpp"
 #include "NES/Memory.hpp"
 
-constexpr u32 PPU_OUTPUT_WIDTH = 256;
-constexpr u32 PPU_OUTPUT_HEIGHT = 240;
-constexpr u32 PPU_OUTPUT_CHANNELS = 3;
+constexpr u16 PPU_OUTPUT_WIDTH = 256;
+constexpr u16 PPU_OUTPUT_HEIGHT = 240;
+constexpr u16 PPU_OUTPUT_CHANNELS = 3;
 
 using picture_t = std::array<std::array<std::array<u8, PPU_OUTPUT_CHANNELS>, PPU_OUTPUT_WIDTH>, PPU_OUTPUT_HEIGHT>;
 
@@ -56,14 +56,14 @@ private:
 
     void processPixelData(Memory& memory);
     void processSpriteEvaluation(Memory& memory);
-    void setPictureColor(u8 colorCode, u32 row, u32 col);
+    void setPictureColor(u8 colorCode, u16 row, u16 col);
 
-    u16 getColorAddressFromBGData(u8 xIdx);
-    u16 getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, u8 pixelYPos, bool& hasSpritePriority);
-    u16 getColorAddressFromSprite(Memory& memory, oamData sprite, u8 pixelXPos, u8 pixelYPos, bool& hasSpritePriority);
+    u16 getColorAddressFromBGData(u8 xIdx, u16 pixelX);
+    u16 getColorAddressFromSecOam(u16 pixelXPos, u16 pixelYPos, bool& hasSpritePriority);
+    u16 getColorAddressFromSprite(oamData sprite, u8 ptLsb, u8 ptMsb, u16 pixelXPos, u16 pixelYPos, bool& hasSpritePriority);
     u8 getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx);
 
-    bool isSprite0OnPixel(Memory& memory, u8 pixelXPos, u8 pixelYPos, u16& colorAddress);
+    bool isSprite0OnPixel(u8 pixelXPos, u8 pixelYPos, u16& colorAddress);
 
     void incrementCoarseX();
     void incrementY();
@@ -106,11 +106,14 @@ private:
     std::array<u8, 256> mOam;
     std::array<u8, 32> mOamSecondary = {{ 0xFF }};
     std::array<u8, 32> mSpriteRenderBuffer = {{ 0xFF }};
+    std::array<u8, 16> mSpritePatternBuffer = {{ 0xFF }};
     u8 mOamTransfertBuffer;
     u8 mOamSpriteIdx;
     u8 mOamByteIdx;
     u8 mSecOamIdx;
     bool mIsStoringOamSprite;
+    bool mIsNextLineSprite0InRenderBuffer;
+    bool mIsSprite0InRenderBuffer;
 
     // Palette RAM
 	static constexpr u32 PALETTE_RAM_SIZE = 0x0020; // 32 B

@@ -33,6 +33,8 @@ void PPU::reset()
     mOamSpriteIdx = 0;
     mOamByteIdx = 0;
     mIsStoringOamSprite = false;
+    mIsNextLineSprite0InRenderBuffer = false;
+    mIsSprite0InRenderBuffer = false;
 
     mVBlankNMISignal = false;
     mNMICanOccur = false;
@@ -96,8 +98,10 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
 
         case OAMDATA_CPU_ADDR:
             if (((mPpuMask & 0b0001'1000) != 0) && !(240 <= mScanlineCount && mScanlineCount < 261))
-                // Should not do anything while rendering
-                break;
+            {
+                // Glitchy increment (high 6 bits only)
+                mOamAddr += 4;
+            }
             else
             {
                 mOamData = value;
@@ -170,6 +174,8 @@ u8 PPU::readRegister(Memory &memory, u16 address)
             else
             {
                 mOamData = mOam[mOamAddr];
+                if ((mOamAddr % 4) == 2)
+                    mOamData &= 0b1110'0011;
                 value = mOamData;
             }
             break;
@@ -266,6 +272,8 @@ void PPU::executePreRenderScanline(Memory &memory)
     {
         mNMICanOccur = false;
         mPpuStatus &= ~0b1110'0000;
+        mIsSprite0InRenderBuffer = false;
+        mIsNextLineSprite0InRenderBuffer = false;
     }
     
     if (1 <= mCycleCount && mCycleCount <= 256)
@@ -361,14 +369,14 @@ void PPU::processPixelData(Memory& memory)
                 // Unused tile fetch
                 break;
             
-            u32 row = 0;
+            u16 row = 0;
             if (mScanlineCount != 261)
                 row = mCycleCount > 256 ? mScanlineCount + 1 : mScanlineCount;
-            u32 col = i + (mCycleCount > 256 ? mCycleCount - 321 - 7 : mCycleCount + 8) - mX;
+            u16 col = i + (mCycleCount > 256 ? mCycleCount - 321 - 7 : mCycleCount + 8) - mX;
 
             bool hasSpritePriority = false;
-            u16 bgColorAddress = getColorAddressFromBGData(i);
-            u16 spriteColorAddress = getColorAddressFromSecOam(memory, (u8)col, (u8)row, hasSpritePriority);
+            u16 bgColorAddress = getColorAddressFromBGData(i, col);
+            u16 spriteColorAddress = getColorAddressFromSecOam((u8)col, (u8)row, hasSpritePriority);
 
             // Sprite 0 hit
             if (!(((mPpuMask & 0b0001'1000) != 0b0001'1000) ||
@@ -377,13 +385,15 @@ void PPU::processPixelData(Memory& memory)
             {
                 // Sprite 0 hit is possible
                 u16 sprite0ColorAddress;
-                bool isSprite0Detected = isSprite0OnPixel(memory, (u8)col, (u8)row, sprite0ColorAddress);
+                bool isSprite0Detected = isSprite0OnPixel((u8)col, (u8)row, sprite0ColorAddress);
                 if (isSprite0Detected)
                 {
-                    // Compare palette address to BG palette address
-                    if (((bgColorAddress & 0x0003) != 0) && ((sprite0ColorAddress & 0x0003) != 0))
+                    // Check BG presence
+                    if ((bgColorAddress & 0x0003) != 0)
+                    {
                         // Sprite 0 hit detected
                         mPpuStatus |= 0b0100'0000;
+                    }
                 }
             }
 
@@ -419,7 +429,6 @@ void PPU::processPixelData(Memory& memory)
             }
 
             u8 colorCode = readPaletteRam(colorAddress);
-
             setPictureColor(colorCode, row, col);
         }
 
@@ -439,6 +448,8 @@ void PPU::processSpriteEvaluation(Memory &memory)
         mSecOamIdx = 0;
         mOamByteIdx = 0;
         mOamSpriteIdx = 0;
+        mIsStoringOamSprite = false;
+        mIsNextLineSprite0InRenderBuffer = false;
     }
     else if (1 <= mCycleCount && mCycleCount <= 64)
     {
@@ -464,16 +475,18 @@ void PPU::processSpriteEvaluation(Memory &memory)
         else
         {
             // Write into secondary OAM
+            u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
             u16 pixelY = mScanlineCount;
             if (mSecOamIdx == 8 * 4)
             {
                 // Check for Sprite overflow (+ HW bug)
                 if (!mIsStoringOamSprite)
                 {
-                    if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + 8)
+                    if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + spriteHeight)
                     {
                         // Set sprite overflow flag
-                        mPpuStatus |= 0b0010'0000;
+                        if ((mPpuMask & 0b0001'1000) != 0)
+                            mPpuStatus |= 0b0010'0000;
                         mIsStoringOamSprite = true;
                         mOamByteIdx++;
                     }
@@ -497,6 +510,7 @@ void PPU::processSpriteEvaluation(Memory &memory)
                         mIsStoringOamSprite = false;
                     }
                 }
+
                 // No writing if secondary OAM is full (8 sprites)
                 return;
             }
@@ -506,10 +520,12 @@ void PPU::processSpriteEvaluation(Memory &memory)
             if (!mIsStoringOamSprite)
             {
                 // Check that Y position fits to next scanline
-                u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
                 if (mOamTransfertBuffer <= pixelY && pixelY < mOamTransfertBuffer + spriteHeight)
                 {
                     // It fits -> get sprites 4 bytes
+                    if (mOamSpriteIdx == 0)
+                        mIsNextLineSprite0InRenderBuffer = true;
+                    
                     mIsStoringOamSprite = true;
                     mSecOamIdx++;
                     mOamByteIdx++;
@@ -537,16 +553,67 @@ void PPU::processSpriteEvaluation(Memory &memory)
     }
     else if (257 <= mCycleCount && mCycleCount <= 320)
     {
-        // HW fetches secondary OAM bytes for next scanline rendering
-        // I will do it in one cycle
         if (mCycleCount == 257)
+        {
+            mIsSprite0InRenderBuffer = mIsNextLineSprite0InRenderBuffer;
             mSpriteRenderBuffer = mOamSecondary;
+        }
 
         mOamAddr = 0;
+
+        // Fetch Sprite patterns
+        // Skip odd cycles
+        if (isOddCycle)
+            return;
+        
+        u16 spriteCycleCount = mCycleCount - 257;
+
+        // Skip dummy fetches
+        if ((spriteCycleCount % 8) < 4)
+            return;
+        
+        // Calculate pattern buffer index
+        u16 patternBufferIdx = 2 * (spriteCycleCount / 8) + ((spriteCycleCount % 4) / 2);
+
+        // Get sprite information
+        u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
+        u8 yPos      = mSpriteRenderBuffer[(patternBufferIdx / 2) * 4 + 0];
+        u8 tileIdx   = mSpriteRenderBuffer[(patternBufferIdx / 2) * 4 + 1];
+        u8 attribute = mSpriteRenderBuffer[(patternBufferIdx / 2) * 4 + 2];
+        u8 pixelYPos = (u8)mScanlineCount;
+        u16 address;
+    
+        if ((mPpuCtrl & 0b0010'0000) == 0)
+        {
+            // Pattern table (8x8)
+            address = ((u16)mPpuCtrl & 0b0000'1000) << 9 |
+                      (u16)tileIdx << 4;
+        }
+        else
+        {
+            // Pattern table (16x8)
+            address = ((u16)tileIdx & 0b0000'0001) << 12 | 
+                      ((u16)tileIdx & 0b1111'1110) << 4;
+        }
+
+        // Vertical flip
+        u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? 
+                        (pixelYPos - yPos) : 
+                        (spriteHeight - 1 - (pixelYPos - yPos)));
+        if (spriteHeight == 8)
+            address |= spriteYPos;
+        else
+            address |= ((spriteYPos & 0b0000'1000) << 1) | (spriteYPos & 0b0000'0111); 
+        
+        // Get pattern table byte
+        u8 spritePattern = ((patternBufferIdx % 2) == 0) ?
+                           readByte(memory, address) :
+                           readByte(memory, address | 0b0000'0000'0000'1000);
+        mSpritePatternBuffer[patternBufferIdx] = spritePattern;
     }
 }
 
-void PPU::setPictureColor(u8 colorCode, u32 row, u32 col) 
+void PPU::setPictureColor(u8 colorCode, u16 row, u16 col) 
 {
     if (col >= PPU_OUTPUT_WIDTH)
         return;
@@ -556,8 +623,12 @@ void PPU::setPictureColor(u8 colorCode, u32 row, u32 col)
     mPicture[row][col][2] = LUT[colorCode][2];
 }
 
-u16 PPU::getColorAddressFromBGData(u8 xIdx)
+u16 PPU::getColorAddressFromBGData(u8 xIdx, u16 pixelX)
 {
+    // Return EXT input if leftmost 8 pixels and PPUMASK.1 == 0
+    if ((pixelX < 8) && ((mPpuMask & 0b0000'0010) == 0))
+        return 0x3F00;
+
     // Get 2 bits color index using pattern table byte
     u8 colorIdx = getColorIndexFromPattern(mBgData.ptLsb, mBgData.ptMsb, xIdx);
 
@@ -587,21 +658,25 @@ u16 PPU::getColorAddressFromBGData(u8 xIdx)
     return colorAddress;
 }
 
-u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, u8 pixelYPos, bool& hasSpritePriority)
+u16 PPU::getColorAddressFromSecOam(u16 pixelXPos, u16 pixelYPos, bool& hasSpritePriority)
 {
     // Return EXT input when no rendering
     if ((mPpuMask & 0b0001'0000) == 0)
         return 0x3F00;
         
     oamData sprite;
+    u8 ptLsb;
+    u8 ptMsb;
     for (u8 spriteIdx = 0; spriteIdx < 8; spriteIdx++)
     {
         sprite.yPos      = mSpriteRenderBuffer[spriteIdx * 4 + 0];
         sprite.tileIdx   = mSpriteRenderBuffer[spriteIdx * 4 + 1];
         sprite.attribute = mSpriteRenderBuffer[spriteIdx * 4 + 2];
         sprite.xPos      = mSpriteRenderBuffer[spriteIdx * 4 + 3];
+        ptLsb = mSpritePatternBuffer[spriteIdx * 2];
+        ptMsb = mSpritePatternBuffer[spriteIdx * 2 + 1];
 
-        u16 colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, pixelYPos, hasSpritePriority);
+        u16 colorAddress = getColorAddressFromSprite(sprite, ptLsb, ptMsb, pixelXPos, pixelYPos, hasSpritePriority);
         if (colorAddress == SPRITE_NOT_IN_RANGE)
             continue;
 
@@ -615,8 +690,12 @@ u16 PPU::getColorAddressFromSecOam(Memory& memory, u8 pixelXPos, u8 pixelYPos, b
     return 0x3F00;
 }
 
-u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos, u8 pixelYPos, bool &hasSpritePriority)
+u16 PPU::getColorAddressFromSprite(oamData sprite, u8 ptLsb, u8 ptMsb, u16 pixelXPos, u16 pixelYPos, bool &hasSpritePriority)
 {
+    // Return EXT input if leftmost 8 pixels and PPUMASK.2 == 0
+    if ((pixelXPos < 8) && ((mPpuMask & 0b0000'0100) == 0))
+        return 0x3F00;
+
     u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
     u8 yPos = sprite.yPos + 1;
     if (!(yPos <= pixelYPos && pixelYPos < yPos + spriteHeight))
@@ -629,41 +708,12 @@ u16 PPU::getColorAddressFromSprite(Memory &memory, oamData sprite, u8 pixelXPos,
         return SPRITE_NOT_IN_RANGE;
     
     // Sprite is render on this pixel
-    u16 address;
-
-    u8 tileIdx    = sprite.tileIdx;
     u8 attribute  = sprite.attribute;
 
     // Get sprite priority
     hasSpritePriority = (attribute & 0b0010'0000) == 0;
 
-    if ((mPpuCtrl & 0b0010'0000) == 0)
-    {
-        // Pattern table (8x8)
-        address = ((u16)mPpuCtrl & 0b0000'1000) << 9 |
-                (u16)tileIdx << 4;
-    }
-    else
-    {
-        // Pattern table (16x8)
-        address = ((u16)tileIdx & 0b0000'0001) << 12 | 
-                    ((u16)tileIdx & 0b1111'1110) << 4;
-    }
-
-                
-    // Vertical flip
-    u8 spriteYPos = (u8)(((attribute & 0b1000'0000) == 0) ? 
-                    (pixelYPos - yPos) : 
-                    spriteHeight - 1 - (pixelYPos - yPos));
-    if (spriteHeight == 8)
-        address |= spriteYPos;
-    else
-        address |= ((spriteYPos & 0b0000'1000) << 1) | (spriteYPos & 0b0000'0111); 
-
-
-    u8 ptLsb = readByte(memory, address);
-    u8 ptMsb = readByte(memory, address | 0b1000);
-    u8 xIdx = pixelXPos - spriteXPos;
+    u8 xIdx = (u8)(pixelXPos - spriteXPos);
 
     // Horizontal flip
     if ((attribute & 0b0100'0000) != 0)
@@ -688,16 +738,26 @@ u8 PPU::getColorIndexFromPattern(u8 ptLsb, u8 ptMsb, u8 xIdx)
     return colorIdx;
 }
 
-bool PPU::isSprite0OnPixel(Memory &memory, u8 pixelXPos, u8 pixelYPos, u16 &colorAddress)
+bool PPU::isSprite0OnPixel(u8 pixelXPos, u8 pixelYPos, u16 &colorAddress)
 {
-    oamData sprite;
+    // Sprite 0 is not in sprite rendering buffer
+    if (!mIsSprite0InRenderBuffer)
+        return false;
+
     bool dummyFlag;
-    sprite.yPos      = mOam[0];
-    sprite.tileIdx   = mOam[1];
-    sprite.attribute = mOam[2];
-    sprite.xPos      = mOam[3];
-    colorAddress = getColorAddressFromSprite(memory, sprite, pixelXPos, pixelYPos, dummyFlag);
+    oamData sprite;
+    u8 ptLsb = mSpritePatternBuffer[0];
+    u8 ptMsb = mSpritePatternBuffer[1];
+    sprite.yPos      = mSpriteRenderBuffer[0];
+    sprite.tileIdx   = mSpriteRenderBuffer[1];
+    sprite.attribute = mSpriteRenderBuffer[2];
+    sprite.xPos      = mSpriteRenderBuffer[3];
+    colorAddress = getColorAddressFromSprite(sprite, ptLsb, ptMsb, pixelXPos, pixelYPos, dummyFlag);
     if (colorAddress == SPRITE_NOT_IN_RANGE)
+        return false;
+    
+    if ((colorAddress & 0x0003) == 0)
+        // Sprite pixel is transparent
         return false;
     
     return true;

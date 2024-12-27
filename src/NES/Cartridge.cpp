@@ -232,7 +232,7 @@ bool Cartridge::writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress)
 	else
 	{
 		std::stringstream errorMessage;
-		errorMessage << "Write to CHR-RAM not implemented: " << __FILE__ << ":" << __LINE__;
+		errorMessage << "Write not possible, no CHR-RAM in this game: " << __FILE__ << ":" << __LINE__;
 		testAndExitWithMessage(true, errorMessage.str());
 	}
 

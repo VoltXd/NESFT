@@ -222,16 +222,10 @@ void GlfwApp::drawMenuFile()
 {
     if (ImGui::BeginMenu("File"))
     {
-        if (ImGui::MenuItem("Open"))
+        if (ImGui::MenuItem("Open", "Ctrl+O"))
         {
-            // Try opening a ROM file 
-            nfdchar_t* pathToRom = nullptr;
-            nfdresult_t dialogResult = NFD_OpenDialog(nullptr, nullptr, &pathToRom);
-            if (dialogResult == NFD_OKAY)
-            {
-                mIsRomOpened = true;
-                mPathToRom = std::string(pathToRom);
-            }
+            // Open NES ROM
+            openFile();
         }
 
         if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -464,6 +458,18 @@ void GlfwApp::drawSpectrumWindow()
     ImGui::End();    
 }
 
+void GlfwApp::openFile()
+{
+    // Try opening a ROM file 
+    nfdchar_t* pathToRom = nullptr;
+    nfdresult_t dialogResult = NFD_OpenDialog(nullptr, nullptr, &pathToRom);
+    if (dialogResult == NFD_OKAY)
+    {
+        mIsRomOpened = true;
+        mPathToRom = std::string(pathToRom);
+    }
+}
+
 constexpr timeArray_t GlfwApp::calculateTimeArray()
 {
     timeArray_t timeArray = {{ 0 }};
@@ -487,18 +493,25 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
     GlfwApp* renderer = reinterpret_cast<GlfwApp*>(glfwGetWindowUserPointer(window));
     if (renderer)
     {
+        scancode; // Useless line to remove warning
+
         // Handle keyboard press
         bool isPressed;
         ControllerInput input;
 
-        if (mods != 0x0000)
-            // No input if ALT, CTRL, Super...
+        // Open file
+        if ((action == GLFW_PRESS) && (key == GLFW_KEY_O) && ((mods & GLFW_MOD_CONTROL) != 0))
+        {
+            renderer->openFile();
             return;
-        scancode; // Useless line to remove warning
+        }
 
         // Window
         if ((action == GLFW_PRESS) && (key == GLFW_KEY_ESCAPE))
+        {
             renderer->switchPauseState();
+            return;
+        }
 
         // Controller 1
         if (action == GLFW_PRESS)

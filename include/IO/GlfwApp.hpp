@@ -24,6 +24,7 @@ public:
 
     void draw(const picture_t& pictureBuffer);
 
+    void openFile();
     void updateControllerState(ControllerInput input, bool isPressed);
     
     inline bool shouldWindowClose() const { return glfwWindowShouldClose(mWindow); }

@@ -1,6 +1,8 @@
 #include "NES/CPU.hpp"
 
 #include <iostream>
+#include <iomanip>
+#include "NES/Toolbox.hpp"
 
 s32 CPU::reset(Memory& memory)
 {
@@ -25,8 +27,8 @@ s32 CPU::reset(Memory& memory)
 	mV = 0;
 	mN = 0;
 
-	// Push stack 3 times
-	mSp -= 3;
+	// Push stack 2 times
+	mSp -= 2;
 
 	// Get first instruction address
 	mPc = fetchWord(cycles, memory);
@@ -43,6 +45,9 @@ s32 CPU::irq(Memory &memory)
 	// Ignore interrupt if I flag is set
 	if (mI)
 		return 0;
+
+	// Log IRQ
+	cpuLogIrq();
 
 	// Push program counter & processor status
 	u8 pcLsb = mPc & 0x00FF;
@@ -61,6 +66,9 @@ s32 CPU::irq(Memory &memory)
 	// Program counter update
 	mPc = ((u16)interruptAddressMsb << 8) | interruptAddressLsb;
 
+	// Log end
+	cpuLogEnd();
+
 	return interruptCycles;
 }
 
@@ -69,6 +77,9 @@ s32 CPU::nmi(Memory &memory)
 	// Cycles variables
 	constexpr s32 interruptCycles = 7;
 	s32 cycles = 7;
+
+	// Log NMI
+	cpuLogNmi();
 
 	// Push program counter & processor status
 	u8 pcLsb = mPc & 0x00FF;
@@ -87,6 +98,9 @@ s32 CPU::nmi(Memory &memory)
 	// Program counter update
 	mPc = ((u16)interruptAddressMsb << 8) | interruptAddressLsb;
 
+	// Log end
+	cpuLogEnd();
+	
 	return interruptCycles;
 }
 
@@ -96,15 +110,25 @@ s32 CPU::execute(s32 cycles, Memory &memory)
 	bool hasPageCrossed;
 	while (cycles > 0)
 	{
+		// Log start state
+		cpuLog();
+		
 		// Fetch 
 		u8 instructionOpcode = fetchByte(cycles, memory);
 		instruction_t instruction = INSTRUCTION_LUT[instructionOpcode];
-		
+
+		// Log disassembled instruction
+		cpuLogDisassembly(instruction.str);
+
 		// Get address
-		u16 address = fetchAddr(cycles, memory, instruction.addrMode, hasPageCrossed);
+		u16 dummyAddress;
+		u16 address = fetchAddr(cycles, memory, instruction.addrMode, dummyAddress, hasPageCrossed);
 		
 		// Execute
-		executeInstruction(cycles, memory, instruction, address, hasPageCrossed);
+		executeInstruction(cycles, memory, instruction, address, dummyAddress, hasPageCrossed);
+
+		// Log end
+		cpuLogEnd();
 	}
 
 	return cyclesRequested - cycles;
@@ -177,7 +201,7 @@ u8 CPU::stackPull(s32 &cycles, Memory &memory)
 	return value;
 }
 
-u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, bool &hasPageCrossed)
+u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, u16& dummyAddress, bool &hasPageCrossed)
 {
 	u16 address;
 	hasPageCrossed = false;
@@ -251,11 +275,12 @@ u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, bool &h
 	case AddressingMode::AbsoluteX:
 	{
 		// Fetch absolute address
-		address = fetchWord(cycles, memory);
-		u8 prevMsb = (address & 0xFF00) >> 8;
+		dummyAddress = fetchWord(cycles, memory);
+		u8 prevMsb = (dummyAddress & 0xFF00) >> 8;
 
-		// Add value of register X -> Wraps to zero page if needed
-		address = ((uint32_t)address + mX) & 0x0000FFFFF;
+		// Add value of register X -> Wraps to zero page
+		address = dummyAddress + mX;
+		dummyAddress = (dummyAddress & 0xFF00) | ((dummyAddress & 0x00FF) + mX);
 		u8 msb = (address & 0xFF00) >> 8;
 
 		// If we go to the next page, some instruction will add one more cycle
@@ -265,11 +290,12 @@ u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, bool &h
 	case AddressingMode::AbsoluteY:
 	{
 		// Fetch absolute address
-		address = fetchWord(cycles, memory);
-		u8 prevMsb = (address & 0xFF00) >> 8;
+		dummyAddress = fetchWord(cycles, memory);
+		u8 prevMsb = (dummyAddress & 0xFF00) >> 8;
 
 		// Add value of register Y -> Wraps to zero page if needed
-		address = ((uint32_t)address + mY) & 0x0000FFFFF;
+		address = dummyAddress + mY;
+		dummyAddress = (dummyAddress & 0xFF00) | ((dummyAddress & 0x00FF) + mY);
 		u8 msb = (address & 0xFF00) >> 8;
 
 		// If we go to the next page, some instruction will add one more cycle
@@ -324,13 +350,14 @@ u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, bool &h
 		u8 targetAddressMsb = readByte(cycles, memory, zpAddress);
 
 		// Combine LSB & MSB
-		address = ((u16)targetAddressMsb << 8) | targetAddressLsb;
+		dummyAddress = ((u16)targetAddressMsb << 8) | targetAddressLsb;
 
 		// Add Y to target address
-		address = ((uint32_t)address + mY) & 0xFFFF;
+		address = dummyAddress + mY;
+		dummyAddress = (dummyAddress & 0xFF00) | ((dummyAddress & 0x00FF) + mY);
 		
 		// If we go to the next page, some instruction will add one more cycle
-		hasPageCrossed = targetAddressMsb != (address & 0xFF00) >> 8;
+		hasPageCrossed = targetAddressMsb != ((address & 0xFF00) >> 8);
 	} break;
 	
 	default:
@@ -347,7 +374,7 @@ u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, bool &h
 	return address;
 }
 
-void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruction, u16 address, bool hasPageCrossed)
+void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruction, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	Operation operation = instruction.operation;
 	AddressingMode addrMode = instruction.addrMode;
@@ -356,15 +383,15 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 	switch (operation)
 	{
 	case Operation::ADC:
-		adc(cycles, memory, address, hasPageCrossed);
+		adc(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::AND:
-		and_(cycles, memory, address, hasPageCrossed);
+		and_(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::ASL:
-		asl(cycles, memory, address, addrMode);
+		asl(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::BCC:
@@ -424,15 +451,15 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::CMP:
-		cmp(cycles, memory, address, hasPageCrossed);
+		cmp(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::CPX:
-		cpx(cycles, memory, address, hasPageCrossed);
+		cpx(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::CPY:
-		cpy(cycles, memory, address, hasPageCrossed);
+		cpy(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::DEX:
@@ -444,15 +471,15 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::DEC:
-		dec(cycles, memory, address, addrMode);
+		dec(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::EOR:
-		eor(cycles, memory, address, hasPageCrossed);
+		eor(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::INC:
-		inc(cycles, memory, address, addrMode);
+		inc(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::INX:
@@ -472,19 +499,19 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::LDA:
-		lda(cycles, memory, address, hasPageCrossed);
+		lda(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::LDX:
-		ldx(cycles, memory, address, hasPageCrossed);
+		ldx(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::LDY:
-		ldy(cycles, memory, address, hasPageCrossed);
+		ldy(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::LSR:
-		lsr(cycles, memory, address, addrMode);
+		lsr(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::NOP:
@@ -492,7 +519,7 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::ORA:
-		ora(cycles, memory, address, hasPageCrossed);
+		ora(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::PHA:
@@ -512,11 +539,11 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::ROL:
-		rol(cycles, memory, address, addrMode);
+		rol(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::ROR:
-		ror(cycles, memory, address, addrMode);
+		ror(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::RTI:
@@ -528,7 +555,7 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::SBC:
-		sbc(cycles, memory, address, hasPageCrossed);
+		sbc(cycles, memory, address, dummyAddress, hasPageCrossed);
 		break;
 
 	case Operation::SEC:
@@ -544,7 +571,7 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 		break;
 
 	case Operation::STA:
-		sta(cycles, memory, address, addrMode);
+		sta(cycles, memory, address, dummyAddress, addrMode);
 		break;
 
 	case Operation::STX:
@@ -586,7 +613,7 @@ void CPU::executeInstruction(s32 &cycles, Memory &memory, instruction_t instruct
 	}
 }
 
-void CPU::adc(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::adc(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Save previous Accumulator state, for status update
 	u8 previousA = mA;
@@ -600,13 +627,13 @@ void CPU::adc(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 	
 	// Update status flags
 	adcUpdateStatus(newA, previousA, memValue);
 }
 
-void CPU::and_(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::and_(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -616,13 +643,13 @@ void CPU::and_(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	andUpdateStatus();
 }
 
-void CPU::asl(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::asl(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// Read value from memory or accumulator
 	u8 previousValue;
@@ -643,7 +670,7 @@ void CPU::asl(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 
 	// Dummy cycle on Abs.X writing
 	if (addrMode == AddressingMode::AbsoluteX)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	aslUpdateStatus(previousValue, newValue);
@@ -816,7 +843,7 @@ void CPU::clv(s32 &cycles)
 	cycles--;
 }
 
-void CPU::cmp(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::cmp(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -829,10 +856,10 @@ void CPU::cmp(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 }
 
-void CPU::cpx(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::cpx(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -845,10 +872,10 @@ void CPU::cpx(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 }
 
-void CPU::cpy(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::cpy(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -861,10 +888,10 @@ void CPU::cpy(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 }
 
-void CPU::dec(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::dec(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -878,7 +905,7 @@ void CPU::dec(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 
 	// Dummy cycle for Abs.X
 	if (addrMode == AddressingMode::AbsoluteX)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	decUpdateStatus(memValue);
@@ -904,7 +931,7 @@ void CPU::dey(s32 &cycles)
 	deyUpdateStatus();
 }
 
-void CPU::eor(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::eor(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -914,13 +941,13 @@ void CPU::eor(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	eorUpdateStatus();
 }
 
-void CPU::inc(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::inc(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -934,7 +961,7 @@ void CPU::inc(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 
 	// Dummy cycle for Abs.X
 	if (addrMode == AddressingMode::AbsoluteX)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	incUpdateStatus(memValue);
@@ -980,46 +1007,46 @@ void CPU::jsr(s32 &cycles, Memory &memory, u16 subroutineAddress)
 	cycles--;
 }
 
-void CPU::lda(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::lda(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
+	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
+	if (hasPageCrossed)
+		readByte(cycles, memory, dummyAddress);
+
 	// Read memory
 	mA = readByte(cycles, memory, address);
 	
-	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
-	if (hasPageCrossed)
-		cycles--;
-
 	// Update status flags
 	ldaUpdateStatus();
 }
 
-void CPU::ldx(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::ldx(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read memory
 	mX = readByte(cycles, memory, address);
 	
 	// Decrement cycles count if page crossing (abs.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	ldxUpdateStatus();
 }
 
-void CPU::ldy(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::ldy(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read memory
 	mY = readByte(cycles, memory, address);
 	
 	// Decrement cycles count if page crossing (abs.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	ldyUpdateStatus();
 }
 
-void CPU::lsr(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::lsr(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// Read value from memory or accumulator
 	u8 previousValue;
@@ -1040,7 +1067,7 @@ void CPU::lsr(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 
 	// Dummy cycle on Abs.X writing
 	if (addrMode == AddressingMode::AbsoluteX)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	lsrUpdateStatus(previousValue, newValue);
@@ -1052,7 +1079,7 @@ void CPU::nop(s32 &cycles)
 	cycles--;
 }
 
-void CPU::ora(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::ora(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Read value from memory
 	u8 memValue = readByte(cycles, memory, address);
@@ -1062,7 +1089,7 @@ void CPU::ora(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	oraUpdateStatus();
@@ -1104,7 +1131,7 @@ void CPU::plp(s32 &cycles, Memory &memory)
 	setProcessorStatus(processorStatus);
 }
 
-void CPU::rol(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::rol(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// Read value from memory or accumulator
 	u8 previousValue;
@@ -1117,21 +1144,21 @@ void CPU::rol(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 	u8 newValue = (previousValue << 1) | mC;
 	cycles--;
 
+	// Dummy cycle on Abs.X writing
+	if (addrMode == AddressingMode::AbsoluteX)
+		readByte(cycles, memory, dummyAddress);
+
 	// Write back value where it belongs
 	if (addrMode == AddressingMode::Accumulator)
 		mA = newValue;
 	else
 		writeByte(cycles, memory, address, newValue);
 
-	// Dummy cycle on Abs.X writing
-	if (addrMode == AddressingMode::AbsoluteX)
-		cycles--;
-
 	// Update status flags
 	rolUpdateStatus(previousValue, newValue);
 }
 
-void CPU::ror(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::ror(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// Read value from memory or accumulator
 	u8 previousValue;
@@ -1152,7 +1179,7 @@ void CPU::ror(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 
 	// Dummy cycle on Abs.X writing
 	if (addrMode == AddressingMode::AbsoluteX)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 
 	// Update status flags
 	rorUpdateStatus(previousValue, newValue);
@@ -1185,7 +1212,7 @@ void CPU::rts(s32 &cycles, Memory &memory)
 	cycles--;
 }
 
-void CPU::sbc(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
+void CPU::sbc(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, bool hasPageCrossed)
 {
 	// Save previous Accumulator state, for status update
 	u8 previousA = mA;
@@ -1199,7 +1226,7 @@ void CPU::sbc(s32 &cycles, Memory &memory, u16 address, bool hasPageCrossed)
 
 	// Decrement cycles count if page crossing (abs.X, abs.Y, ind.Y)
 	if (hasPageCrossed)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 	
 	// Update status flags
 	sbcUpdateStatus(newA, previousA, memValue);
@@ -1226,7 +1253,7 @@ void CPU::sei(s32 &cycles)
 	cycles--;
 }
 
-void CPU::sta(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
+void CPU::sta(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
 {
 	// A -> mem[addr]
 	writeByte(cycles, memory, address, mA);	
@@ -1235,7 +1262,7 @@ void CPU::sta(s32 &cycles, Memory &memory, u16 address, AddressingMode addrMode)
 	if (addrMode == AddressingMode::AbsoluteX ||
 		addrMode == AddressingMode::AbsoluteY ||
 		addrMode == AddressingMode::IndirectY)
-		cycles--;
+		readByte(cycles, memory, dummyAddress);
 }
 
 void CPU::stx(s32 &cycles, Memory &memory, u16 address)
@@ -1504,4 +1531,64 @@ void CPU::tyaUpdateStatus()
 	// Only Z & N flags need to be updated
 	mZ = mA == 0          ? 1 : 0;
     mN = mA & 0b1000'0000 ? 1 : 0;
+}
+
+void CPU::cpuLog()
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+
+	std::stringstream cpuTraceStream;
+	cpuTraceStream << "PC:$" << std::uppercase << std::hex << mPc 
+	               << ", SP:$" << std::setw(2) << +mSp  
+				   << ", A:$" << std::setw(2) << +mA  
+				   << ", X:$" << std::setw(2) << +mX  
+				   << ", Y:$" << std::setw(2) << +mY 
+				   << ", P:$" << std::setw(2) << +getProcessorStatus();
+	traceLog(cpuTraceStream.str());
+}
+
+void CPU::cpuLogIrq()
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+
+	std::stringstream cpuTraceStream;
+	cpuTraceStream << "IRQ at PC:$" << std::uppercase << std::hex << mPc 
+	               << ", SP:$" << std::setw(2) << +mSp  
+				   << ", A:$" << std::setw(2) << +mA  
+				   << ", X:$" << std::setw(2) << +mX  
+				   << ", Y:$" << std::setw(2) << +mY 
+				   << ", P:$" << std::setw(2) << +getProcessorStatus();
+	traceLog(cpuTraceStream.str());
+}
+
+void CPU::cpuLogNmi()
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+
+	std::stringstream cpuTraceStream;
+	cpuTraceStream << "NMI at PC:$" << std::uppercase << std::hex << mPc 
+	               << ", SP:$" << std::setw(2) << +mSp  
+				   << ", A:$" << std::setw(2) << +mA  
+				   << ", X:$" << std::setw(2) << +mX  
+				   << ", Y:$" << std::setw(2) << +mY 
+				   << ", P:$" << std::setw(2) << +getProcessorStatus();
+	traceLog(cpuTraceStream.str());
+}
+
+void CPU::cpuLogDisassembly(const char *disassembly)
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+	
+	traceLog(std::string(" ") + disassembly);
+}
+void CPU::cpuLogEnd()
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+
+	traceLog("\n");
 }

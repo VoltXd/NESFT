@@ -59,13 +59,13 @@ private:
     u8 stackPull(s32& cycles, Memory& memory);
 
     // *** Instruction execution *** //
-    u16 fetchAddr(s32& cycles, Memory& memory, AddressingMode addrMode, bool& hasPageCrossed);
-    void executeInstruction(s32& cycles, Memory& memory, instruction_t instruction, u16 address, bool hasPageCrossed);
+    u16 fetchAddr(s32& cycles, Memory& memory, AddressingMode addrMode, u16& dummyAddress, bool& hasPageCrossed);
+    void executeInstruction(s32& cycles, Memory& memory, instruction_t instruction, u16 address, u16 dummyAddress, bool hasPageCrossed);
     
     // *** Instructions *** //
-    void adc(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void and_(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
-    void asl(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void adc(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void and_(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed); // "and" is a C++ keyword... it ruins the string alignment...
+    void asl(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
     void bcc(s32& cycles, u16 address, bool hasPageCrossed);
     void bcs(s32& cycles, u16 address, bool hasPageCrossed);
     void beq(s32& cycles, u16 address, bool hasPageCrossed);
@@ -80,37 +80,37 @@ private:
     void cld(s32& cycles);
     void cli(s32& cycles);
     void clv(s32& cycles);
-    void cmp(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void cpx(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void cpy(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void dec(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void cmp(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void cpx(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void cpy(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void dec(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
     void dex(s32& cycles);
     void dey(s32& cycles);
-    void eor(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void inc(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void eor(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void inc(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
     void inx(s32& cycles);
     void iny(s32& cycles);
     void jmp(u16 address);
     void jsr(s32& cycles, Memory& memory, u16 subroutineAddress);
-    void lda(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void ldx(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void ldy(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
-    void lsr(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void lda(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void ldx(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void ldy(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
+    void lsr(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
     void nop(s32& cycles);
-    void ora(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void ora(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
     void pha(s32& cycles, Memory& memory);
     void php(s32& cycles, Memory& memory);
     void pla(s32& cycles, Memory& memory);
     void plp(s32& cycles, Memory& memory);
-    void rol(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
-    void ror(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void rol(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
+    void ror(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
     void rts(s32& cycles, Memory& memory);
     void rti(s32& cycles, Memory& memory);
-    void sbc(s32& cycles, Memory& memory, u16 address, bool hasPageCrossed);
+    void sbc(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, bool hasPageCrossed);
     void sec(s32& cycles);
     void sed(s32& cycles);
     void sei(s32& cycles);
-    void sta(s32& cycles, Memory& memory, u16 address, AddressingMode addrMode);
+    void sta(s32& cycles, Memory& memory, u16 address, u16 dummyAddress, AddressingMode addrMode);
     void stx(s32& cycles, Memory& memory, u16 address);
     void sty(s32& cycles, Memory& memory, u16 address);
     void tax(s32& cycles);
@@ -148,6 +148,12 @@ private:
     void tsxUpdateStatus();
     void txaUpdateStatus();
     void tyaUpdateStatus();
+
+    void cpuLog();
+    void cpuLogIrq();
+    void cpuLogNmi();
+    void cpuLogDisassembly(const char* disassembly);
+    void cpuLogEnd();
 
     // ********** Registers    ********** //
     u16 mPc;       // Program Counter

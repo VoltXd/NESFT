@@ -7,6 +7,7 @@
 #include "NES/Config.hpp"
 
 void testAndExitWithMessage(bool condition, const std::string& message);
+void traceLog(const std::string& log);
 
 template <typename T>
 void popAndPush(std::deque<T>& fifo, T value)
@@ -92,3 +93,6 @@ void fftMagnitude(const std::array<float, S>& signal, std::array<float, S>& spec
     for (u32 i = 0; i < S; i++)
         spectrum[i] = std::abs(x[i]) * (1.0f / S);
 }
+
+extern bool gIsTraceLogCpuEnabled;
+extern bool gIsTraceLogPpuEnabled;

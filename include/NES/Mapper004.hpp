@@ -33,6 +33,7 @@ private:
 
 	// IRQ
 	Divider mIrqCounter;
+	u16 mPreviousCounter;
 	u8 mPreviousA12;
 	bool mIsIrqReloadSet;
 	bool mIsIrqEnabled;

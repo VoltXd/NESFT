@@ -17,6 +17,7 @@ void Mapper004::reset()
 	mIsIrqReloadSet = false;
 	mIsIrqSignalSet = false;
 	mIrqCounter.reset();
+	mPreviousCounter = 0;
 }
 
 bool Mapper004::mapCpuWrite(u16 address, u32 &mappedAddress, u8 value)
@@ -159,6 +160,7 @@ void Mapper004::processRegisterWrite(u16 address, u8 value)
 			
 		case IRQ_LATCH:
 			mIrqCounter.loadPeriod(value);
+			mPreviousCounter = value;
 			break;
 			
 		case IRQ_RELOAD:
@@ -232,17 +234,18 @@ void Mapper004::processIrqCounter(u16 address)
 
 	if ((mPreviousA12 == 0) && (currentA12 == 1))
 	{
+		mPreviousCounter = mIrqCounter.getCounter();
+
 		if (mIsIrqReloadSet)
-		{
 			mIrqCounter.reloadCounter();
-			mIsIrqReloadSet = false;
-		}
 		else
-		{
-			bool isCounterZero = mIrqCounter.countDown();
-			if (isCounterZero && mIsIrqEnabled)
-				mIsIrqSignalSet = true;
-		}
+			mIrqCounter.countDown();		
+		
+		u16 currentCounter = mIrqCounter.getCounter();
+		if (((mPreviousCounter != 0) || mIsIrqReloadSet) && currentCounter == 0 && mIsIrqEnabled)
+			mIsIrqSignalSet = true;
+		
+		mIsIrqReloadSet = false;
 	}
 	
 	mPreviousA12 = currentA12;

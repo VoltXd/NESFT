@@ -73,6 +73,8 @@ private:
 
     void incrementOnPpudataEnding();
 
+    void logPpu();
+
     // Rendering
     picture_t mPicture;
     bool mIsImageReady;

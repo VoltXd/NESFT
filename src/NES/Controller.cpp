@@ -6,7 +6,11 @@ u8 Controller::getStateBitAndShift()
 {
     // Get button state and shift buttons register
     u8 buttonBit = mControllerShiftRegister & 0b0000'0001;
-    mControllerShiftRegister = (mControllerShiftRegister >> 1) | 0b1000'0000;
+
+    if (mIsUpdatingState)
+        mControllerShiftRegister = mControllerState;
+    else
+        mControllerShiftRegister = (mControllerShiftRegister >> 1) | 0b1000'0000;
 
     return buttonBit;
 }

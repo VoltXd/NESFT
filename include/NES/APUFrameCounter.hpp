@@ -35,9 +35,9 @@ private:
 
 	s16 mCycleCount;
 	bool mIs5StepsMode;
+	bool mIsRegBit7Set;
 	bool mIsInterruptInhibited;
 	bool mIsIRQSignalSet;
-	bool mIsTimerReset;
 	bool mIsEvenCycle;
 	bool mIsEndReached;
 };

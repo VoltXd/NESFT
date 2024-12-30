@@ -86,4 +86,5 @@ struct instruction_t
 	AddressingMode addrMode;
 	uint8_t cycles;
 	u8 opcode;
+	const char* str;
 };

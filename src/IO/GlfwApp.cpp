@@ -213,6 +213,7 @@ void GlfwApp::drawMainMenuBar()
     {
         drawMenuFile();
         drawMenuWindows();
+        drawMenuDebug();
 
         ImGui::EndMainMenuBar();
     }
@@ -226,6 +227,12 @@ void GlfwApp::drawMenuFile()
         {
             // Open NES ROM
             openFile();
+        }
+
+        if (ImGui::MenuItem("Reset", "Ctrl+R"))
+        {
+            // Open NES ROM
+            resetRom();
         }
 
         if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -242,23 +249,21 @@ void GlfwApp::drawMenuWindows()
 {
     if (ImGui::BeginMenu("Windows"))
     {
-        if (ImGui::MenuItem("Frame timing"))
-        {
-            // Open/Close frame timing window
-            mIsFrameTimeWindowOpen = !mIsFrameTimeWindowOpen;
-        }
-        if (ImGui::MenuItem("Sound channels"))
-        {
-            // Open/Close sound channels window
-            mIsSoundChannelsWindowOpen = !mIsSoundChannelsWindowOpen;
-        }
+        ImGui::MenuItem("Frame timing", nullptr, &mIsFrameTimeWindowOpen);
+        ImGui::MenuItem("Sound channels", nullptr, &mIsSoundChannelsWindowOpen);
+        ImGui::MenuItem("Spectrum", nullptr, &mIsSpectrumWindowOpen);
 
-        if (ImGui::MenuItem("Spectrum"))
-        {
-            // Open/Close spectrum window
-            mIsSpectrumWindowOpen = !mIsSpectrumWindowOpen;
-        }
+        ImGui::EndMenu();
+    }
+}
 
+void GlfwApp::drawMenuDebug()
+{
+    if (ImGui::BeginMenu("Debug"))
+    {
+        ImGui::MenuItem("CPU trace log", nullptr, &gIsTraceLogCpuEnabled);
+        ImGui::MenuItem("PPU trace log", nullptr, &gIsTraceLogPpuEnabled);
+        
         ImGui::EndMenu();
     }
 }
@@ -330,7 +335,16 @@ void GlfwApp::drawFrameTimeWindow()
                   mFrameTimeHistoryArray.begin());
 
         ImGui::Text("Time between frames: %.1f ms (%.1f Hz)", deltaTimeMs, currentFreq);
-        ImGui::PlotLines("Frame timing", mFrameTimeHistoryArray.data(), (int)mFrameTimeHistoryArray.size(), 0, nullptr, 0, 30, {0.0f, 0.0f});
+        // ImGui::PlotLines("Frame timing", mFrameTimeHistoryArray.data(), (int)mFrameTimeHistoryArray.size(), 0, nullptr, 0, 30, {0.0f, 0.0f});
+        if (ImPlot::BeginPlot("Frame timing", { -1, -1 }))
+        {
+            ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
+            ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_Lock);
+            ImPlot::SetupAxesLimits(0, (double)mFrameTimeHistoryArray.size(), 0.0f, 30.0f);
+            ImPlot::PlotLine("Sound output", mFrameTimeHistoryArray.data(), (int)mFrameTimeHistoryArray.size());
+
+            ImPlot::EndPlot();
+        }
     }
     ImGui::End();   
 }
@@ -470,6 +484,12 @@ void GlfwApp::openFile()
     }
 }
 
+void GlfwApp::resetRom()
+{
+    if (mPathToRom.size() > 0)
+        mIsRomOpened = true;
+}
+
 constexpr timeArray_t GlfwApp::calculateTimeArray()
 {
     timeArray_t timeArray = {{ 0 }};
@@ -503,6 +523,13 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
         if ((action == GLFW_PRESS) && (key == GLFW_KEY_O) && ((mods & GLFW_MOD_CONTROL) != 0))
         {
             renderer->openFile();
+            return;
+        }
+
+        // Reset
+        if((action == GLFW_PRESS) && (key == GLFW_KEY_R) && ((mods & GLFW_MOD_CONTROL) != 0))
+        {
+            renderer->resetRom();
             return;
         }
 

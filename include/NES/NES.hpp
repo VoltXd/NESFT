@@ -36,10 +36,17 @@ public:
 	
 
 private:
+	void runApu();
+	void runCpu();
+	void runPpu();
+
     CPU mCpu;
 	APU mApu;
 	PPU mPpu;
 	Memory mMemory;
+
+	s32 mCpuCyclesElapsed;
+	s32 mDmcDmaExtraCycles;
 	
 	bool mIsDmaGetCycle;
     

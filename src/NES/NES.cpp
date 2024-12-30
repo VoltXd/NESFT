@@ -18,10 +18,11 @@ NES::NES(Controller& controller, const std::string &romFilename)
 void NES::reset()
 {   
 	mMemory.reset();
-	mCpu.reset(mMemory);
+	mCpuCyclesElapsed = mCpu.reset(mMemory);
 	mApu.reset();
 	mPpu.reset();
 
+	mDmcDmaExtraCycles = 0;
 	mIsDmaGetCycle = false;
 	mApuTimestamp = 0.0f;
 	mSoundSamplesCount = 0;
@@ -31,38 +32,20 @@ void NES::reset()
 
 void NES::runOneCpuInstruction()
 {
-    // CPU
-	s32 elapsedCycles;
-	if (mMemory.isOamDmaStarted())
-		elapsedCycles = mMemory.executeOamDma(mIsDmaGetCycle);
-	else if(mPpu.getVBlankNMISignal())
-	{
-		elapsedCycles = mCpu.nmi(mMemory);
-		mPpu.clearNMISignal();	
-	}
-	else if (mMemory.getCartridgeIrq()) 
-	{
-		elapsedCycles = mCpu.irq(mMemory);
-		mMemory.clearCartridgeIrq();
-	}
-	else if (mApu.getFrameCounterIRQSignal() || 
-	         mApu.getDMCIRQSignal())
-	{
-		elapsedCycles = mCpu.irq(mMemory);
-		mApu.clearIRQSignal();
-	}
-	else
-		elapsedCycles = mCpu.execute(1, mMemory);
-
 	// Update get/put cycle flag (DMA)
-	mIsDmaGetCycle = (bool)(((mIsDmaGetCycle ? 1 : 0) + elapsedCycles) % 2);
-	
-	// APU
-	s32 extraCycles = 0;
-	for (int i = 0; i < (elapsedCycles + extraCycles); i++)
+	runApu();
+	runPpu();
+	runCpu();
+}
+
+void NES::runApu()
+{
+	mDmcDmaExtraCycles = 0;
+	for (int i = 0; i < mCpuCyclesElapsed + mDmcDmaExtraCycles; i++)
 	{
 		// Execute APU + get extra cycles due to DMC DMA
-		extraCycles = mApu.executeOneCpuCycle(mMemory, mIsDmaGetCycle);
+		mIsDmaGetCycle = !mIsDmaGetCycle;
+		mDmcDmaExtraCycles += mApu.executeOneCpuCycle(mMemory, mIsDmaGetCycle);
 		mApuTimestamp += TIME_PER_CYCLE;
 		if (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
 		{
@@ -92,8 +75,41 @@ void NES::runOneCpuInstruction()
 			}
 		}
 	}
+}
 
+void NES::runCpu()
+{
+	mCpuCyclesElapsed = 0;
+	if (mMemory.isOamDmaStarted())
+	{
+		mCpuCyclesElapsed = mMemory.executeOamDma(mIsDmaGetCycle);
+	}
+	else if(mPpu.getVBlankNMISignal())
+	{
+		mCpuCyclesElapsed = mCpu.nmi(mMemory);
+		mPpu.clearNMISignal();	
+	}
+	else if (mMemory.getCartridgeIrq()) 
+	{
+		mCpuCyclesElapsed = mCpu.irq(mMemory);
+	}
+	else if (mApu.getFrameCounterIRQSignal() || 
+	         mApu.getDMCIRQSignal())
+	{
+		mCpuCyclesElapsed = mCpu.irq(mMemory);
+	}
+	
+	if (mCpuCyclesElapsed == 0)
+	{
+		// No IRQ, NMI, or OAM DMA has been executed
+		// -> execute one instruction
+		mCpuCyclesElapsed = mCpu.execute(1, mMemory);
+	}
+}
+
+void NES::runPpu()
+{
 	// PPU
-	for (int i = 0; i < 3 * (elapsedCycles + extraCycles); i++)
+	for (int i = 0; i < 3 * (mCpuCyclesElapsed + mDmcDmaExtraCycles); i++)
 		mPpu.executeOneCycle(mMemory);
 }

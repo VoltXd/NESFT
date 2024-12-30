@@ -282,6 +282,8 @@ u8 APU::readRegister(u16 address)
 		bool dmcIrq = mDmcChannel.getIRQSignal();
 		bool fcIrq  = mFrameCounter.getIRQSignal();
 
+		mFrameCounter.clearIRQSignal();
+
 		mStatus = (dmcIrq         ? (1 << 7) : 0) |
 		          (fcIrq          ? (1 << 6) : 0) |
 		          (dmcStatus      ? (1 << 4) : 0) |

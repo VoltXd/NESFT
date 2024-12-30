@@ -182,10 +182,14 @@ bool Cartridge::readPrg(u16 cpuAddress, u8 &output)
 	if (!mMapper->mapCpuRead(cpuAddress, prgAddr))
 		return false;
 
+	logMappedAddress(prgAddr);
+
 	// Check if target is PRG RAM or ROM
 	output = mMapper->isPrgRamRead() ?
 	         mPrgRam[prgAddr] :
 			 mPrgRom[prgAddr];
+
+	logValue(output);
 
 	return true;
 }
@@ -296,4 +300,25 @@ inline std::string Cartridge::getHeaderInfo(bool isINesHeader,
 			   << std::endl;
 	
 	return headerInfo.str();
+}
+
+void Cartridge::logMappedAddress(u32 mappedAddress)
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+	
+	std::stringstream mappedAddrTraceStream;
+	mappedAddrTraceStream << ", ($" << std::uppercase << std::hex << mappedAddress << ", ";
+	traceLog(mappedAddrTraceStream.str());
+}
+
+void Cartridge::logValue(u8 value)
+{
+	if (!gIsTraceLogCpuEnabled)
+		return;
+	
+	std::stringstream mappedAddrTraceStream;
+	mappedAddrTraceStream << '$' << std::uppercase << std::hex << std::setw(2) << +value << ")";
+	traceLog(mappedAddrTraceStream.str());
+
 }

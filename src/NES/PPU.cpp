@@ -2,6 +2,7 @@
 
 #include <random>
 #include <sstream>
+#include <iomanip>
 #include "NES/Toolbox.hpp"
 
 void PPU::reset()
@@ -27,6 +28,9 @@ void PPU::reset()
     mPpuData    = 0b0000'0000;
 
     mW = 0;
+    mV = 0;
+
+    mBgData = { 0 };
 
     mIsOddFrame = false;
 
@@ -48,6 +52,9 @@ void PPU::reset()
 
 void PPU::executeOneCycle(Memory &memory)
 {
+    // Log PPU internals
+    logPpu();
+
     // Execute one cycle
     if (mScanlineCount < 240)
         executeVisibleScanline(memory);
@@ -136,6 +143,9 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
                 mPpuAddr |= value;
                 mT = (mT & 0b011'1111'0000'0000) | value;
                 mV = mT;
+
+                // Dummy read to trigger MMC3 PPU A12 change
+                readByte(memory, mV); 
             }
             mW = !mW;
             break;
@@ -143,6 +153,7 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
         case PPUDATA_CPU_ADDR:
             writeByte(memory, mV, value);
             incrementOnPpudataEnding();
+            readByte(memory, mV);
             break;
 
         // default:
@@ -194,6 +205,7 @@ u8 PPU::readRegister(Memory &memory, u16 address)
                 mPpuData = readByte(memory, mV);
             }
             incrementOnPpudataEnding();
+            readByte(memory, mV);
             break;
         
         // default:
@@ -248,6 +260,16 @@ void PPU::executeVisibleScanline(Memory &memory)
         // Load temp horizontal address
         loadX();
     }
+    else if (mCycleCount > 336)
+    {
+        // Skip odd cycles
+        if (mCycleCount % 2 != 0)
+            return;
+
+        // Dummy nametable fetches
+        u16 address = 0x2000 | (mV & 0x0FFF);
+        mBgData.nt = readByte(memory, address);
+    }
 
     processSpriteEvaluation(memory);
 }
@@ -278,26 +300,38 @@ void PPU::executePreRenderScanline(Memory &memory)
     
     if (1 <= mCycleCount && mCycleCount <= 256)
     {
-        u8 fetchCycle = (mCycleCount - 1) % 8;
-        if (fetchCycle == 7)
-            // Increment reg.v: Coarse X (the same increments as visible scanlines
-            //                            are made)
-            incrementCoarseX();
-        
+        // Dummy scanline fetches
+        processPixelData(memory);
+
         // Increment reg.v: Y
         if (mCycleCount == 256)
             incrementY();
     }
     else if (mCycleCount == 257)
+    {
         loadX();
+    }
     else if (280 <= mCycleCount && mCycleCount <= 304)
+    {
         loadY();
+    }
     else if (321 <= mCycleCount && mCycleCount <= 336)
     {
         // Get background pixels
         processPixelData(memory);
     }
-    else if (mCycleCount == 339)
+    else if (mCycleCount > 336)
+    {
+        // Skip odd cycles
+        if (mCycleCount % 2 != 0)
+            return;
+
+        // Dummy nametable fetches
+        u16 address = 0x2000 | (mV & 0x0FFF);
+        mBgData.nt = readByte(memory, address);
+    }
+
+    if (mCycleCount == 339)
     {
         if (mIsOddFrame && ((mPpuMask & 0b0001'1000) != 0))
             mCycleCount++;
@@ -307,6 +341,8 @@ void PPU::executePreRenderScanline(Memory &memory)
 
     if (257 <= mCycleCount && mCycleCount <= 320)
         mOamAddr = 0;
+
+    processSpriteEvaluation(memory);
 }
 
 void PPU::processPixelData(Memory& memory)
@@ -440,6 +476,10 @@ void PPU::processPixelData(Memory& memory)
 void PPU::processSpriteEvaluation(Memory &memory)
 {
     memory; // Bypass "argument unused" warning
+
+    // No sprite evaluation in pre-render scanline
+    if ((mCycleCount < 257) && (mScanlineCount == 261))
+        return;
      
     bool isOddCycle = (mCycleCount % 2) == 1;
     if (mCycleCount == 0)
@@ -697,7 +737,7 @@ u16 PPU::getColorAddressFromSprite(oamData sprite, u8 ptLsb, u8 ptMsb, u16 pixel
         return 0x3F00;
 
     u8 spriteHeight = ((mPpuCtrl & 0b0010'0000) == 0) ? 8 : 16;
-    u8 yPos = sprite.yPos + 1;
+    u16 yPos = sprite.yPos + 1;
     if (!(yPos <= pixelYPos && pixelYPos < yPos + spriteHeight))
         return SPRITE_NOT_IN_RANGE;
 
@@ -849,4 +889,19 @@ void PPU::incrementOnPpudataEnding()
             mV += 0b10'0000;
         }
     }
+}
+
+void PPU::logPpu()
+{
+    if (!gIsTraceLogPpuEnabled)
+		return;
+
+	std::stringstream ppuTraceStream;
+	ppuTraceStream << "Scanline:" << mScanlineCount 
+                   << ", Cycle:" << mCycleCount 
+	               << ", (V, T, W):($" << std::uppercase << std::hex 
+                   << std::setw(4) << mV << ", $" 
+                   << std::setw(4) << +mT << ", $" 
+                   << std::setw(1) << +mW << ")\n";
+	traceLog(ppuTraceStream.str());
 }

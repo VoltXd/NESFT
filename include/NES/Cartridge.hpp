@@ -46,6 +46,8 @@ private:
 					          bool isNes2Header,
 					          u32 prgRamSize,
 					          TVSystem tvSystem);
+	void logMappedAddress(u32 mappedAddress);
+	void logValue(u8 value);
 
 	std::string mHeaderInfo;
 

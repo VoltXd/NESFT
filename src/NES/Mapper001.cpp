@@ -12,9 +12,11 @@ void Mapper001::reset()
 
 	// Set PRG-ROM mode to 3
 	mPrgBankMode = 3;
+	mPrgBankIdx = 0;
+
+	mChrBankMode = 0;
 	mChrBank0Idx = 0;
 	mChrBank1Idx = 1;
-	mPrgBankIdx = 0;
 }
 
 void Mapper001::resetShiftRegister()

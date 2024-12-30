@@ -13,9 +13,17 @@ MemoryNES::MemoryNES(const std::string &romFilename, APU& apuRef, PPU& ppuRef, C
 
 void MemoryNES::reset()
 {
+	// Init random engine
+	std::random_device os_seed;
+	std::default_random_engine generator(os_seed());
+	std::uniform_int_distribution<u16> distribution(0, 255);
+
 	// Set the whole memory to 0
 	for (u32 i = 0; i < CPU_RAM_SIZE; i++)
-		mCpuRam[i] = 0;
+		mCpuRam[i] = (u8)distribution(generator);
+
+	for (u32 i = 0; i < PPU_VRAM_SIZE; i++)
+		mPpuVram[i] = (u8)distribution(generator);
 
 	mCartridge.reset();
 

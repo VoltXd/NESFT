@@ -37,6 +37,7 @@ private:
 	Divider mIrqCounter;
 	u16 mPreviousCounter;
 	u8 mPreviousA12;
+	u16 mPpuCycleElapsed;
 	u16 mPreviousPpuCycle;
 	u8 mM2CycleOffset;
 	bool mIsIrqReloadSet;

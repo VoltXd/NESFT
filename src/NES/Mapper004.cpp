@@ -240,37 +240,32 @@ void Mapper004::processIrqCounter(u16 address, u16 ppuCycleCount)
 	if ((mPreviousA12 == 0) && (currentA12 == 1))
 	{
 		// Rising edge
-		u16 elapsedCycles;
 		u8 filterThreshold = 7 + mM2CycleOffset;
 
 		// M2 filtering
-		if (ppuCycleCount >= mPreviousPpuCycle)
-		{
-			elapsedCycles = ppuCycleCount - mPreviousPpuCycle;
-			shouldClock = elapsedCycles >= filterThreshold;
-			if (shouldClock)
-				clockIrqCounter();
-		} 
-		else
-		{
-			elapsedCycles = 341 + ppuCycleCount - mPreviousPpuCycle;
-			shouldClock = elapsedCycles >= filterThreshold;
-			if (shouldClock)
-			{
-				clockIrqCounter();
-				mM2CycleOffset = (mM2CycleOffset + 2) % 3;
-			}
-		}
+		shouldClock = mPpuCycleElapsed >= filterThreshold;
+		if (shouldClock)
+			clockIrqCounter();
 	}
 	else if ((mPreviousA12 == 1) && (currentA12 == 0))
 	{
 		// Falling edge
-		mPreviousPpuCycle = ppuCycleCount;
+		mPpuCycleElapsed = 1;
 	}
+	else if (currentA12 == 0)
+	{
+		mPpuCycleElapsed += (ppuCycleCount >= mPreviousPpuCycle) ? 
+							(ppuCycleCount - mPreviousPpuCycle) :
+							(341 + ppuCycleCount - mPreviousPpuCycle);
+	}
+
+	if (ppuCycleCount >= mPreviousPpuCycle)
+		mM2CycleOffset = (mM2CycleOffset + 2) % 3;
 
 	// Log MMC3 IRQ
 	irqLog(ppuCycleCount, address, shouldClock);
 	
+	mPreviousPpuCycle = ppuCycleCount;
 	mPreviousA12 = currentA12;
 }
 

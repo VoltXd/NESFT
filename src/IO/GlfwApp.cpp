@@ -263,6 +263,7 @@ void GlfwApp::drawMenuDebug()
     {
         ImGui::MenuItem("CPU trace log", nullptr, &gIsTraceLogCpuEnabled);
         ImGui::MenuItem("PPU trace log", nullptr, &gIsTraceLogPpuEnabled);
+        ImGui::MenuItem("MMC3 IRQ trace log", nullptr, &gIsTraceLogMMC3IrqEnabled);
         
         ImGui::EndMenu();
     }

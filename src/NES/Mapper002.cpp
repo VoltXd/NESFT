@@ -48,13 +48,15 @@ bool Mapper002::mapCpuRead(u16 address, u32 &mappedAddress)
 	return true;
 }
 
-bool Mapper002::mapPpuWrite(u16 address, u32 &mappedAddress)
+bool Mapper002::mapPpuWrite(u16 address, u32 &mappedAddress, u16 ppuCycleCount)
 {
+	ppuCycleCount;
 	return mapPpuAddress(address, mappedAddress);
 }
 
-bool Mapper002::mapPpuRead(u16 address, u32 &mappedAddress)
+bool Mapper002::mapPpuRead(u16 address, u32 &mappedAddress, u16 ppuCycleCount)
 {
+	ppuCycleCount;
 	return mapPpuAddress(address, mappedAddress);
 }
 

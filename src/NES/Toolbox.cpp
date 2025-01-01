@@ -14,14 +14,17 @@ void testAndExitWithMessage(bool condition, const std::string &message)
 
 bool gIsTraceLogCpuEnabled = false;
 bool gIsTraceLogPpuEnabled = false;
-std::ofstream gLogFile("log.txt");
+bool gIsTraceLogMMC3IrqEnabled = false;
 void traceLog(const std::string &log)
 {
 	// No log if log mode is disabled
-	bool isTraceLogEnabled = gIsTraceLogCpuEnabled || gIsTraceLogPpuEnabled;
+	bool isTraceLogEnabled = gIsTraceLogCpuEnabled || 
+	                         gIsTraceLogPpuEnabled ||
+							 gIsTraceLogMMC3IrqEnabled;
 	if (!isTraceLogEnabled)
 		return;
 
 	// Open file
+	static std::ofstream gLogFile("log.txt");
 	gLogFile << log;
 }

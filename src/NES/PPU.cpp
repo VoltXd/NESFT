@@ -236,12 +236,12 @@ void PPU::writePaletteRam(u16 address, u8 value)
 
 u8 PPU::readByte(Memory &memory, u16 address) 
 {
-    return memory.ppuRead(address);
+    return memory.ppuRead(address, mCycleCount);
 }
 
 void PPU::writeByte(Memory &memory, u16 address, u8 value)
 {
-    memory.ppuWrite(address, value);
+    memory.ppuWrite(address, value, mCycleCount);
 }
 
 void PPU::executeVisibleScanline(Memory &memory)
@@ -255,10 +255,21 @@ void PPU::executeVisibleScanline(Memory &memory)
         if (mCycleCount == 256)
             incrementY();
     }
-    else if (mCycleCount == 257)
+    else if (257 <= mCycleCount && mCycleCount <= 320)
     {
-        // Load temp horizontal address
-        loadX();
+        if (mCycleCount == 257)
+        {
+            // Load temp horizontal address
+            loadX();
+        }
+        
+        mOamAddr = 0;
+
+        if (((mCycleCount % 2) == 0) && (((mCycleCount - 1) % 8) < 4))
+        {
+            u16 address = 0x2000 | (mV & 0x0FFF);
+            mBgData.nt = readByte(memory, address);
+        }
     }
     else if (mCycleCount > 336)
     {
@@ -340,7 +351,15 @@ void PPU::executePreRenderScanline(Memory &memory)
     }
 
     if (257 <= mCycleCount && mCycleCount <= 320)
+    {
         mOamAddr = 0;
+
+        if (((mCycleCount % 2) == 0) && (((mCycleCount - 1) % 8) < 4))
+        {
+            u16 address = 0x2000 | (mV & 0x0FFF);
+            mBgData.nt = readByte(memory, address);
+        }
+    }
 
     processSpriteEvaluation(memory);
 }

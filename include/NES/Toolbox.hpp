@@ -96,3 +96,4 @@ void fftMagnitude(const std::array<float, S>& signal, std::array<float, S>& spec
 
 extern bool gIsTraceLogCpuEnabled;
 extern bool gIsTraceLogPpuEnabled;
+extern bool gIsTraceLogMMC3IrqEnabled;

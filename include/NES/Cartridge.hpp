@@ -24,8 +24,8 @@ public:
 	bool readPrg(u16 cpuAddress, u8& output);
 	bool writePrg(u16 cpuAddress, u8 input);
 
-	bool readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress);
-	bool writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress);
+	bool readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress, u16 ppuCycleCount);
+	bool writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress, u16 ppuCycleCount);
 
 	inline bool getIrqSignal() const { return mMapper->getIrqSignal(); }
 	inline void clearIrqSignal() { return mMapper->clearIrqSignal(); }

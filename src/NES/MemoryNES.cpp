@@ -29,6 +29,7 @@ void MemoryNES::reset()
 
 	mIsOamDmaStarted = false;
 	mIsCpuHalt = false;
+	mPreviousIsGetCycle = false;
 }
 
 u8 MemoryNES::cpuRead(u16 address)
@@ -107,13 +108,13 @@ void MemoryNES::cpuWrite(u16 address, u8 value)
 	}
 }
 
-u8 MemoryNES::ppuRead(u16 address)
+u8 MemoryNES::ppuRead(u16 address, u16 ppuCycleCount)
 {
 	address &= 0x3FFF;
 	u16 mappedNtAddress;
 
 	u8 value = 0;
-	bool isInCartridgeMemory = mCartridge.readChr(address, value, mappedNtAddress);
+	bool isInCartridgeMemory = mCartridge.readChr(address, value, mappedNtAddress, ppuCycleCount);
 	if (isInCartridgeMemory)
 		return value;
 
@@ -129,12 +130,12 @@ u8 MemoryNES::ppuRead(u16 address)
     return value;
 }
 
-void MemoryNES::ppuWrite(u16 address, u8 value)
+void MemoryNES::ppuWrite(u16 address, u8 value, u16 ppuCycleCount)
 {
 	address &= 0x3FFF;
 	u16 mappedNtAddress = 0;
 	
-	bool isInCartridgeMemory = mCartridge.writeChr(address, value, mappedNtAddress);
+	bool isInCartridgeMemory = mCartridge.writeChr(address, value, mappedNtAddress, ppuCycleCount);
 	if (isInCartridgeMemory)
 		return;
 
@@ -157,9 +158,16 @@ s32 MemoryNES::executeOamDma(bool isGetCycle)
 		// Do halt cycle
 		mIsCpuHalt = true;
 	}
+	else if (mPreviousIsGetCycle == isGetCycle)
+	{
+		// Alignement cycle due to OAM & DMC DMA collision
+		elapsedCycles = 1;
+	}
 	else if ((mOamDmaIdx == 0) && !isGetCycle)
+	{
 		// Do alignment cycle (optionnal)
 		elapsedCycles = 1;
+	}
 	else if ((mOamDmaIdx < 256) && isGetCycle)
 	{
 		// Read from RAM to DMA
@@ -180,6 +188,8 @@ s32 MemoryNES::executeOamDma(bool isGetCycle)
 			mIsCpuHalt = false;
 		}
 	}
+	
+	mPreviousIsGetCycle = isGetCycle;
 
     return elapsedCycles;
 }

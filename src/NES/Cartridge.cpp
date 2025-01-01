@@ -205,10 +205,10 @@ bool Cartridge::writePrg(u16 cpuAddress, u8 input)
 	return true;
 }
 
-bool Cartridge::readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress)
+bool Cartridge::readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress, u16 ppuCycleCount)
 {
 	u32 chrAddr;
-	if (!mMapper->mapPpuRead(ppuAddress, chrAddr))
+	if (!mMapper->mapPpuRead(ppuAddress, chrAddr, ppuCycleCount))
 	{
 		mappedNtAddress = mapNtAddress(ppuAddress);
 		return false;
@@ -220,10 +220,10 @@ bool Cartridge::readChr(u16 ppuAddress, u8& output, u16& mappedNtAddress)
 	return true;
 }
 
-bool Cartridge::writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress)
+bool Cartridge::writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress, u16 ppuCycleCount)
 {
 	u32 chrRamAddr;
-	if (!mMapper->mapPpuWrite(ppuAddress, chrRamAddr))
+	if (!mMapper->mapPpuWrite(ppuAddress, chrRamAddr, ppuCycleCount))
 	{
 		mappedNtAddress = mapNtAddress(ppuAddress);
 		return false;

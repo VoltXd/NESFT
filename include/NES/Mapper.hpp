@@ -20,8 +20,8 @@ public:
 
 	virtual bool mapCpuWrite(u16 address, u32& mappedAddress, u8 value) = 0;
 	virtual bool mapCpuRead(u16 address, u32& mappedAddress) = 0;
-	virtual bool mapPpuWrite(u16 address, u32& mappedAddress) = 0;
-	virtual bool mapPpuRead(u16 address, u32& mappedAddress) = 0;
+	virtual bool mapPpuWrite(u16 address, u32& mappedAddress, u16 ppuCycleCount) = 0;
+	virtual bool mapPpuRead(u16 address, u32& mappedAddress, u16 ppuCycleCount) = 0;
 
 	inline NametableArrangement getNtArragenement() const { return mNtArrangement; }
 	inline u16 getVramBankAddressOffset() const { return mVramBankAddressOffset; }

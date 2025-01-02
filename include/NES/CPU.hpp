@@ -32,20 +32,20 @@ public:
     
 #ifdef TEST_6502
     // Setters
-    inline void setPc(word value) { mPc = value; }
-    inline void setSp(byte value) { mSp = value; }
+    inline void setPc(u16 value) { mPc = value; }
+    inline void setSp(u8 value) { mSp = value; }
 
-    inline void setA(byte value) { mA = value; }
-    inline void setX(byte value) { mX = value; }
-    inline void setY(byte value) { mY = value; }
+    inline void setA(u8 value) { mA = value; }
+    inline void setX(u8 value) { mX = value; }
+    inline void setY(u8 value) { mY = value; }
 
-    inline void setC(byte value) { mC = value; }
-    inline void setZ(byte value) { mZ = value; }
-    inline void setI(byte value) { mI = value; }
-    inline void setD(byte value) { mD = value; }
-    inline void setB(byte value) { mB = value; }
-    inline void setV(byte value) { mV = value; }
-    inline void setN(byte value) { mN = value; }
+    inline void setC(u8 value) { mC = value; }
+    inline void setZ(u8 value) { mZ = value; }
+    inline void setI(u8 value) { mI = value; }
+    inline void setD(u8 value) { mD = value; }
+    inline void setB(u8 value) { mB = value; }
+    inline void setV(u8 value) { mV = value; }
+    inline void setN(u8 value) { mN = value; }
 #endif
 
 private:
@@ -123,7 +123,6 @@ private:
     // *** Status flags *** //
     u8 getProcessorStatus() const;
     void setProcessorStatus(u8 processorStatus);
-    void setProcessorStatusIDelayed(u8 processorStatus);
     
     void adcUpdateStatus(u16 newA, u8 operandA, u8 operandM);
     void andUpdateStatus();

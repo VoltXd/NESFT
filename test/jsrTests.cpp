@@ -16,9 +16,9 @@ TEST_F(CPUTests, jsrWorks)
 	s32 elapsedCycles = cpu.execute(targetCycles, memory);
 
 	// Verify
-	EXPECT_EQ(cpu.getSp(), 0xFF - 5);
+	EXPECT_EQ(cpu.getSp(), 0xFF - 4);
 	EXPECT_EQ(cpu.getPc(), targetAddress);
-	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFB], (TEST_MAIN_ADDRESS + 2) & 0x00FF);
-	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFC], ((TEST_MAIN_ADDRESS + 2) & 0xFF00) >> 8);
+	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFC], (TEST_MAIN_ADDRESS + 2) & 0x00FF);
+	EXPECT_EQ(memory[SP_PAGE_OFFSET | 0xFD], ((TEST_MAIN_ADDRESS + 2) & 0xFF00) >> 8);
 	EXPECT_EQ(elapsedCycles, targetCycles);
 }

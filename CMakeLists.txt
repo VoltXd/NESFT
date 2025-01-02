@@ -120,7 +120,14 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${TEST_FILES})
+add_executable(${PROJECT_NAME} 
+               include/NES/Memory.hpp
+               include/NES/CPU.hpp
+               src/NES/Memory6502.cpp
+               src/NES/CPU.cpp
+               src/NES/Toolbox.cpp
+               src/main.cpp
+               ${TEST_FILES})
 target_link_libraries(${PROJECT_NAME} gtest_main)
 add_test(NAME example_test COMMAND ${PROJECT_NAME})
 

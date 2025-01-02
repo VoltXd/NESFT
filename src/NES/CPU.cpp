@@ -1146,7 +1146,7 @@ void CPU::plp(s32 &cycles, Memory &memory)
 	// Update status flags
 	mPreviousI = mI;
 	mIsIDelayed = true;
-	setProcessorStatusIDelayed(processorStatus);
+	setProcessorStatus(processorStatus);
 }
 
 void CPU::rol(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
@@ -1370,16 +1370,6 @@ u8 CPU::getProcessorStatus() const
 }
 
 void CPU::setProcessorStatus(u8 processorStatus)
-{
-	mC = (processorStatus >> 0) & 0x01;
-	mZ = (processorStatus >> 1) & 0x01;
-	mI = (processorStatus >> 2) & 0x01;
-	mD = (processorStatus >> 3) & 0x01;
-	mV = (processorStatus >> 6) & 0x01;
-	mN = (processorStatus >> 7) & 0x01;
-}
-
-void CPU::setProcessorStatusIDelayed(u8 processorStatus)
 {
 	mC = (processorStatus >> 0) & 0x01;
 	mZ = (processorStatus >> 1) & 0x01;

@@ -10,7 +10,7 @@ TEST_F(CPUTests, cpuDoesNothingWhenWeExecuteZeroCycles)
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS);
-	EXPECT_EQ(cpu.getSp(), SP_RESET - 3);
+	EXPECT_EQ(cpu.getSp(), SP_RESET - 2);
 
 	EXPECT_EQ(cpu.getA(), 0);
 	EXPECT_EQ(cpu.getX(), 0);
@@ -41,7 +41,7 @@ TEST_F(CPUTests, cpuCanExecuteMoreCyclesThanRequested)
 
 	// Verify
 	EXPECT_EQ(cpu.getPc(), TEST_MAIN_ADDRESS + 2);
-	EXPECT_EQ(cpu.getSp(), SP_RESET - 3);
+	EXPECT_EQ(cpu.getSp(), SP_RESET - 2);
 
 	EXPECT_EQ(cpu.getA(), targetvalue);
 	EXPECT_EQ(cpu.getX(), 0);

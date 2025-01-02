@@ -342,7 +342,7 @@ void GlfwApp::drawFrameTimeWindow()
             ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels);
             ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_Lock);
             ImPlot::SetupAxesLimits(0, (double)mFrameTimeHistoryArray.size(), 0.0f, 30.0f);
-            ImPlot::PlotLine("Sound output", mFrameTimeHistoryArray.data(), (int)mFrameTimeHistoryArray.size());
+            ImPlot::PlotLine("Frame time", mFrameTimeHistoryArray.data(), (int)mFrameTimeHistoryArray.size());
 
             ImPlot::EndPlot();
         }

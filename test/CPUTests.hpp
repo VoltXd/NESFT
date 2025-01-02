@@ -5,8 +5,8 @@
 #define TEST
 #endif
 
-#include "CPU.hpp"
-#include "Memory.hpp"
+#include "NES/CPU.hpp"
+#include "NES/Memory.hpp"
 #include "gtest/gtest.h"
 
 

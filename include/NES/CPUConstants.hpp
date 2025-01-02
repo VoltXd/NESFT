@@ -13,7 +13,7 @@ constexpr u16 IRQ_VECTOR_MSB = 0xFFFF;
 constexpr u8 SP_RESET = 0xFF;
 constexpr u16 SP_PAGE_OFFSET = 0x0100;
 #ifdef TEST_6502
-constexpr word TEST_MAIN_ADDRESS = 0x8000;
+constexpr u16 TEST_MAIN_ADDRESS = 0x8000;
 #endif
 
 // ********** Instructions (operation, address mode, cycles, opcode) ********** //

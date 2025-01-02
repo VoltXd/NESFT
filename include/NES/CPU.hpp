@@ -123,6 +123,7 @@ private:
     // *** Status flags *** //
     u8 getProcessorStatus() const;
     void setProcessorStatus(u8 processorStatus);
+    void setProcessorStatusIDelayed(u8 processorStatus);
     
     void adcUpdateStatus(u16 newA, u8 operandA, u8 operandM);
     void andUpdateStatus();
@@ -172,4 +173,7 @@ private:
     u8 mU : 1;    // Unused
     u8 mV : 1;    // Overflow
     u8 mN : 1;    // Negative
+
+    u8 mPreviousI: 1; // To emulate the delay on CLI SEI PLP
+    bool mIsIDelayed;
 };

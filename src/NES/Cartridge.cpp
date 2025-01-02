@@ -296,7 +296,7 @@ inline std::string Cartridge::getHeaderInfo(bool isINesHeader,
 	           << "VS UniSystem: "               << isVsUnisystem << '\n'
 	           << "PlayChoice-10: "              << isPlaychoice10 << '\n'
 	           << "NES 2.0 format: "             << isNes2Header << '\n'
-	           << "TV System: "                  << ((tvSystem == TVSystem::NTFS) ? "NTFS" : "PAL") << '\n'
+	           << "TV System: "                  << ((tvSystem == TVSystem::NTSC) ? "NTSC" : "PAL") << '\n'
 			   << std::endl;
 	
 	return headerInfo.str();

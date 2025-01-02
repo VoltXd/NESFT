@@ -27,6 +27,9 @@ s32 CPU::reset(Memory& memory)
 	mV = 0;
 	mN = 0;
 
+	mPreviousI = 1;
+	mIsIDelayed = false;
+
 	// Push stack 2 times
 	mSp -= 2;
 
@@ -43,8 +46,15 @@ s32 CPU::irq(Memory &memory)
 	s32 cycles = 7;
 
 	// Ignore interrupt if I flag is set
-	if (mI)
+	if (mIsIDelayed)
+	{
+		if (mPreviousI)
+			return 0;
+	}
+	else if (mI)
+	{
 		return 0;
+	}
 
 	// Log IRQ
 	cpuLogIrq();
@@ -62,6 +72,8 @@ s32 CPU::irq(Memory &memory)
 	u8 interruptAddressLsb = readByte(cycles, memory, IRQ_VECTOR_LSB); 
 	u8 interruptAddressMsb = readByte(cycles, memory, IRQ_VECTOR_MSB); 
 	mI = 1;
+	mPreviousI = 1;
+	mIsIDelayed = false;
 
 	// Program counter update
 	mPc = ((u16)interruptAddressMsb << 8) | interruptAddressLsb;
@@ -112,6 +124,9 @@ s32 CPU::execute(s32 cycles, Memory &memory)
 	{
 		// Log start state
 		cpuLog();
+
+		// Reset I delay
+		mIsIDelayed = false;
 		
 		// Fetch 
 		u8 instructionOpcode = fetchByte(cycles, memory);
@@ -832,6 +847,8 @@ void CPU::cld(s32 &cycles)
 void CPU::cli(s32 &cycles)
 {
 	// Update status
+	mPreviousI = mI;
+	mIsIDelayed = true;
 	mI = 0;
 	cycles--;
 }
@@ -1128,7 +1145,9 @@ void CPU::plp(s32 &cycles, Memory &memory)
 	cycles--;
 
 	// Update status flags
-	setProcessorStatus(processorStatus);
+	mPreviousI = mI;
+	mIsIDelayed = true;
+	setProcessorStatusIDelayed(processorStatus);
 }
 
 void CPU::rol(s32 &cycles, Memory &memory, u16 address, u16 dummyAddress, AddressingMode addrMode)
@@ -1249,6 +1268,8 @@ void CPU::sed(s32 &cycles)
 void CPU::sei(s32 &cycles)
 {
 	// Update status
+	mPreviousI = mI;
+	mIsIDelayed = true;
 	mI = 1;
 	cycles--;
 }
@@ -1350,6 +1371,16 @@ u8 CPU::getProcessorStatus() const
 }
 
 void CPU::setProcessorStatus(u8 processorStatus)
+{
+	mC = (processorStatus >> 0) & 0x01;
+	mZ = (processorStatus >> 1) & 0x01;
+	mI = (processorStatus >> 2) & 0x01;
+	mD = (processorStatus >> 3) & 0x01;
+	mV = (processorStatus >> 6) & 0x01;
+	mN = (processorStatus >> 7) & 0x01;
+}
+
+void CPU::setProcessorStatusIDelayed(u8 processorStatus)
 {
 	mC = (processorStatus >> 0) & 0x01;
 	mZ = (processorStatus >> 1) & 0x01;

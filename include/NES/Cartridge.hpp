@@ -10,7 +10,7 @@
 
 enum TVSystem
 {
-	NTFS = 0,
+	NTSC = 0,
 	PAL = 1
 };
 

@@ -25,7 +25,6 @@ void APUPulse::update(APUFrameCounterState fcState)
 		mEnvelope.onClock();
 
 	// Timer -> Sequencer
-	// TODO: Timer/2 https://www.slack.net/~ant/nes-emu/apu_ref.txt
 	u8 sequenceValue = SEQUENCER_LUT[mDutyCycle][mSequenceIndex];
 	bool isTimerClocking = mTimer.countDown();
 	if (isTimerClocking)

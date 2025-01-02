@@ -272,7 +272,6 @@ u8 APU::readRegister(u16 address)
 	
 	if (address == APU_STATUS_CPU_ADDR)
 	{
-		// TODO: status
 		bool pulse1Status   = mPulse1Channel.getStatus();
 		bool pulse2Status   = mPulse2Channel.getStatus();
 		bool triangleStatus = mTriangleChannel.getStatus();

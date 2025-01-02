@@ -197,11 +197,13 @@ bool Cartridge::readPrg(u16 cpuAddress, u8 &output)
 bool Cartridge::writePrg(u16 cpuAddress, u8 input)
 {
 	// Write into the PRG-RAM
-	u32 prgRamAddr;
+	u32 prgRamAddr = 0xFFFFFFFF;
 	if (!mMapper->mapCpuWrite(cpuAddress, prgRamAddr, input))
 		return false;
 
-	mPrgRam[prgRamAddr] = input;
+	if (prgRamAddr < mPrgRam.size())
+		mPrgRam[prgRamAddr] = input;
+		
 	return true;
 }
 
@@ -233,12 +235,8 @@ bool Cartridge::writeChr(u16 ppuAddress, u8 input, u16& mappedNtAddress, u16 ppu
 	{
 		mChrRam[chrRamAddr] = input;
 	}
-	else
-	{
-		std::stringstream errorMessage;
-		errorMessage << "Write not possible, no CHR-RAM in this game: " << __FILE__ << ":" << __LINE__;
-		testAndExitWithMessage(true, errorMessage.str());
-	}
+	// No else:
+	// Apparently it's OK to "try" writing to CHR-ROM, as long as it does not modify it
 
     return true;
 }

@@ -377,7 +377,6 @@ u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, u16& du
 	
 	default:
 		// This can't happen... just crash the program if it access this case
-		// TODO: Replace replace with an error window
 		std::cout << __FILE__ 
 				  << ':' 
 				  << __LINE__ 

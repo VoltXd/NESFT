@@ -35,7 +35,7 @@ bool Mapper001::mapCpuWrite(u16 address, u32 &mappedAddress, u8 value)
 	// Is the PRG-RAM targeted ?
 	else if (address < 0x8000)
 	{
-		// TODO: map PRG-RAM
+		// Using iNES 1.0 => Assume Battery Backed SRAM is 8 kB
 		mappedAddress = address & 0x1FFF;
 		return true;
 	}

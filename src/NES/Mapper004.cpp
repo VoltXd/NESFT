@@ -33,7 +33,7 @@ bool Mapper004::mapCpuWrite(u16 address, u32 &mappedAddress, u8 value)
 	// Is the PRG-RAM targeted ?
 	else if (address < 0x8000)
 	{
-		// TODO: map PRG-RAM
+		// Using iNES 1.0 => Assume Battery Backed SRAM is 8 kB
 		mappedAddress = address & 0x1FFF;
 		return true;
 	}
@@ -143,7 +143,7 @@ void Mapper004::processRegisterWrite(u16 address, u8 value)
 		case BANK_SELECT:
 			mBankSelected = value & 0b0000'0111;
 			mPrgBankMode = (value & 0b0100'0000) >> 6;
-			mChrBankMode = (value & 0b1000'0000) >> 7; 
+			mChrBankMode = (value & 0b1000'0000) >> 7;
 			break;
 			
 		case BANK_DATA:

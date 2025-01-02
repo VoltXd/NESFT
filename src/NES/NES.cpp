@@ -18,9 +18,10 @@ NES::NES(Controller& controller, const std::string &romFilename)
 void NES::reset()
 {   
 	mMemory.reset();
-	mCpuCyclesElapsed = mCpu.reset(mMemory);
 	mApu.reset();
 	mPpu.reset();
+	mCpuCyclesElapsed = mCpu.reset(mMemory);
+
 
 	mDmcDmaExtraCycles = 0;
 	mIsDmaGetCycle = false;
@@ -28,13 +29,21 @@ void NES::reset()
 	mSoundSamplesCount = 0;
 	mIsUsingSoundBuffer0 = true;
     mIsSoundBufferReady = false;
+
+	// Run APU & PPU to keep up with CPU
+	runApu();
+	runPpu();
 }
 
 void NES::runOneCpuInstruction()
 {
-	// Update get/put cycle flag (DMA)
+	// TODO: Predict CPU cycles to go
+
+	// Run APU & PPU
 	runApu();
 	runPpu();
+
+	// Run CPU
 	runCpu();
 }
 

@@ -36,6 +36,8 @@ public:
 	
 
 private:
+	s32 getCpuCyclesPrediction();
+	void pollIrqAndNmi();
 	void runApu();
 	void runCpu();
 	void runPpu();
@@ -45,10 +47,14 @@ private:
 	PPU mPpu;
 	Memory mMemory;
 
+	s32 mCpuCyclesPredicted;
 	s32 mCpuCyclesElapsed;
 	s32 mDmcDmaExtraCycles;
 	
 	bool mIsDmaGetCycle;
+
+	bool mIsNmiSet;
+	bool mIsIrqSet;
     
     // Sound
 	static constexpr float TIME_PER_CYCLE = 1.0f / 1'789'773;

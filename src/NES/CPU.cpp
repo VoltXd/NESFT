@@ -39,6 +39,34 @@ s32 CPU::reset(Memory& memory)
 	return resetCycles;
 }
 
+s32 CPU::predictCyclesToRun(Memory &memory, bool isProcessingOamDma, bool isIrqSet, bool isNmiSet)
+{
+	// One cycle for OAM DMA
+	if (isProcessingOamDma)
+		return 1;
+
+	// Is NMI initialisation the next procedure ?
+	if (isNmiSet)
+		return 7;
+
+	// Is IRQ initialisation the next procedure ?
+	if (isIrqSet)
+	{
+		if (mIsIDelayed)
+		{
+			if (!mPreviousI)
+				return 7;
+		}
+		else if (!mI)
+		{
+			return 7;
+		}
+	}
+
+	// Regular instruction, get its informations
+    return getInstructionCycleCount(memory);
+}
+
 s32 CPU::irq(Memory &memory)
 {
 	// Cycles variables
@@ -214,6 +242,24 @@ u8 CPU::stackPull(s32 &cycles, Memory &memory)
 	cycles--;
 
 	return value;
+}
+
+s32 CPU::getInstructionCycleCount(Memory & memory)
+{
+	s32 dummyCycles = 0;
+
+	// Prevent logging address & value
+	bool oldCpuTraceFlag = gIsTraceLogCpuEnabled;
+	gIsTraceLogCpuEnabled = false;
+
+	// Get instruction informations
+	instruction_t instruction = INSTRUCTION_LUT[readByte(dummyCycles, memory, mPc)];
+
+	// Retrieve logging flag
+	gIsTraceLogCpuEnabled = oldCpuTraceFlag;
+
+	// Return the cycle count expected without additionnal cycles.
+	return instruction.cycles;
 }
 
 u16 CPU::fetchAddr(s32 &cycles, Memory &memory, AddressingMode addrMode, u16& dummyAddress, bool &hasPageCrossed)
@@ -1605,6 +1651,7 @@ void CPU::cpuLogDisassembly(const char *disassembly)
 	
 	traceLog(std::string(" ") + disassembly);
 }
+
 void CPU::cpuLogEnd()
 {
 	if (!gIsTraceLogCpuEnabled)

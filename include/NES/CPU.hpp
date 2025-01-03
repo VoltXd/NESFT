@@ -9,6 +9,7 @@ class CPU
 public:
     // *********** External calls *********** //
     s32 reset(Memory& memory);
+    s32 predictCyclesToRun(Memory& memory, bool isProcessingOamDma, bool isIrqSet, bool isNmiSet);
     s32 irq(Memory& memory);
     s32 nmi(Memory& memory);
     s32 execute(s32 cycles, Memory& memory);
@@ -59,6 +60,7 @@ private:
     u8 stackPull(s32& cycles, Memory& memory);
 
     // *** Instruction execution *** //
+    s32 getInstructionCycleCount(Memory& memory);
     u16 fetchAddr(s32& cycles, Memory& memory, AddressingMode addrMode, u16& dummyAddress, bool& hasPageCrossed);
     void executeInstruction(s32& cycles, Memory& memory, instruction_t instruction, u16 address, u16 dummyAddress, bool hasPageCrossed);
     

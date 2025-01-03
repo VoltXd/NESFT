@@ -246,7 +246,16 @@ void PPU::writeByte(Memory &memory, u16 address, u8 value)
 
 void PPU::executeVisibleScanline(Memory &memory)
 {
-    if ((1 <= mCycleCount && mCycleCount <= 256) || (321 <= mCycleCount && mCycleCount <= 336))
+    if (mCycleCount == 0)
+    {
+        // Dummy pattern table LSB fetch
+        u16 address = (((u16)(mPpuCtrl & 0b0001'0000) << 8) |
+                      ((u16)mBgData.nt << 4)                |
+                      ((mV & 0x7000) >> 12))                &
+                      0xFFF7; 
+        mBgData.ptLsb = readByte(memory, address);
+    }
+    else if ((1 <= mCycleCount && mCycleCount <= 256) || (321 <= mCycleCount && mCycleCount <= 336))
     {
         // Get background pixels
         processPixelData(memory);

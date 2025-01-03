@@ -21,6 +21,7 @@ void NES::reset()
 	mApu.reset();
 	mPpu.reset();
 	mCpuCyclesElapsed = mCpu.reset(mMemory);
+	mCpuCyclesPredicted = mCpuCyclesElapsed;
 
 
 	mDmcDmaExtraCycles = 0;
@@ -30,6 +31,9 @@ void NES::reset()
 	mIsUsingSoundBuffer0 = true;
     mIsSoundBufferReady = false;
 
+	mIsIrqSet = false;
+	mIsNmiSet = false;
+
 	// Run APU & PPU to keep up with CPU
 	runApu();
 	runPpu();
@@ -37,7 +41,19 @@ void NES::reset()
 
 void NES::runOneCpuInstruction()
 {
-	// TODO: Predict CPU cycles to go
+	// Run APU and PPU if they have to keep up
+	if (mCpuCyclesElapsed > mCpuCyclesPredicted)
+	{
+		mCpuCyclesPredicted = mCpuCyclesElapsed - mCpuCyclesPredicted;
+		runApu();
+		runPpu();
+	}
+
+	// Poll NMI/IRQ
+	pollIrqAndNmi();
+
+	// Predict CPU cycles to go 
+	mCpuCyclesPredicted = getCpuCyclesPrediction();
 
 	// Run APU & PPU
 	runApu();
@@ -47,10 +63,23 @@ void NES::runOneCpuInstruction()
 	runCpu();
 }
 
+s32 NES::getCpuCyclesPrediction()
+{
+	return mCpu.predictCyclesToRun(mMemory, mMemory.isOamDmaStarted(), mIsIrqSet, mIsNmiSet);
+}
+
+void NES::pollIrqAndNmi()
+{
+	mIsNmiSet = mPpu.getVBlankNMISignal();
+	mIsIrqSet = mMemory.getCartridgeIrq()       ||
+	            mApu.getFrameCounterIRQSignal() ||
+				mApu.getDMCIRQSignal();
+}
+
 void NES::runApu()
 {
 	mDmcDmaExtraCycles = 0;
-	for (int i = 0; i < mCpuCyclesElapsed + mDmcDmaExtraCycles; i++)
+	for (int i = 0; i < mCpuCyclesPredicted + mDmcDmaExtraCycles; i++)
 	{
 		// Execute APU + get extra cycles due to DMC DMA
 		mIsDmaGetCycle = !mIsDmaGetCycle;
@@ -93,17 +122,12 @@ void NES::runCpu()
 	{
 		mCpuCyclesElapsed = mMemory.executeOamDma(mIsDmaGetCycle);
 	}
-	else if(mPpu.getVBlankNMISignal())
+	else if(mIsNmiSet)
 	{
 		mCpuCyclesElapsed = mCpu.nmi(mMemory);
 		mPpu.clearNMISignal();	
 	}
-	else if (mMemory.getCartridgeIrq()) 
-	{
-		mCpuCyclesElapsed = mCpu.irq(mMemory);
-	}
-	else if (mApu.getFrameCounterIRQSignal() || 
-	         mApu.getDMCIRQSignal())
+	else if (mIsIrqSet)
 	{
 		mCpuCyclesElapsed = mCpu.irq(mMemory);
 	}
@@ -119,6 +143,6 @@ void NES::runCpu()
 void NES::runPpu()
 {
 	// PPU
-	for (int i = 0; i < 3 * (mCpuCyclesElapsed + mDmcDmaExtraCycles); i++)
+	for (int i = 0; i < 3 * (mCpuCyclesPredicted + mDmcDmaExtraCycles); i++)
 		mPpu.executeOneCycle(mMemory);
 }

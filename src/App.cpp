@@ -61,6 +61,7 @@ void App::playGame(GlfwApp& appWindow)
 	linkFifosToWindow(nes, appWindow);
 
     mTimePrevious = steady_clock::now();
+	mElapsedTimeOffset = 0;
 
 	while (!appWindow.shouldWindowClose() && !appWindow.isRomOpened())
 	{
@@ -98,18 +99,25 @@ void App::playGame(GlfwApp& appWindow)
 void App::sendPictureToWindow(GlfwApp &appWindow, const picture_t &picture)
 {
 	using std::chrono::steady_clock;
+	using std::chrono::duration;
 	
 	steady_clock::time_point timeNow;
-	double elapsedTime, elapsedTimeOffset = 0;
+	double elapsedTime;
 
 	// Wait before rendering -> 60 FPS
 	do
 	{
 		timeNow = steady_clock::now();
-		elapsedTime = std::chrono::duration<double>(timeNow - mTimePrevious).count();
-	} while (elapsedTime + elapsedTimeOffset < FRAME_PERIOD_NTSC);
+		elapsedTime = duration<double>(timeNow - mTimePrevious).count();
+	} while (elapsedTime + mElapsedTimeOffset < FRAME_PERIOD_NTSC);
+
+	// Save time point and over delay
 	mTimePrevious = timeNow;
-	elapsedTimeOffset = elapsedTime + elapsedTimeOffset - FRAME_PERIOD_NTSC;
+	mElapsedTimeOffset += elapsedTime;
+	do
+	{
+		mElapsedTimeOffset -= FRAME_PERIOD_NTSC;
+	} while (mElapsedTimeOffset > FRAME_PERIOD_NTSC);
 
 	// Render
 	appWindow.draw(picture);

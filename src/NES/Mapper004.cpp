@@ -240,7 +240,7 @@ void Mapper004::processIrqCounter(u16 address, u16 ppuCycleCount)
 	if ((mPreviousA12 == 0) && (currentA12 == 1))
 	{
 		// Rising edge
-		u8 filterThreshold = 7 + mM2CycleOffset;
+		u8 filterThreshold = 9 + mM2CycleOffset;
 
 		// M2 filtering
 		shouldClock = mPpuCycleElapsed >= filterThreshold;

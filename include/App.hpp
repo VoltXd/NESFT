@@ -31,4 +31,5 @@ private:
 	SoundManager mSoundManager;
 
 	std::chrono::steady_clock::time_point mTimePrevious;
+	double mElapsedTimeOffset;
 };

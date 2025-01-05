@@ -14,7 +14,7 @@ void Mapper002::reset()
 bool Mapper002::mapCpuWrite(u16 address, u32 &mappedAddress, u8 value)
 {
 	// Unreferenced argument bypass
-	mappedAddress;
+	(void)mappedAddress;
 
 	// Bank select register
 	if (0x8000 <= address)
@@ -50,13 +50,13 @@ bool Mapper002::mapCpuRead(u16 address, u32 &mappedAddress)
 
 bool Mapper002::mapPpuWrite(u16 address, u32 &mappedAddress, u16 ppuCycleCount)
 {
-	ppuCycleCount;
+	(void)ppuCycleCount;
 	return mapPpuAddress(address, mappedAddress);
 }
 
 bool Mapper002::mapPpuRead(u16 address, u32 &mappedAddress, u16 ppuCycleCount)
 {
-	ppuCycleCount;
+	(void)ppuCycleCount;
 	return mapPpuAddress(address, mappedAddress);
 }
 

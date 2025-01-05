@@ -47,6 +47,9 @@ private:
 	static constexpr u32 CPU_RAM_SIZE = 0x0800; // 2 kB
 	std::array<u8, CPU_RAM_SIZE> mCpuRam;
 
+	// Cartridge
+	Cartridge mCartridge;
+
 	// APU
 	APU& mApuRef;
 
@@ -55,9 +58,6 @@ private:
 	std::array<u8, PPU_VRAM_SIZE> mPpuVram;
 
 	PPU& mPpuRef;
-
-	// Cartridge
-	Cartridge mCartridge;
 
 	// DMA
     static constexpr u16 OAMDMA_CPU_ADDR = 0x4014;

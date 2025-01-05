@@ -44,6 +44,7 @@ APUFrameCounterState APUFrameCounter::executeOneCpuCycle()
 				
 			case FC_STEP5_CYCLE_COUNT:
 				mIsEndReached = true;
+				[[fallthrough]];
 			case FC_STEP2_CYCLE_COUNT:
 				fcState = APUFrameCounterState::HALF;
 				break;

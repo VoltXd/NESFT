@@ -15,9 +15,9 @@ bool Mapper000::mapCpuWrite(u16 address, u32 &mappedAddress, u8 value)
 {
 	// Only PRG-ROM -> No CPU write to cartridge
 	// (unreferenced parameters bypass)
-	address;
-	mappedAddress;
-	value;
+	(void)address;
+	(void)mappedAddress;
+	(void)value;
 	return false;
 }
 
@@ -38,13 +38,13 @@ bool Mapper000::mapCpuRead(u16 address, u32 &mappedAddress)
 
 bool Mapper000::mapPpuWrite(u16 address, u32 &mappedAddress, u16 ppuCycleCount)
 {
-	ppuCycleCount;
+	(void)ppuCycleCount;
 	return mapPpuAddress(address, mappedAddress);
 }
 
 bool Mapper000::mapPpuRead(u16 address, u32 &mappedAddress, u16 ppuCycleCount)
 {
-	ppuCycleCount;
+	(void)ppuCycleCount;
 	return mapPpuAddress(address, mappedAddress);
 }
 

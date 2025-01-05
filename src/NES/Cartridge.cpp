@@ -251,8 +251,10 @@ u16 Cartridge::mapNtAddress(u16 ppuAddress)
 		mappedNtAddress = (ppuAddress & 0b0000'0011'1111'1111) | ((ppuAddress >> 1) & 0b0000'0100'0000'0000);
 	else if (ntArr == NametableArrangement::HOR)
 		mappedNtAddress = ppuAddress & 0b0000'0111'1111'1111;
-	else
-		mappedNtAddress = ppuAddress & 0b0000'0011'1111'1111 + mMapper->getVramBankAddressOffset();
+	else // if (ntArr == NametableArrangement::ONE_SCREEN)
+		mappedNtAddress = (ppuAddress & 0b0000'0011'1111'1111) + mMapper->getVramBankAddressOffset();
+	// else 
+	// Not implemented 4-screen mirroring
 
 	return mappedNtAddress;
 }

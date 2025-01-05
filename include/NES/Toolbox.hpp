@@ -4,7 +4,9 @@
 #include <array>
 #include <complex>
 #include <deque>
+#include <algorithm>
 #include "NES/Config.hpp"
+#include "IO/SoundManager.hpp"
 
 void testAndExitWithMessage(bool condition, const std::string& message);
 void traceLog(const std::string& log);
@@ -24,7 +26,7 @@ s32 getScopeTriggerOffset(const std::array<T, S>& array)
     T average = 0.5f * (minValue + maxValue);
 
     s32 sampleMiddleOffset = 0;
-    for (int i = (BUFFER_SIZE / 4); i < (3 * (BUFFER_SIZE / 4)); i++)
+    for (u32 i = (BUFFER_SIZE / 4); i < (3 * (BUFFER_SIZE / 4)); i++)
     {
         T currentValue = array[i];
         T nextValue = array[i + 1];

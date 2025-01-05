@@ -37,6 +37,7 @@ GlfwApp::GlfwApp(Controller& controllerRef)
         exit(EXIT_FAILURE);
     }
     glfwMakeContextCurrent(mWindow);
+    glfwSwapInterval(0); // Disable VSync
 
     // Init GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -455,7 +456,7 @@ void GlfwApp::drawSpectrumWindow()
             std::copy(mSoundFIFOPtr->begin(), mSoundFIFOPtr->end(), signal.begin());
             
             soundBufferF32_t spectrum;
-            fftMagnitude(signal, spectrum);
+            fftMagnitude<BUFFER_SIZE>(signal, spectrum);
 
             if (ImPlot::BeginPlot("Sound Fourier transform", { -1, -1 }))
             {
@@ -494,8 +495,12 @@ void GlfwApp::resetRom()
 constexpr timeArray_t GlfwApp::calculateTimeArray()
 {
     timeArray_t timeArray = {{ 0 }};
-    for (s32 i = 0; i < BUFFER_SIZE / 2; i++)
-        timeArray[i] = BUFFER_SAMPLE_PERIOD * (i - (s32)(BUFFER_SIZE / 4));
+    for (u32 i = 0; i < BUFFER_SIZE / 2; i++)
+    {
+        timeArray[i] = BUFFER_SAMPLE_PERIOD * ((s32)i - (s32)(BUFFER_SIZE / 4));
+        std::cout << timeArray[i] << std::endl; 
+    }
+    
 
     return timeArray;
 }
@@ -514,7 +519,7 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
     GlfwApp* renderer = reinterpret_cast<GlfwApp*>(glfwGetWindowUserPointer(window));
     if (renderer)
     {
-        scancode; // Useless line to remove warning
+        (void)scancode; // Useless line to remove warning
 
         // Handle keyboard press
         bool isPressed;
@@ -574,7 +579,7 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
 
 void resizeCallback(GLFWwindow *window, int windowWidth, int windowHeight)
 {
-    window = nullptr; // Remove warning
+    (void)window; // Remove warning
     if ((float)windowWidth / windowHeight > NES_ASPECT_RATIO)
     {
         int windowWidth4_3 = (int)(windowHeight * NES_ASPECT_RATIO);

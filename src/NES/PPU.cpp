@@ -30,7 +30,7 @@ void PPU::reset()
     mW = 0;
     mV = 0;
 
-    mBgData = { 0 };
+    mBgData = { 0, 0, 0, 0 };
 
     mIsOddFrame = false;
 
@@ -307,8 +307,6 @@ void PPU::executeVBlankScanline()
 
 void PPU::executePreRenderScanline(Memory &memory)
 {
-    memory; // Bypass "unused argument" warning
-    
     mIsFirstPrerenderPassed = true;
     if (mCycleCount == 1)
     {
@@ -444,7 +442,7 @@ void PPU::processPixelData(Memory& memory)
 
             // Sprite 0 hit
             if (!(((mPpuMask & 0b0001'1000) != 0b0001'1000) ||
-                  (0 <= col && col < 8 && ((mPpuMask & 0b0000'0110) != 0b0000'0110)) ||
+                  (col < 8 && ((mPpuMask & 0b0000'0110) != 0b0000'0110)) ||
                   (col == 255)))
             {
                 // Sprite 0 hit is possible
@@ -503,8 +501,6 @@ void PPU::processPixelData(Memory& memory)
 
 void PPU::processSpriteEvaluation(Memory &memory)
 {
-    memory; // Bypass "argument unused" warning
-
     // No sprite evaluation in pre-render scanline
     if ((mCycleCount < 257) && (mScanlineCount == 261))
         return;

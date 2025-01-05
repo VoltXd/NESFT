@@ -13,3 +13,6 @@
 [submodule "libraries/implot"]
 	path = libraries/implot
 	url = https://github.com/epezent/implot.git
+[submodule "libraries/nativefiledialog_fork"]
+	path = libraries/nativefiledialog_fork
+	url = git@github.com:VoltXd/nativefiledialog.git

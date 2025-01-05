@@ -496,11 +496,7 @@ constexpr timeArray_t GlfwApp::calculateTimeArray()
 {
     timeArray_t timeArray = {{ 0 }};
     for (u32 i = 0; i < BUFFER_SIZE / 2; i++)
-    {
         timeArray[i] = BUFFER_SAMPLE_PERIOD * ((s32)i - (s32)(BUFFER_SIZE / 4));
-        std::cout << timeArray[i] << std::endl; 
-    }
-    
 
     return timeArray;
 }

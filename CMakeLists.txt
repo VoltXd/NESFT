@@ -43,9 +43,9 @@ add_subdirectory(libraries/openal-soft)
 target_link_libraries(${PROJECT_NAME} OpenAL)
 target_include_directories(${PROJECT_NAME} PRIVATE libraries/openal-soft/include)
 
-add_subdirectory(libraries/nativefiledialog/build/cmake)
+add_subdirectory(libraries/nativefiledialog_fork/build/cmake)
 target_link_libraries(${PROJECT_NAME} nfd)
-target_include_directories(${PROJECT_NAME} PRIVATE libraries/nativefiledialog/src/include)
+target_include_directories(${PROJECT_NAME} PRIVATE libraries/nativefiledialog_fork/src/include)
 
 # Verbose warnings & warnings are errors
 if(MSVC)

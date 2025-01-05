@@ -10,9 +10,6 @@
 [submodule "libraries/imgui"]
 	path = libraries/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "libraries/nativefiledialog"]
-	path = libraries/nativefiledialog
-	url = https://github.com/hjalleboii/nativefiledialog.git
 [submodule "libraries/implot"]
 	path = libraries/implot
 	url = https://github.com/epezent/implot.git

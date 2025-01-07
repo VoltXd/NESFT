@@ -548,7 +548,7 @@ void GlfwApp::drawAboutWindow()
                                "Build date: " __DATE__ ", " __TIME__ "\n");
         ImGui::TextUnformatted("More info at: ");
         ImGui::SameLine(0, 0);
-        ImGui::TextLinkOpenURL("github.com/VoltXd/Simple-NES-Emulator", "https://github.com/VoltXd/Simple-NES-Emulator");
+        ImGui::TextLinkOpenURL("github.com/VoltXd/NESFT", "https://github.com/VoltXd/NESFT");
         if (ImGui::Button("Close"))
             mIsAboutWindowOpen = false;
     }

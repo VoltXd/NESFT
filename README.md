@@ -10,7 +10,9 @@ Once I achieved the main goal, I started to make a GUI including mainly sound vi
 ## How to build
 First, clone this repository:
 ```shell
-git clone --recursive [URL.TO.REPOSITORY]
+git clone --recursive https://github.com/VoltXd/NESFT.git
+# or
+git clone --recursive git@github.com:VoltXd/NESFT.git
 ```
 Run the following command :
 ```shell

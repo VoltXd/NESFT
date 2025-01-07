@@ -11,6 +11,8 @@
 void testAndExitWithMessage(bool condition, const std::string& message);
 void traceLog(const std::string& log);
 
+float limitToInterval(float value, float min, float max);
+
 template <typename T>
 void popAndPush(std::deque<T>& fifo, T value)
 {

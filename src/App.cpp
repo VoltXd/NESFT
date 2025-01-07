@@ -100,12 +100,14 @@ void App::playGame(GlfwApp& appWindow)
 		// Emulation
 		nes.runOneCpuInstruction();
 
-		// Video
+		// Video & Inputs
 		if (nes.isImageReady())
 		{
 			nes.clearIsImageReady();
-
 			sendPictureToWindow(appWindow, nes.getPicture());
+
+			// Update volume
+			nes.setMasterVolume(appWindow.getMasterVolume());
 		}
 
 		// Sound
@@ -144,6 +146,7 @@ void App::sendPictureToWindow(GlfwApp &appWindow, const picture_t &picture)
 
 	// Render
 	appWindow.draw(picture);
+	
 }
 
 void App::linkFifosToWindow(NES &nes, GlfwApp &window)

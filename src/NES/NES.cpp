@@ -7,12 +7,15 @@ NES::NES(Controller& controller, const std::string &romFilename)
 {
     // Power up == Reset
     reset();
+
 	mSoundFIFO    = soundFIFO_t(BUFFER_SIZE);
 	mP1FIFO       = soundFIFO_t(BUFFER_SIZE);
 	mP2FIFO       = soundFIFO_t(BUFFER_SIZE);
 	mTriangleFIFO = soundFIFO_t(BUFFER_SIZE);
 	mNoiseFIFO    = soundFIFO_t(BUFFER_SIZE);
 	mDmcFIFO      = soundFIFO_t(BUFFER_SIZE);
+
+	mMasterVolume = 1.0f;
 }
 
 void NES::reset()
@@ -87,12 +90,14 @@ void NES::runApu()
 		// Execute APU + get extra cycles due to DMC DMA
 		mIsDmaGetCycle = !mIsDmaGetCycle;
 		mDmcDmaExtraCycles += mApu.executeOneCpuCycle(mMemory, mIsDmaGetCycle);
+
 		mApuTimestamp += TIME_PER_CYCLE;
 		if (mApuTimestamp > BUFFER_SAMPLE_PERIOD)
 		{
 			// Get sample & substract sample period to time stamp
 			soundBufferF32_t* soundBuffer = mIsUsingSoundBuffer0 ? &mSoundBuffer0 : &mSoundBuffer1;
-			float apuOutput = mApu.getOutput();
+			
+			float apuOutput = limitToInterval(mMasterVolume * mApu.getOutput(), 0.0f, 1.0f);
 			(*soundBuffer)[mSoundSamplesCount] = apuOutput;
 
 			// Get sample per channel (TODO: fix caches misses ?)

@@ -28,3 +28,14 @@ void traceLog(const std::string &log)
 	static std::ofstream gLogFile("log.txt");
 	gLogFile << log;
 }
+
+float limitToInterval(float value, float min, float max)
+{
+	// Clamp value to [min, max]
+	if (value < min)
+		return min;
+	else if (value > max)
+		return max;
+
+    return value;
+}

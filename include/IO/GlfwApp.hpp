@@ -35,6 +35,7 @@ public:
     inline void clearIsRomOpened() { mIsRomOpened = false; }
     inline const std::string& getRomName() const { return mPathToRom; }
 
+    inline float getMasterVolume() const { return mMasterVolume; }
     inline bool isSoundChannelsWindowOpen() const { return mIsSoundChannelsWindowOpen; }
     inline bool isSpectrumWindowOpen() const { return mIsSpectrumWindowOpen; }
     inline void setSoundFIFOPtr(const soundFIFO_t* const ptr) { mSoundFIFOPtr = ptr; }
@@ -55,6 +56,7 @@ private:
     void drawMainMenuBar();
     void drawMenuFile();
     void drawMenuWindows();
+    void drawMenuSettings();
     void drawMenuDebug();
     void drawMenuHelp();
 
@@ -63,9 +65,14 @@ private:
     void drawFrameTimeWindow();
     void drawSoundChannelsWindow();
     void drawSpectrumWindow();
+    void drawAudioSettingsWindow();
+    void drawVideoSettingsWindow();
+    void drawInputSettingsWindow();
     void drawHeaderInfoWindow();
     void drawAboutWindow();
     bool drawErrorWindow();
+
+    void updateFiltering(uint8_t filteringIdx);
 
     constexpr timeArray_t calculateTimeArray();
     constexpr soundBufferF32_t calculateFrequencyArray();
@@ -74,8 +81,8 @@ private:
     std::string mPathToRom;
     std::string mErrorMessage;
 
-    bool mIsFrameTimeWindowOpen;
     static constexpr u16 FRAMETIME_HISTORY_MAXSIZE = 256;
+    bool mIsFrameTimeWindowOpen;
     std::deque<float> mFrameTimeHistoryDeque;
     std::array<float, FRAMETIME_HISTORY_MAXSIZE> mFrameTimeHistoryArray;
 
@@ -90,6 +97,19 @@ private:
     
     bool mIsSpectrumWindowOpen;
     soundBufferF32_t mFrequencies;
+
+    bool mIsAudioSettingsWindowOpen;
+    float mMasterVolume;
+
+    bool mIsVideoSettingsWindowOpen;
+    static constexpr const char* FILTERING_ITEMS[] = 
+    {
+        "Nearest",
+        "Linear"
+    };
+    const char* mCurrentFiltering;
+    
+    bool mIsInputSettingsWindowOpen;
 
     bool mIsHeaderInfoWindowOpen;
     std::string mHeaderInfo;

@@ -24,6 +24,7 @@ public:
 	inline void clearIsImageReady() { mPpu.clearIsImageReady(); }
 	inline const picture_t& getPicture() { return mPpu.getPicture(); }
 
+	inline void setMasterVolume(float masterVolume) { mMasterVolume = masterVolume; }
 	inline bool isSoundBufferReady() const { return mIsSoundBufferReady; }
 	inline void clearIsSoundBufferReady() { mIsSoundBufferReady = false; }
 	inline const soundBufferF32_t* getSoundBufferPtr() const { return mSoundBufferToSubmit; }
@@ -61,6 +62,7 @@ private:
     
     // Sound
 	static constexpr float TIME_PER_CYCLE = 1.0f / 1'789'773;
+	float mMasterVolume;
 	bool mIsUsingSoundBuffer0;
 	bool mIsSoundBufferReady;
 	soundBufferF32_t* mSoundBufferToSubmit;

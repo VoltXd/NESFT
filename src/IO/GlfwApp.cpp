@@ -18,6 +18,12 @@ static void resizeCallback(GLFWwindow* window, int windowWidth, int windowHeight
 GlfwApp::GlfwApp(Controller& controllerRef)
     : mControllerRef(controllerRef)
 {
+    // Audio
+    mMasterVolume = 1.0f;
+
+    // Video
+    mCurrentFiltering = FILTERING_ITEMS[1];
+
     // Window size
     constexpr int windowWidth = 1280;
     constexpr int windowHeight = 720;
@@ -123,6 +129,10 @@ GlfwApp::GlfwApp(Controller& controllerRef)
 
     mIsAboutWindowOpen = false;
 
+    mIsAudioSettingsWindowOpen = false;
+    mIsVideoSettingsWindowOpen = false;
+    mIsInputSettingsWindowOpen = false;
+
     mIsPaused = false; 
 
     // Setup Dear ImGui context
@@ -200,6 +210,15 @@ void GlfwApp::draw(const picture_t& pictureBuffer)
     if (mIsSpectrumWindowOpen)
         drawSpectrumWindow();
 
+    if (mIsAudioSettingsWindowOpen)
+        drawAudioSettingsWindow();
+
+    if (mIsVideoSettingsWindowOpen)
+        drawVideoSettingsWindow();
+
+    if (mIsInputSettingsWindowOpen)
+        drawInputSettingsWindow();
+
     // Draw header info window if opened
     if (mIsHeaderInfoWindowOpen)
         drawHeaderInfoWindow();
@@ -255,6 +274,7 @@ void GlfwApp::drawMainMenuBar()
     {
         drawMenuFile();
         drawMenuWindows();
+        drawMenuSettings();
         drawMenuDebug();
         drawMenuHelp();
 
@@ -296,6 +316,18 @@ void GlfwApp::drawMenuWindows()
         ImGui::MenuItem("Sound channels", nullptr, &mIsSoundChannelsWindowOpen);
         ImGui::MenuItem("Spectrum", nullptr, &mIsSpectrumWindowOpen);
 
+        ImGui::EndMenu();
+    }
+}
+
+void GlfwApp::drawMenuSettings()
+{
+    if (ImGui::BeginMenu("Settings"))
+    {
+        ImGui::MenuItem("Audio", nullptr, &mIsAudioSettingsWindowOpen);
+        ImGui::MenuItem("Video", nullptr, &mIsVideoSettingsWindowOpen);
+        ImGui::MenuItem("Input", nullptr, &mIsInputSettingsWindowOpen);
+        
         ImGui::EndMenu();
     }
 }
@@ -527,9 +559,72 @@ void GlfwApp::drawSpectrumWindow()
     ImGui::End();    
 }
 
+void GlfwApp::drawAudioSettingsWindow()
+{
+    if (ImGui::Begin("Audio settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        // Master volume
+        ImGui::SliderFloat("Master volume", &mMasterVolume, 0.0f, 6.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SameLine(0, 0);
+        ImGui::TextDisabled("(?)");
+        if (ImGui::BeginItemTooltip())
+        {
+            ImGui::TextUnformatted("Ctrl+click on the slider to write the value.");
+            ImGui::EndTooltip();
+        }
+
+        if (ImGui::Button("Close"))
+            mIsAudioSettingsWindowOpen = false;
+    }
+    ImGui::End();
+}
+
+void GlfwApp::drawVideoSettingsWindow()
+{
+    if (ImGui::Begin("Video settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        // Filtering
+        if (ImGui::BeginCombo("Filtering", mCurrentFiltering))
+        {
+            for (uint8_t i = 0; i < IM_ARRAYSIZE(FILTERING_ITEMS); i++)
+            {
+                bool isSelected = (mCurrentFiltering == FILTERING_ITEMS[i]);
+                if (ImGui::Selectable(FILTERING_ITEMS[i], isSelected))
+                {
+                    // Clicked on an item -> change filtering
+                    mCurrentFiltering = FILTERING_ITEMS[i];
+                    updateFiltering(i);
+                }
+
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            
+            ImGui::EndCombo();
+        }
+
+        if (ImGui::Button("Close"))
+            mIsVideoSettingsWindowOpen = false;
+    }
+    ImGui::End();
+}
+
+void GlfwApp::drawInputSettingsWindow()
+{
+    if (ImGui::Begin("Input settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        // TODO
+        ImGui::TextUnformatted("WIP...");
+
+        if (ImGui::Button("Close"))
+            mIsInputSettingsWindowOpen = false;
+    }
+    ImGui::End();
+}
+
 void GlfwApp::drawHeaderInfoWindow()
 {
-    if (ImGui::Begin("ROM Info"))
+    if (ImGui::Begin("ROM Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::TextUnformatted(mPathToRom.c_str());
         ImGui::TextUnformatted(mHeaderInfo.c_str());
@@ -541,7 +636,7 @@ void GlfwApp::drawHeaderInfoWindow()
 
 void GlfwApp::drawAboutWindow()
 {
-    if (ImGui::Begin("About - NESFT"))
+    if (ImGui::Begin("About - NESFT", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::TextUnformatted("NESFT\n" 
                                "Version: 1.0\n"
@@ -559,7 +654,7 @@ bool GlfwApp::drawErrorWindow()
 {
     bool isClosed = false;
 
-    if (ImGui::Begin("Error"))
+    if (ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::TextUnformatted(mErrorMessage.c_str());
         isClosed = ImGui::Button("Close");
@@ -567,6 +662,32 @@ bool GlfwApp::drawErrorWindow()
     ImGui::End();
     
     return isClosed;
+}
+
+void GlfwApp::updateFiltering(uint8_t filteringIdx)
+{
+    constexpr uint8_t NEAREST_IDX = 0;
+    constexpr uint8_t LINEAR_IDX = 1;
+
+    GLint filtering;
+    switch (filteringIdx)
+    {
+        case NEAREST_IDX:
+            filtering = GL_NEAREST;
+            break;
+
+        case LINEAR_IDX:
+            filtering = GL_LINEAR;
+            break;
+        
+        default:
+            return;
+    }
+
+    // Set filtering settings
+    glBindTexture(GL_TEXTURE_2D, mScreenTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
 }
 
 void GlfwApp::openFile()

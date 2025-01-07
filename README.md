@@ -1,10 +1,11 @@
-# Simple-NES-Emulator
-Project aiming to run Super Mario Bros.
+# NESFT
+Nes Emulator with Sound Fourier Transform.
+A project aiming to run Super Mario Bros. (and more...)
 
 ## Goals
-The main goal of this project is to create a NES emulator without GUI.
-A side goal is to try unit testing in C++ with [Google Test](https://github.com/google/googletest).
-Once I'll achieve the main goal, maybe I'll consider doing a GUI.
+The main goal of this project was to create a NES emulator without GUI.
+A side goal was to try unit testing in C++ with [Google Test](https://github.com/google/googletest).
+Once I achieved the main goal, I started to make a GUI including mainly sound visualisation features.
 
 ## How to build
 First, clone this repository:

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14) 
 
 # *************** Release *************** #
-project(simple-nes-emulator LANGUAGES C CXX)
+project(nesft LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -57,7 +57,7 @@ endif()
 
 
 # *************** ALDebug *************** #
-project(simple-nes-emulator-ALDebug LANGUAGES CXX)
+project(nesft-ALDebug LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -102,7 +102,7 @@ endif()
 
 
 # *************** Google Test *************** #
-project(simple-nes-emulator-TEST LANGUAGES CXX)
+project(nesft-TEST LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

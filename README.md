@@ -26,8 +26,8 @@ Then, you can either build the main target of the test target.
 cd build
 
 # Build targets one-by-one
-make simple-nes-emulator
-make simple-nes-emulator-TEST
+make nesft
+make nesft-TEST
 
 # Build everything
 make all
@@ -36,8 +36,8 @@ make all
 ### Compile on Window (MSVC)
 ```batch
 :: Build targets one-by-one
-MSBuild.exe simple-nes-emulator.vcxproj /property:Configuration=Release
-MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
+MSBuild.exe nesft.vcxproj /property:Configuration=Release
+MSBuild.exe nesft-TEST.vcxproj /property:Configuration=Release
 ```
 
 ## Plan

@@ -29,7 +29,7 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Window
-    mWindow = glfwCreateWindow(windowWidth, windowHeight, "Simple NES Emulator", nullptr, nullptr);
+    mWindow = glfwCreateWindow(windowWidth, windowHeight, "NESFT", nullptr, nullptr);
     if (mWindow == nullptr)
     {
         std::cout << "Failed to create GLFW window!" << std::endl;
@@ -93,8 +93,8 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BORDER_COLOR); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glGenerateMipmap(GL_TEXTURE_2D);

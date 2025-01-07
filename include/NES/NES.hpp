@@ -34,6 +34,9 @@ public:
 	inline const soundFIFO_t* getNoiseFIFOPtr() const { return &mNoiseFIFO; }
 	inline const soundFIFO_t* getDmcFIFOPtr() const { return &mDmcFIFO; }
 	
+	inline bool isRomPlayable() const { return mMemory.isRomPlayable(); }
+	inline const std::string& getErrorMessage() const { return mMemory.getErrorMessage(); }
+	inline const std::string& getHeaderInfo() const { return mMemory.getHeaderInfo(); }
 
 private:
 	s32 getCpuCyclesPrediction();

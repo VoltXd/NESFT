@@ -119,6 +119,10 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     mIsSpectrumWindowOpen = false;
     mFrequencies = calculateFrequencyArray();
 
+    mIsHeaderInfoWindowOpen = false;
+
+    mIsAboutWindowOpen = false;
+
     mIsPaused = false; 
 
     // Setup Dear ImGui context
@@ -196,11 +200,48 @@ void GlfwApp::draw(const picture_t& pictureBuffer)
     if (mIsSpectrumWindowOpen)
         drawSpectrumWindow();
 
+    // Draw header info window if opened
+    if (mIsHeaderInfoWindowOpen)
+        drawHeaderInfoWindow();
+
+    if (mIsAboutWindowOpen)
+        drawAboutWindow();
+
     // Render
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(mWindow);
+}
+
+bool GlfwApp::drawError()
+{
+    bool isErrorWindowClosed = false;
+
+    // Poll events
+    glfwPollEvents();
+
+    // Clear frame buffer
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGuiID dockSpaceID = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+    
+    ImGui::SetNextWindowDockID(dockSpaceID, ImGuiCond_Once);
+    isErrorWindowClosed = drawErrorWindow();
+
+    // Render
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glfwSwapBuffers(mWindow);
+
+    return isErrorWindowClosed;
 }
 
 void GlfwApp::updateControllerState(ControllerInput input, bool isPressed)
@@ -215,6 +256,7 @@ void GlfwApp::drawMainMenuBar()
         drawMenuFile();
         drawMenuWindows();
         drawMenuDebug();
+        drawMenuHelp();
 
         ImGui::EndMainMenuBar();
     }
@@ -265,6 +307,17 @@ void GlfwApp::drawMenuDebug()
         ImGui::MenuItem("CPU trace log", nullptr, &gIsTraceLogCpuEnabled);
         ImGui::MenuItem("PPU trace log", nullptr, &gIsTraceLogPpuEnabled);
         ImGui::MenuItem("MMC3 IRQ trace log", nullptr, &gIsTraceLogMMC3IrqEnabled);
+        
+        ImGui::EndMenu();
+    }
+}
+
+void GlfwApp::drawMenuHelp()
+{
+    if (ImGui::BeginMenu("Help"))
+    {
+        ImGui::MenuItem("ROM Info", nullptr, &mIsHeaderInfoWindowOpen);
+        ImGui::MenuItem("About", nullptr, &mIsAboutWindowOpen);
         
         ImGui::EndMenu();
     }
@@ -472,6 +525,48 @@ void GlfwApp::drawSpectrumWindow()
         // TODO: Enable to see the individual channels spectrum ?
     }
     ImGui::End();    
+}
+
+void GlfwApp::drawHeaderInfoWindow()
+{
+    if (ImGui::Begin("ROM Info"))
+    {
+        ImGui::TextUnformatted(mPathToRom.c_str());
+        ImGui::TextUnformatted(mHeaderInfo.c_str());
+        if (ImGui::Button("Close"))
+            mIsHeaderInfoWindowOpen = false;
+    }
+    ImGui::End();
+}
+
+void GlfwApp::drawAboutWindow()
+{
+    if (ImGui::Begin("About - NESFT"))
+    {
+        ImGui::TextUnformatted("NESFT\n" 
+                               "Version: 1.0\n"
+                               "Build date: " __DATE__ ", " __TIME__ "\n");
+        ImGui::TextUnformatted("More info at: ");
+        ImGui::SameLine(0, 0);
+        ImGui::TextLinkOpenURL("github.com/VoltXd/Simple-NES-Emulator", "https://github.com/VoltXd/Simple-NES-Emulator");
+        if (ImGui::Button("Close"))
+            mIsAboutWindowOpen = false;
+    }
+    ImGui::End();
+}
+
+bool GlfwApp::drawErrorWindow()
+{
+    bool isClosed = false;
+
+    if (ImGui::Begin("Error"))
+    {
+        ImGui::TextUnformatted(mErrorMessage.c_str());
+        isClosed = ImGui::Button("Close");
+    }
+    ImGui::End();
+    
+    return isClosed;
 }
 
 void GlfwApp::openFile()

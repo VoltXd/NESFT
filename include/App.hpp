@@ -19,10 +19,12 @@ private:
 	enum class AppState
 	{
 		IDLE,
+		ERROR,
 		PLAYING
 	} mAppState;
 	
 	void processIdleState(GlfwApp& appWindow);
+	void showErrorWindow(GlfwApp& appWindow);
 	void playGame(GlfwApp& appWindow);
 	void sendPictureToWindow(GlfwApp& appWindow, const picture_t& picture);
 	void linkFifosToWindow(NES& nes, GlfwApp& window);

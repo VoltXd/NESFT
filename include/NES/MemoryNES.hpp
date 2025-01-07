@@ -38,6 +38,10 @@ public:
 	inline bool getCartridgeIrq() const { return mCartridge.getIrqSignal(); }
 	inline void clearCartridgeIrq() { mCartridge.clearIrqSignal(); }
 
+	inline bool isRomPlayable() const { return mCartridge.isRomPlayable(); }
+	inline const std::string& getErrorMessage() const { return mCartridge.getErrorMessage(); }
+	inline const std::string& getHeaderInfo() const { return mCartridge.getHeaderInfo(); }
+
 private:
 	// DMA
 	void startOamDma(u8 pageAddress);

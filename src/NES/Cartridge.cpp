@@ -27,9 +27,14 @@ Cartridge::Cartridge(const std::string& romFilename)
 		char flag10;
 	} header;
 
+	// Optimism :)
+	mIsRomPlayable = true;
+
 	// Open file 
 	std::filesystem::path romPath = romFilename;
-	testAndExitWithMessage(romPath.extension() != ".nes", "Only .nes files are accepted !");
+	testAndSetErrorFlag(romPath.extension() != ".nes", "Only .nes files are accepted !");
+	if (!mIsRomPlayable)
+		return;
 
 	std::ifstream romFile(romFilename, std::ios::binary);
 	
@@ -76,18 +81,20 @@ Cartridge::Cartridge(const std::string& romFilename)
 
 	// Flag 10 (redundant)
 	// Print ROM info
-	mHeaderInfo = getHeaderInfo(isINesHeader, prgRomSize, chrRomSize, ntArr, hasBatteryPrgRam, hasTrainer,
-	                            hasAltNtLayout, mapperNum, isVsUnisystem, isPlaychoice10, isNes2Header, 
-					            prgRamSize, tvSystem);
+	mHeaderInfo = buildHeaderInfoStr(isINesHeader, prgRomSize, chrRomSize, ntArr, hasBatteryPrgRam, hasTrainer,
+	                                 hasAltNtLayout, mapperNum, isVsUnisystem, isPlaychoice10, isNes2Header, 
+					                 prgRamSize, tvSystem);
 	std::cout << mHeaderInfo;
 
-	// Crash the program on unwanted header
-	testAndExitWithMessage(!isINesHeader, "ROM file is not iNES.");
-	testAndExitWithMessage(hasTrainer, "Trainer not implemented.");
-	testAndExitWithMessage(hasAltNtLayout, "Alternative Nametable Layout not implemented.");
-	testAndExitWithMessage(isVsUnisystem, "VS Unisystem not implemented.");
-	testAndExitWithMessage(isPlaychoice10, "PlayChoice-10 not implemented.");
-	testAndExitWithMessage(isNes2Header, "NES 2.0 not implemented.");
+	// Set error flag on unwanted header
+	testAndSetErrorFlag(!isINesHeader, "ROM file is not iNES.");
+	testAndSetErrorFlag(hasTrainer, "Trainer not implemented.");
+	testAndSetErrorFlag(hasAltNtLayout, "Alternative Nametable Layout not implemented.");
+	testAndSetErrorFlag(isVsUnisystem, "VS Unisystem not implemented.");
+	testAndSetErrorFlag(isPlaychoice10, "PlayChoice-10 not implemented.");
+	testAndSetErrorFlag(isNes2Header, "NES 2.0 not implemented.");
+	if (!mIsRomPlayable)
+		return;
 
 	// Create a mapper object
 	u32 chrRamSize = 0x2000;
@@ -120,9 +127,11 @@ Cartridge::Cartridge(const std::string& romFilename)
 		
 		default:
 			mapperErrorMsg << "Mapper " << +mapperNum << " not implemented.";
-			testAndExitWithMessage(true, mapperErrorMsg.str());
+			testAndSetErrorFlag(true, mapperErrorMsg.str());
 			break;
 	}
+	if (!mIsRomPlayable)
+		return;
 
 	// Initialise save PRG-RAM file
 	if (hasBatteryPrgRam)
@@ -269,7 +278,7 @@ inline void Cartridge::savePrgRam()
 	}
 }
 
-inline std::string Cartridge::getHeaderInfo(bool isINesHeader, 
+inline std::string Cartridge::buildHeaderInfoStr(bool isINesHeader, 
                                             u32 prgRomSize, 
                                             u32 chrRomSize, 
 								            NametableArrangement ntArrangement,
@@ -285,10 +294,10 @@ inline std::string Cartridge::getHeaderInfo(bool isINesHeader,
 {
 	std::stringstream headerInfo;
 	headerInfo << "iNES Header found: "          << std::boolalpha << isINesHeader << std::dec << '\n'
-	           << "PRG-ROM size: "               << prgRomSize << '\n'
-	           << "CHR-ROM size: "               << chrRomSize << '\n'
+	           << "PRG-ROM size: "               << prgRomSize << " B\n"
+	           << "CHR-ROM size: "               << chrRomSize << " B\n"
 	           << "Battery backed RAM present: " << hasBatteryPrgRam << '\n'
-	           << "PRG-RAM size: "               << prgRamSize << '\n'
+	           << "PRG-RAM size: "               << prgRamSize << " B\n"
 	           << "Trainer present: "            << hasTrainer << '\n'
 	           << "Nametable Layout: "           << ((ntArrangement == NametableArrangement::VERT) ? "Vertical" : "Horizontal") << '\n'
 	           << "Alt. Nametable Layout: "      << hasAltNtLayout << '\n'
@@ -321,4 +330,13 @@ void Cartridge::logValue(u8 value)
 	mappedAddrTraceStream << '$' << std::uppercase << std::hex << std::setw(2) << +value << ")";
 	traceLog(mappedAddrTraceStream.str());
 
+}
+
+void Cartridge::testAndSetErrorFlag(bool condition, const std::string &errorMessage)
+{
+	if (condition)
+	{
+		mIsRomPlayable = false;
+		mErrorMessage = errorMessage;
+	}
 }

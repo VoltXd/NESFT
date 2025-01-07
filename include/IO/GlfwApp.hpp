@@ -23,6 +23,7 @@ public:
     ~GlfwApp();
 
     void draw(const picture_t& pictureBuffer);
+    bool drawError();
 
     void openFile();
     void resetRom();
@@ -45,6 +46,9 @@ public:
     inline bool isPaused() const { return mIsPaused; }
     inline void switchPauseState() { mIsPaused = !mIsPaused; }
 
+    inline void setHeaderInfo(const std::string& headerInfo) { mHeaderInfo = headerInfo; }
+    inline void setErrorMessage(const std::string& errorMessage) { mErrorMessage = errorMessage; }
+
 private:
 
     // Main menu bar
@@ -52,18 +56,23 @@ private:
     void drawMenuFile();
     void drawMenuWindows();
     void drawMenuDebug();
+    void drawMenuHelp();
 
     // Windows
     void drawEmulatorWindow();
     void drawFrameTimeWindow();
     void drawSoundChannelsWindow();
     void drawSpectrumWindow();
+    void drawHeaderInfoWindow();
+    void drawAboutWindow();
+    bool drawErrorWindow();
 
     constexpr timeArray_t calculateTimeArray();
     constexpr soundBufferF32_t calculateFrequencyArray();
 
     bool mIsRomOpened;
     std::string mPathToRom;
+    std::string mErrorMessage;
 
     bool mIsFrameTimeWindowOpen;
     static constexpr u16 FRAMETIME_HISTORY_MAXSIZE = 256;
@@ -81,6 +90,11 @@ private:
     
     bool mIsSpectrumWindowOpen;
     soundBufferF32_t mFrequencies;
+
+    bool mIsHeaderInfoWindowOpen;
+    std::string mHeaderInfo;
+
+    bool mIsAboutWindowOpen;
 
     GLFWwindow* mWindow;
 

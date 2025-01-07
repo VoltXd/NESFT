@@ -32,6 +32,10 @@ int App::run()
 				processIdleState(appWindow);
 				break;
 
+			case AppState::ERROR:
+				showErrorWindow(appWindow);
+				break;
+
 			case AppState::PLAYING:
 				playGame(appWindow);
 				break;
@@ -51,6 +55,16 @@ void App::processIdleState(GlfwApp& appWindow)
 	mAppState = AppState::PLAYING;
 }
 
+void App::showErrorWindow(GlfwApp &appWindow)
+{
+	bool isErrorMessageClosed = false;
+
+	while (!appWindow.shouldWindowClose() && !isErrorMessageClosed)
+		isErrorMessageClosed = appWindow.drawError();
+
+	mAppState = AppState::IDLE;
+}
+
 void App::playGame(GlfwApp& appWindow)
 {
 	using std::chrono::steady_clock;
@@ -58,6 +72,15 @@ void App::playGame(GlfwApp& appWindow)
 	// *************** NES Emulation *************** //
 	NES nes(mController, appWindow.getRomName());
 	appWindow.clearIsRomOpened();
+	appWindow.setHeaderInfo(nes.getHeaderInfo());
+
+	if (!nes.isRomPlayable())
+	{
+		appWindow.setErrorMessage(nes.getErrorMessage());
+		mAppState = AppState::ERROR;
+		return;
+	}
+
 	linkFifosToWindow(nes, appWindow);
 
     mTimePrevious = steady_clock::now();

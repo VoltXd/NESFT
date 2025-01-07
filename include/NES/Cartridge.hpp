@@ -30,24 +30,30 @@ public:
 	inline bool getIrqSignal() const { return mMapper->getIrqSignal(); }
 	inline void clearIrqSignal() { return mMapper->clearIrqSignal(); }
 
+	inline const std::string& getHeaderInfo() const { return mHeaderInfo; }
+
+	inline bool isRomPlayable() const { return mIsRomPlayable; } 
+	inline const std::string& getErrorMessage() const { return mErrorMessage; }
+
 private:
 	u16 mapNtAddress(u16 ppuAddress);
 	void savePrgRam();
-	std::string getHeaderInfo(bool isINesHeader, 
-                              u32 prgRomSize,
-	                          u32 chrRomSize,
-					          NametableArrangement ntArrangement,
-					          bool hasPrgRam,
-					          bool hasTrainer,
-					          bool hasAltNtLayout,
-					          u8 mapperNum,
-					          bool isVsUnisystem,
-					          bool isPlaychoice10,
-					          bool isNes2Header,
-					          u32 prgRamSize,
-					          TVSystem tvSystem);
+	std::string buildHeaderInfoStr(bool isINesHeader, 
+                                   u32 prgRomSize,
+	                               u32 chrRomSize,
+					               NametableArrangement ntArrangement,
+					               bool hasPrgRam,
+					               bool hasTrainer,
+					               bool hasAltNtLayout,
+					               u8 mapperNum,
+					               bool isVsUnisystem,
+					               bool isPlaychoice10,
+					               bool isNes2Header,
+					               u32 prgRamSize,
+					               TVSystem tvSystem);
 	void logMappedAddress(u32 mappedAddress);
 	void logValue(u8 value);
+	void testAndSetErrorFlag(bool condition, const std::string& errorMessage);
 
 	std::string mHeaderInfo;
 
@@ -59,4 +65,7 @@ private:
 	std::ofstream mCartRamFile;
 
 	std::unique_ptr<Mapper> mMapper;
+
+	bool mIsRomPlayable;
+	std::string mErrorMessage;
 };

@@ -40,23 +40,6 @@ int SoundManager::initialise()
 	// Reset
 	alcCloseDevice(alcOpenDevice(nullptr));
 
-	// Get available devices
-	const ALCchar* devicesPtr = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
-	const ALCchar* defaultDevicePtr = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
-
-	// Print default device
-	std::cout << "Default sound device: " << defaultDevicePtr << std::endl;
-
-	// Print available devices
-	std::cout << "Sound devices :\n";
-	while (*devicesPtr != '\0')
-	{
-		std::string device(devicesPtr);
-		std::cout << '\t' << device << '\n';
-		devicesPtr += device.size() + 1;
-	}
-	std::cout << std::endl;
-	
 	// Open sound device
     ALCdevice* devicePtr = alcOpenDevice(nullptr);
 	if (devicePtr == nullptr)

@@ -7,6 +7,10 @@ A side goal is to try unit testing in C++ with [Google Test](https://github.com/
 Once I'll achieve the main goal, maybe I'll consider doing a GUI.
 
 ## How to build
+First, clone this repository:
+```shell
+git clone --recursive [URL.TO.REPOSITORY]
+```
 Run the following command :
 ```shell
 cmake -B build
@@ -48,8 +52,10 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 	- [x] Keyboard default keys
 	- [ ] Keyboard custom keys
 	- [ ] Gamepad
-- [x] APU
+- [ ] Audio
+	- [x] APU
 	- [x] Stream audio with OpenAL
+	- [ ] Changeable master volume
 	- [ ] Fix OpenAL
 		- [x] Sound latency
 		- [ ] No sound if app closed unexpectedly...
@@ -58,14 +64,17 @@ MSBuild.exe simple-nes-emulator-TEST.vcxproj /property:Configuration=Release
 		- [x] Triangle
 		- [x] Noise
 		- [x] DMC
+	- [x] Sound channels visualisation
+	- [x] Sound spectrum visualisation
+		- [ ] Zero padding
+		- [ ] Window functions
 - [ ] Mappers
 	- [x] 000 (SMB, DK, Excitebike...)
 	- [x] 001 (Zelda I & II, Metroid, Kid Icarus...)
 	- [x] 002 (Castlevania, Duck Tales, Mega man...)
 	- [x] 003 (Arkanoid, Gradius...)
-	- [ ] 004 (SMB2/3, Kirby's adventure, Mother)
-	- [ ] Total: **4** / 256 iNES 1.0 mappers
-- [ ] Rearrange classes members (for alignment (unnecessary optimisation))
+	- [X] 004 (SMB2/3, Kirby's adventure, Mother)
+	- [ ] Total: **5** / 256 iNES 1.0 mappers
 
 ## References
 ### Inspiration

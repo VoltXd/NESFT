@@ -17,6 +17,9 @@ NES::NES(Controller& controller, const std::string &romFilename)
 
 void NES::reset()
 {   
+	if (!mMemory.isRomPlayable())
+		return;
+		
 	mMemory.reset();
 	mApu.reset();
 	mPpu.reset();

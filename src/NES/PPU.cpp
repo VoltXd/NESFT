@@ -155,13 +155,6 @@ void PPU::writeRegister(Memory& memory, u16 address, u8 value)
             incrementOnPpudataEnding();
             readByte(memory, mV);
             break;
-
-        // default:
-        // {
-        //     std::stringstream errorStream;
-        //     errorStream << std::hex << "PPU register 0x" << address << " is not writeable.";
-        //     testAndExitWithMessage(true, errorStream.str());
-        // } break;
     }
 }
 
@@ -207,13 +200,6 @@ u8 PPU::readRegister(Memory &memory, u16 address)
             incrementOnPpudataEnding();
             readByte(memory, mV);
             break;
-        
-        // default:
-        // {
-        //     std::stringstream errorStream;
-        //     errorStream << std::hex << "PPU register 0x" << address << " is not readable.";
-        //     testAndExitWithMessage(true, errorStream.str());
-        // } break;
     }
 
 	return value;

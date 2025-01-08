@@ -16,10 +16,23 @@ using timeArray_t = std::array<float, BUFFER_SIZE / 2>;
 
 constexpr float NES_ASPECT_RATIO = (float)PPU_OUTPUT_WIDTH / PPU_OUTPUT_HEIGHT;
 
+using keycode_t = uint16_t;
+struct keyboardMap_t
+{
+    keycode_t a;
+    keycode_t b;
+    keycode_t start;
+    keycode_t select;
+    keycode_t up;
+    keycode_t down;
+    keycode_t left;
+    keycode_t right;
+};
+
 class GlfwApp
 {
 public:
-    GlfwApp(Controller& controllerRef);
+    GlfwApp(Controller& controller1Ref, Controller& controller2Ref);
     ~GlfwApp();
 
     void draw(const picture_t& pictureBuffer);
@@ -27,7 +40,7 @@ public:
 
     void openFile();
     void resetRom();
-    void updateControllerState(ControllerInput input, bool isPressed);
+    void prepareControllersState(bool isPlayer1, ControllerInput input, bool isPressed);
     
     inline bool shouldWindowClose() const { return glfwWindowShouldClose(mWindow); }
 
@@ -47,11 +60,13 @@ public:
     inline bool isPaused() const { return mIsPaused; }
     inline void switchPauseState() { mIsPaused = !mIsPaused; }
 
+    inline keycode_t* getKeyToChange() { return mKeyToChange; }
+    inline void clearKeyToChange() { mKeyToChange = nullptr; }
+
     inline void setHeaderInfo(const std::string& headerInfo) { mHeaderInfo = headerInfo; }
     inline void setErrorMessage(const std::string& errorMessage) { mErrorMessage = errorMessage; }
 
 private:
-
     // Main menu bar
     void drawMainMenuBar();
     void drawMenuFile();
@@ -68,11 +83,16 @@ private:
     void drawAudioSettingsWindow();
     void drawVideoSettingsWindow();
     void drawInputSettingsWindow();
+    void drawKeyMapping(const char* buttonStr, keycode_t* key);
     void drawHeaderInfoWindow();
     void drawAboutWindow();
     bool drawErrorWindow();
 
     void updateFiltering(uint8_t filteringIdx);
+
+    void pollKeyboard();
+    void pollGamepads();
+    void updateControllersState();
 
     constexpr timeArray_t calculateTimeArray();
     constexpr soundBufferF32_t calculateFrequencyArray();
@@ -110,6 +130,15 @@ private:
     const char* mCurrentFiltering;
     
     bool mIsInputSettingsWindowOpen;
+    bool mIsKeyboardEnabled;
+    bool mIsKeyboardPlayer1Selected;
+    keyboardMap_t mKeyboardMapping;
+    keycode_t* mKeyToChange;
+
+    bool mAreGamepadsEnabled[16];
+    bool mAreGamepadsPlayer1Selected[16];
+    bool mAreGamepadsLayoutAlternative[16];
+    float mGamepadsDeadZone[16];
 
     bool mIsHeaderInfoWindowOpen;
     std::string mHeaderInfo;
@@ -144,6 +173,10 @@ private:
     GLuint mScreenTexture;
     std::unique_ptr<Shader> mScreenShader;
 
-    Controller& mControllerRef;
+    Controller& mController1Ref;
+    Controller& mController2Ref;
+    uint8_t mController1State;
+    uint8_t mController2State;
+
     bool mIsPaused;
 };

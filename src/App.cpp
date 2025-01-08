@@ -20,7 +20,7 @@ int App::run()
 	mAppState = AppState::IDLE;
 	
 	// Init window & sound
-	GlfwApp appWindow(mController);
+	GlfwApp appWindow(mController1, mController2);
 	testAndExitWithMessage(mSoundManager.initialise() == EXIT_FAILURE, "Cannot initialise sound manager...");
 
 	// Infinite loop
@@ -70,7 +70,7 @@ void App::playGame(GlfwApp& appWindow)
 	using std::chrono::steady_clock;
 	
 	// *************** NES Emulation *************** //
-	NES nes(mController, appWindow.getRomName());
+	NES nes(mController1, mController2, appWindow.getRomName());
 	appWindow.clearIsRomOpened();
 	appWindow.setHeaderInfo(nes.getHeaderInfo());
 

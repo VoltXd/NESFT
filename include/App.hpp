@@ -29,7 +29,8 @@ private:
 	void sendPictureToWindow(GlfwApp& appWindow, const picture_t& picture);
 	void linkFifosToWindow(NES& nes, GlfwApp& window);
 
-	Controller mController;
+	Controller mController1;
+	Controller mController2;
 	SoundManager mSoundManager;
 
 	std::chrono::steady_clock::time_point mTimePrevious;

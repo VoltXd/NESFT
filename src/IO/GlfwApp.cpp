@@ -15,14 +15,35 @@
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 static void resizeCallback(GLFWwindow* window, int windowWidth, int windowHeight);
 
-GlfwApp::GlfwApp(Controller& controllerRef)
-    : mControllerRef(controllerRef)
+GlfwApp::GlfwApp(Controller& controller1Ref, Controller& controller2Ref)
+    : mController1Ref(controller1Ref), mController2Ref(controller2Ref)
 {
     // Audio
     mMasterVolume = 1.0f;
 
     // Video
     mCurrentFiltering = FILTERING_ITEMS[1];
+
+    // Inputs
+    mIsKeyboardEnabled = true;
+    mIsKeyboardPlayer1Selected = true;
+    mKeyToChange = nullptr;
+    mKeyboardMapping.a = GLFW_KEY_K;
+    mKeyboardMapping.b = GLFW_KEY_J;
+    mKeyboardMapping.start = GLFW_KEY_H;
+    mKeyboardMapping.select = GLFW_KEY_G;
+    mKeyboardMapping.up = GLFW_KEY_W;
+    mKeyboardMapping.down = GLFW_KEY_S;
+    mKeyboardMapping.left = GLFW_KEY_A;
+    mKeyboardMapping.right = GLFW_KEY_D;
+
+    for (int i = 0; i < 16; i++)
+    {
+        mGamepadsDeadZone[i] = 0.2;
+        mAreGamepadsEnabled[i] = true;
+        mAreGamepadsPlayer1Selected[i] = true;
+        mAreGamepadsLayoutAlternative[i] = false;
+    }
 
     // Window size
     constexpr int windowWidth = 1280;
@@ -140,8 +161,6 @@ GlfwApp::GlfwApp(Controller& controllerRef)
     ImGui::CreateContext();
     ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
 
     // Setup Platform/Renderer backends
@@ -166,8 +185,17 @@ GlfwApp::~GlfwApp()
 
 void GlfwApp::draw(const picture_t& pictureBuffer)
 {
+    // Reset controllers;
+    mController1State = 0;
+    mController2State = 0;
+
     // Poll events
     glfwPollEvents();
+    pollGamepads();
+    pollKeyboard();
+
+    // Update controllers
+    updateControllersState();
 
     // Clear frame buffer
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -263,9 +291,12 @@ bool GlfwApp::drawError()
     return isErrorWindowClosed;
 }
 
-void GlfwApp::updateControllerState(ControllerInput input, bool isPressed)
+void GlfwApp::prepareControllersState(bool isPlayer1, ControllerInput input, bool isPressed)
 {
-    mControllerRef.updateControllerState(input, isPressed);
+    if (isPlayer1)
+        mController1State |= isPressed ? input : 0;
+    else
+        mController2State |= isPressed ? input : 0;
 }
 
 void GlfwApp::drawMainMenuBar()
@@ -613,13 +644,136 @@ void GlfwApp::drawInputSettingsWindow()
 {
     if (ImGui::Begin("Input settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        // TODO
-        ImGui::TextUnformatted("WIP...");
+        if (ImGui::BeginTabBar("Devices"))
+        {
+            if (ImGui::BeginTabItem("Keyboard"))
+            {
+                ImGui::Checkbox("Enabled", &mIsKeyboardEnabled);
+                ImGui::TextUnformatted("Player: ");
+                ImGui::SameLine();
+                if (ImGui::RadioButton("1", mIsKeyboardPlayer1Selected))
+                    mIsKeyboardPlayer1Selected = true;
+                ImGui::SameLine();
+                if (ImGui::RadioButton("2", !mIsKeyboardPlayer1Selected))
+                    mIsKeyboardPlayer1Selected = false;
+
+                ImGui::SeparatorText("Key mapping:");
+                drawKeyMapping("A: ",      &mKeyboardMapping.a);
+                drawKeyMapping("B: ",      &mKeyboardMapping.b);
+                drawKeyMapping("Start: ",  &mKeyboardMapping.start);
+                drawKeyMapping("Select: ", &mKeyboardMapping.select);
+                drawKeyMapping("Up: ",     &mKeyboardMapping.up);
+                drawKeyMapping("Down: ",   &mKeyboardMapping.down);
+                drawKeyMapping("Left: ",   &mKeyboardMapping.left);
+                drawKeyMapping("Right: ",  &mKeyboardMapping.right);
+
+                ImGui::EndTabItem();
+            }
+            
+            for (int i = 0; i < 16; i++)
+            {
+                if (glfwJoystickIsGamepad(i))
+                {
+                    // Get controller info
+                    const char* gamepadName = glfwGetGamepadName(i);
+                    GLFWgamepadstate state;
+                    glfwGetGamepadState(i, &state);
+
+                    // Render tab
+                    if (ImGui::BeginTabItem(gamepadName))
+                    {
+                        ImGui::Checkbox("Enabled", &mAreGamepadsEnabled[i]);
+                        ImGui::TextUnformatted("Player: ");
+                        ImGui::SameLine();
+                        if (ImGui::RadioButton("1", mAreGamepadsPlayer1Selected[i]))
+                            mAreGamepadsPlayer1Selected[i] = true;
+                        ImGui::SameLine();
+                        if (ImGui::RadioButton("2", !mAreGamepadsPlayer1Selected[i]))
+                            mAreGamepadsPlayer1Selected[i] = false;
+
+                        ImGui::TextUnformatted("Layout: ");
+                        ImGui::SameLine();
+                        if (ImGui::RadioButton("B: XY, A: AB", !mAreGamepadsLayoutAlternative[i]))
+                            mAreGamepadsLayoutAlternative[i] = false;
+                        ImGui::SameLine();
+                        if (ImGui::RadioButton("B: AX, A: BY", mAreGamepadsLayoutAlternative[i]))
+                            mAreGamepadsLayoutAlternative[i] = true;
+
+                        ImGui::SeparatorText("Controller state");
+                        ImGui::SliderFloat("Dead zone", &mGamepadsDeadZone[i], 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                        if (ImPlot::BeginPlot("L-Joystick", { -1, 0 }, ImPlotFlags_Equal))
+                        {
+                            float x = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+                            float y = -state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
+                            float deadZone = mGamepadsDeadZone[i];
+                            float deadZoneSquareX[] = { deadZone, -deadZone, -deadZone, deadZone, deadZone };
+                            float deadZoneSquarey[] = { deadZone, deadZone, -deadZone, -deadZone, deadZone };
+                            ImPlot::SetupAxesLimits(-1.0f, 1.0f, -1.0f, 1.0f);
+                            ImPlot::PlotScatter("Position", &x, &y, 1);
+                            ImPlot::PlotLine("Dead zone", deadZoneSquareX, deadZoneSquarey, 5);
+                            
+                            ImPlot::EndPlot();
+                        }
+                        ImGui::TextUnformatted("Buttons pressed: ");
+                        if (state.buttons[GLFW_GAMEPAD_BUTTON_A] == GLFW_PRESS)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted("A");
+                        }
+                        if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted("B");
+                        }
+                        if (state.buttons[GLFW_GAMEPAD_BUTTON_X] == GLFW_PRESS)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted("X");
+                        }
+                        if (state.buttons[GLFW_GAMEPAD_BUTTON_Y] == GLFW_PRESS)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted("Y");
+                        }
+                        if (state.buttons[GLFW_GAMEPAD_BUTTON_START] == GLFW_PRESS)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted("START");
+                        }
+                        if (state.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS)
+                        {
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted("BACK");
+                        }
+                
+                        ImGui::EndTabItem();
+                    }                    
+                }
+            }
+
+            ImGui::EndTabBar();
+        }
 
         if (ImGui::Button("Close"))
             mIsInputSettingsWindowOpen = false;
     }
     ImGui::End();
+}
+
+void GlfwApp::drawKeyMapping(const char* buttonStr, keycode_t* key)
+{
+    constexpr const char* UNKNOWN_KEY = "unknown";
+    const char* keyString = nullptr;
+
+    ImGui::TextUnformatted(buttonStr);
+    ImGui::SameLine(0, 0);
+
+    int scancode = glfwGetKeyScancode(*key);
+    if ((keyString = glfwGetKeyName(*key, scancode)) == nullptr)
+        keyString = UNKNOWN_KEY;
+        
+    if (ImGui::Selectable(keyString, mKeyToChange == key))
+        mKeyToChange = key;
 }
 
 void GlfwApp::drawHeaderInfoWindow()
@@ -690,6 +844,85 @@ void GlfwApp::updateFiltering(uint8_t filteringIdx)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
 }
 
+void GlfwApp::pollKeyboard()
+{
+    // Controller
+    if (!mIsKeyboardEnabled)
+        return;
+
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::A,      glfwGetKey(mWindow, mKeyboardMapping.a)      == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::B,      glfwGetKey(mWindow, mKeyboardMapping.b)      == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::SELECT, glfwGetKey(mWindow, mKeyboardMapping.select) == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::START,  glfwGetKey(mWindow, mKeyboardMapping.start)  == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::UP,     glfwGetKey(mWindow, mKeyboardMapping.up)     == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::DOWN,   glfwGetKey(mWindow, mKeyboardMapping.down)   == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::LEFT,   glfwGetKey(mWindow, mKeyboardMapping.left)   == GLFW_PRESS);
+    prepareControllersState(mIsKeyboardPlayer1Selected, ControllerInput::RIGHT,  glfwGetKey(mWindow, mKeyboardMapping.right)  == GLFW_PRESS);
+}
+
+void GlfwApp::pollGamepads()
+{
+    for (int i = 0; i < 16; i++)
+    {
+        if (glfwJoystickIsGamepad(i))
+        {
+            // Skip disabled controller
+            if (!mAreGamepadsEnabled[i])
+                continue;
+
+            // Get controller info
+            GLFWgamepadstate state;
+            glfwGetGamepadState(i, &state);
+            bool isPlayer1 = mAreGamepadsPlayer1Selected[i];
+            uint8_t secondAButton = mAreGamepadsLayoutAlternative[i] ?
+                                    GLFW_GAMEPAD_BUTTON_Y :
+                                    GLFW_GAMEPAD_BUTTON_A;
+            uint8_t secondBButton = mAreGamepadsLayoutAlternative[i] ?
+                                    GLFW_GAMEPAD_BUTTON_A :
+                                    GLFW_GAMEPAD_BUTTON_Y;
+                                    
+
+            // Update controller
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::A, 
+                                   (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) ||
+                                   (state.buttons[secondAButton] == GLFW_PRESS));
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::B, 
+                                   (state.buttons[GLFW_GAMEPAD_BUTTON_X] == GLFW_PRESS) ||
+                                   (state.buttons[secondBButton] == GLFW_PRESS));
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::START, 
+                                   state.buttons[GLFW_GAMEPAD_BUTTON_START] == GLFW_PRESS);
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::SELECT, 
+                                   state.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS);
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::UP, 
+                                   (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS) ||
+                                   (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] < -mGamepadsDeadZone[i]));
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::DOWN, 
+                                   (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS) ||
+                                   (state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] > mGamepadsDeadZone[i]));
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::LEFT, 
+                                   (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT] == GLFW_PRESS) ||
+                                   (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] < -mGamepadsDeadZone[i]));
+            prepareControllersState(isPlayer1, 
+                                   ControllerInput::RIGHT, 
+                                   (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT] == GLFW_PRESS) ||
+                                   (state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] > mGamepadsDeadZone[i]));
+        }
+    }
+}
+
+void GlfwApp::updateControllersState()
+{
+    mController1Ref.updateControllerState(mController1State);
+    mController2Ref.updateControllerState(mController2State);
+}
+
 void GlfwApp::openFile()
 {
     // Try opening a ROM file 
@@ -733,10 +966,6 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
     {
         (void)scancode; // Useless line to remove warning
 
-        // Handle keyboard press
-        bool isPressed;
-        ControllerInput input;
-
         // Open file
         if ((action == GLFW_PRESS) && (key == GLFW_KEY_O) && ((mods & GLFW_MOD_CONTROL) != 0))
         {
@@ -758,34 +987,17 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
             return;
         }
 
-        // Controller 1
-        if (action == GLFW_PRESS)
-            isPressed = true;
-        else if (action == GLFW_RELEASE)
-            isPressed = false;
-        else 
-            return;
+        // Change key mapping
+        keycode_t* keyToChange = renderer->getKeyToChange();
+        if (keyToChange != nullptr)
+        {
+            // Change key mapping if not escape
+            if (key != GLFW_KEY_ESCAPE)
+                *keyToChange = key;
 
-        if (key == GLFW_KEY_K)
-            input = ControllerInput::A;
-        else if  (key == GLFW_KEY_J)
-            input = ControllerInput::B;
-        else if  (key == GLFW_KEY_G)
-            input = ControllerInput::SELECT;
-        else if  (key == GLFW_KEY_H)
-            input = ControllerInput::START;
-        else if  (key == GLFW_KEY_W)
-            input = ControllerInput::UP;
-        else if  (key == GLFW_KEY_S)
-            input = ControllerInput::DOWN;
-        else if  (key == GLFW_KEY_A)
-            input = ControllerInput::LEFT;
-        else if  (key == GLFW_KEY_D)
-            input = ControllerInput::RIGHT;
-        else
+            renderer->clearKeyToChange();
             return;
-        
-        renderer->updateControllerState(input, isPressed);
+        }
     }
 }
 

@@ -23,7 +23,7 @@ class APU;
 class MemoryNES
 {
 public:
-	MemoryNES(const std::string& romFilename, APU& apuRef, PPU& ppuRef, Controller& controllerRef);
+	MemoryNES(const std::string& romFilename, APU& apuRef, PPU& ppuRef, Controller& controller1Ref, Controller& controller2Ref);
 	void reset();
 
 	u8 cpuRead(u16 address);
@@ -75,5 +75,7 @@ private:
 	// Controller
 	static constexpr u16 CONTROLLER_STROBE_ADDR = 0x4016;
 	static constexpr u16 CONTROLLER_1_STATE_ADDR = 0x4016;
-	Controller& mControllerRef;
+	static constexpr u16 CONTROLLER_2_STATE_ADDR = 0x4017;
+	Controller& mController1Ref;
+	Controller& mController2Ref;
 };

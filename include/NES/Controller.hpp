@@ -19,7 +19,7 @@ class Controller
 public:
     u8 getStateBitAndShift();
     void setStrobe(u8 value);
-    void updateControllerState(ControllerInput input, bool isPressed);
+    void updateControllerState(u8 state);
 
 private:
     u8 mControllerState         = 0;

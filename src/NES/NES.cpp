@@ -2,8 +2,8 @@
 
 #include "NES/Toolbox.hpp"
 
-NES::NES(Controller& controller, const std::string &romFilename)
-    : mMemory(romFilename, mApu, mPpu, controller)
+NES::NES(Controller& controller1, Controller& controller2, const std::string &romFilename)
+    : mMemory(romFilename, mApu, mPpu, controller1, controller2)
 {
     // Power up == Reset
     reset();

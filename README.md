@@ -53,12 +53,13 @@ MSBuild.exe nesft-TEST.vcxproj /property:Configuration=Release
 	- [ ] Color emphasis & greyscale
 - [x] Controller
 	- [x] Keyboard default keys
-	- [ ] Keyboard custom keys
-	- [ ] Gamepad
+	- [x] Keyboard custom keys
+	- [x] Gamepad
 - [ ] Audio
 	- [x] APU
 	- [x] Stream audio with OpenAL
-	- [ ] Changeable master volume
+	- [x] Changeable master volume
+	- [ ] Filtering (AA and low-pass)
 	- [ ] Fix OpenAL
 		- [x] Sound latency
 		- [ ] No sound if app closed unexpectedly...
@@ -106,6 +107,8 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)\
 [OpenAL destroy computer audio FIX](https://stackoverflow.com/questions/9397681/openal-randomly-stops-playing-some-sounds-can-only-fix-with-reboot)\
 [Sound latency (just don't use 165463 sound buffers please...)](https://en.sfml-dev.org/forums/index.php?topic=3929.0)
 
+### Libraries
+Check out [libraries](libraries) folder.
 ## License
 
 MIT License. See [LICENSE](LICENSE) file.

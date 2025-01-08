@@ -22,12 +22,9 @@ void Controller::setStrobe(u8 value)
         mControllerShiftRegister = mControllerState;
 }
 
-void Controller::updateControllerState(ControllerInput input, bool isPressed)
+void Controller::updateControllerState(u8 state)
 {
-    if (isPressed)
-        mControllerState |= input;
-    else
-        mControllerState &= ~input;
+    mControllerState = state;
 
     if (mIsUpdatingState)
         mControllerShiftRegister = mControllerState;

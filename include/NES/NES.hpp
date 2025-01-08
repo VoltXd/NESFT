@@ -14,7 +14,7 @@ constexpr double FRAME_PERIOD_NTSC = 1.0 / 60.0988;
 class NES
 {
 public:
-    NES(Controller& controller, const std::string& romFilename);
+    NES(Controller& controller1, Controller& controller2, const std::string& romFilename);
 	~NES() { reset(); }
 
     void reset();

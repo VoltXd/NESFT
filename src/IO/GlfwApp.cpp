@@ -86,6 +86,7 @@ GlfwApp::GlfwApp(Controller& controller1Ref, Controller& controller2Ref)
 
     mIsSpectrumWindowOpen = false;
     mFrequencies = calculateFrequencyArray();
+    mIsLogScale = false;
 
     mIsHeaderInfoWindowOpen = false;
 
@@ -632,10 +633,19 @@ void GlfwApp::drawSpectrumWindow()
             soundBufferF32_t spectrum;
             fftMagnitude<BUFFER_SIZE>(signal, spectrum);
 
+            ImGui::TextUnformatted("Scale: ");
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Normal", !mIsLogScale))
+                mIsLogScale = false;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Semi-log", mIsLogScale))
+                mIsLogScale = true;
+
             if (ImPlot::BeginPlot("Sound Fourier transform", { -1, -1 }))
             {
                 ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_Lock);
-                // ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Log10);
+                if (mIsLogScale)
+                    ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Log10);
                 ImPlot::SetupAxesLimits((float)BUFFER_SAMPLE_RATE / BUFFER_SIZE, BUFFER_SAMPLE_RATE / 2, 0, 0.1f);
                 ImPlot::SetNextMarkerStyle(ImPlotMarker_Up);
                 ImPlot::PlotStems("FFT", mFrequencies.data(), spectrum.data(), (int)spectrum.size() / 2);

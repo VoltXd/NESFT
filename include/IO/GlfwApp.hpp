@@ -127,6 +127,7 @@ private:
     const soundFIFO_t* mDmcFIFOPtr;
     
     bool mIsSpectrumWindowOpen;
+    bool mIsLogScale;
     soundBufferF32_t mFrequencies;
 
     bool mIsAudioSettingsWindowOpen;

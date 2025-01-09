@@ -18,32 +18,9 @@ static void resizeCallback(GLFWwindow* window, int windowWidth, int windowHeight
 GlfwApp::GlfwApp(Controller& controller1Ref, Controller& controller2Ref)
     : mController1Ref(controller1Ref), mController2Ref(controller2Ref)
 {
-    // Audio
-    mMasterVolume = 1.0f;
-
-    // Video
-    mCurrentFiltering = FILTERING_ITEMS[1];
-
-    // Inputs
-    mIsKeyboardEnabled = true;
-    mIsKeyboardPlayer1Selected = true;
-    mKeyToChange = nullptr;
-    mKeyboardMapping.a = GLFW_KEY_K;
-    mKeyboardMapping.b = GLFW_KEY_J;
-    mKeyboardMapping.start = GLFW_KEY_H;
-    mKeyboardMapping.select = GLFW_KEY_G;
-    mKeyboardMapping.up = GLFW_KEY_W;
-    mKeyboardMapping.down = GLFW_KEY_S;
-    mKeyboardMapping.left = GLFW_KEY_A;
-    mKeyboardMapping.right = GLFW_KEY_D;
-
-    for (int i = 0; i < 16; i++)
-    {
-        mGamepadsDeadZone[i] = 0.2;
-        mAreGamepadsEnabled[i] = true;
-        mAreGamepadsPlayer1Selected[i] = true;
-        mAreGamepadsLayoutAlternative[i] = false;
-    }
+    initAudio();
+    initVideo();
+    initInputs();
 
     // Window size
     constexpr int windowWidth = 1280;
@@ -82,52 +59,16 @@ GlfwApp::GlfwApp(Controller& controller1Ref, Controller& controller2Ref)
     glfwSetKeyCallback(mWindow, keyCallback);
     glfwSetWindowSizeCallback(mWindow, resizeCallback);
 
-    // Screen VAO, VBO & EBO
-    // VAO
-    glGenVertexArrays(1, &mScreenVao);
-    glBindVertexArray(mScreenVao);
-
-    // VBO
-    glGenBuffers(1, &mScreenVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, mScreenVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(SCREEN_VERTICES), SCREEN_VERTICES, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // EBO
-    glGenBuffers(1, &mScreenEbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mScreenEbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(SCREEN_INDICES), SCREEN_INDICES, GL_STATIC_DRAW);
-
-    // Unbind buffers
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // Shaders
-    mScreenShader = std::make_unique<Shader>("shaders/screen.vert", "shaders/screen.frag");
-    mScreenShader->use();
-    mScreenShader->setInt("screenTexture", 0);
-
-    // Screen texture (ToDo: PBO & FBO ?)
-    glGenTextures(1, &mScreenTexture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mScreenTexture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BORDER_COLOR); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Init OpenGL objects
+    initVao();
+    initShader();
+    initTexture(mPixelTexture);
+    initTexture(mScreenTexture);
+    initFbo();
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
     // OpenGL settings
     glEnable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 
     // GUI variables
     mIsRomOpened = false;
@@ -175,15 +116,122 @@ GlfwApp::~GlfwApp()
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
+    glDeleteFramebuffers(1, &mScreenFbo);
     glDeleteVertexArrays(1, &mScreenVao);
     glDeleteBuffers(1, &mScreenVbo);
     glDeleteBuffers(1, &mScreenEbo);
     glDeleteTextures(1, &mScreenTexture);
+    glDeleteTextures(1, &mPixelTexture);
     glfwDestroyWindow(mWindow);
     glfwTerminate();
 }
 
-void GlfwApp::draw(const picture_t& pictureBuffer)
+void GlfwApp::initAudio()
+{
+    mMasterVolume = 1.0f;
+}
+
+void GlfwApp::initVideo()
+{
+    mCurrentFiltering = FILTERING_ITEMS[1];
+    mCurrentShaderStr = SHADER_ITEMS[0];
+}
+
+void GlfwApp::initInputs()
+{
+    // Keyboard
+    mIsKeyboardEnabled = true;
+    mIsKeyboardPlayer1Selected = true;
+    mKeyToChange = nullptr;
+    mKeyboardMapping.a = GLFW_KEY_K;
+    mKeyboardMapping.b = GLFW_KEY_J;
+    mKeyboardMapping.start = GLFW_KEY_H;
+    mKeyboardMapping.select = GLFW_KEY_G;
+    mKeyboardMapping.up = GLFW_KEY_W;
+    mKeyboardMapping.down = GLFW_KEY_S;
+    mKeyboardMapping.left = GLFW_KEY_A;
+    mKeyboardMapping.right = GLFW_KEY_D;
+
+    // Gamepads
+    for (int i = 0; i < 16; i++)
+    {
+        mGamepadsDeadZone[i] = 0.2;
+        mAreGamepadsEnabled[i] = true;
+        mAreGamepadsPlayer1Selected[i] = true;
+        mAreGamepadsLayoutAlternative[i] = false;
+    }
+}
+void GlfwApp::initVao()
+
+{
+    // VAO
+    glGenVertexArrays(1, &mScreenVao);
+    glBindVertexArray(mScreenVao);
+
+    // VBO
+    glGenBuffers(1, &mScreenVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mScreenVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(SCREEN_VERTICES), SCREEN_VERTICES, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // EBO
+    glGenBuffers(1, &mScreenEbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mScreenEbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(SCREEN_INDICES), SCREEN_INDICES, GL_STATIC_DRAW);
+
+    // Unbind buffers
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void GlfwApp::initShader()
+{
+    mScreenShader = std::make_unique<Shader>(VERT_SHADER_DEFAULT, FRAG_SHADER_DEFAULT);
+    mScreenShader->use();
+    mScreenShader->setInt("screenTexture", 0);
+}
+
+void GlfwApp::initTexture(GLuint& textureObject)
+{
+    glGenTextures(1, &textureObject);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureObject);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BORDER_COLOR); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void GlfwApp::initFbo()
+{
+    glGenFramebuffers(1, &mScreenFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
+
+    // Color
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mScreenTexture, 0);
+
+    // Final check
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "FBO INCOMPLETE!" << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GlfwApp::draw(const picture_t &pictureBuffer)
 {
     // Reset controllers;
     mController1State = 0;
@@ -206,21 +254,31 @@ void GlfwApp::draw(const picture_t& pictureBuffer)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    // Apply shader
+    glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Update screen texture
+    // SubImage
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mPixelTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pictureBuffer.data()->data()->data());
+
+    // Bind screen vao & shader
+    mScreenShader->use();
+    mScreenShader->setInt("screenTexture", 0);
+    mScreenShader->setFloat("time", glfwGetTime());
+    glBindVertexArray(mScreenVao);       
+    glViewport(0, 0, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT);   
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     ImGuiID dockSpaceID = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
     // Draw main menu bar
     drawMainMenuBar();
-
-    // Bind screen vao & shader
-    mScreenShader->use();
-    glBindVertexArray(mScreenVao);  
-
-    // Update screen texture
-    // TODO: implement with TexSubImage2D (try FBO & PBO) ?
-    // SubImage
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mScreenTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pictureBuffer.data()->data()->data());
 
     // Draw screen texture to ImGUI window
     ImGui::SetNextWindowDockID(dockSpaceID, ImGuiCond_Once);
@@ -634,6 +692,49 @@ void GlfwApp::drawVideoSettingsWindow()
             ImGui::EndCombo();
         }
 
+        // Shader
+        bool isUpdateOk = true;
+        if (ImGui::BeginCombo("Shader", mCurrentShaderStr))
+        {
+            for (uint8_t i = 0; i < IM_ARRAYSIZE(SHADER_ITEMS); i++)
+            {
+                bool isSelected = (mCurrentShaderStr == SHADER_ITEMS[i]);
+                if (ImGui::Selectable(SHADER_ITEMS[i], isSelected))
+                {
+                    // Clicked on an item -> change filtering
+                    mCurrentShaderStr = SHADER_ITEMS[i];
+                    if(!updateShader(i))
+                        isUpdateOk = false;
+                }
+
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            
+            ImGui::EndCombo();
+        }
+
+        // Recompile
+        if (mCurrentShaderStr == SHADER_ITEMS[1])
+        {
+            if (ImGui::Button("Recompile"))
+                if(!updateShader(1))
+                    isUpdateOk = false;
+        }
+
+        // Error pop-up
+        if (!isUpdateOk)
+            ImGui::OpenPopup("SHADER ERROR");
+        if (ImGui::BeginPopupModal("SHADER ERROR", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(mShaderErrorMessage.c_str());
+
+            if (ImGui::Button("Close"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+
         if (ImGui::Button("Close"))
             mIsVideoSettingsWindowOpen = false;
     }
@@ -842,6 +943,60 @@ void GlfwApp::updateFiltering(uint8_t filteringIdx)
     glBindTexture(GL_TEXTURE_2D, mScreenTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
+}
+
+bool GlfwApp::updateShader(uint8_t shaderIdx)
+{
+    constexpr uint8_t DEFAULT_IDX = 0;
+    constexpr uint8_t CUSTOM_IDX = 1;
+    constexpr uint8_t NEGATIVE_IDX = 2;
+    constexpr uint8_t GRAYSCALE_IDX = 3;
+    constexpr uint8_t SHARPEN_IDX = 4;
+    constexpr uint8_t EDGES_IDX = 5;
+
+    bool isUpdateOk = true;
+    switch (shaderIdx)
+    {
+        case DEFAULT_IDX:
+            mScreenShader.reset(new Shader(VERT_SHADER_DEFAULT, FRAG_SHADER_DEFAULT));
+            break;
+
+        case CUSTOM_IDX:
+            mScreenShader.reset(new Shader("shaders/custom.vert", "shaders/custom.frag", nullptr));
+            isUpdateOk = mScreenShader->isCompiled();
+
+            if (!isUpdateOk)
+            {
+                // Get error message
+                mShaderErrorMessage = mScreenShader->getErrorMessage();
+
+                // Reset to default shader
+                mCurrentShaderStr = SHADER_ITEMS[0];
+                mScreenShader.reset(new Shader(VERT_SHADER_DEFAULT, FRAG_SHADER_DEFAULT));
+            }
+            break;
+
+        case NEGATIVE_IDX:
+            mScreenShader.reset(new Shader(VERT_SHADER_DEFAULT, FRAG_SHADER_NEGATIVE));
+            break;
+
+        case GRAYSCALE_IDX:
+            mScreenShader.reset(new Shader(VERT_SHADER_DEFAULT, FRAG_SHADER_GRAYSCALE));
+            break;
+
+        case SHARPEN_IDX:
+            mScreenShader.reset(new Shader(VERT_SHADER_DEFAULT, FRAG_SHADER_SHARPEN));
+            break;
+
+        case EDGES_IDX:
+            mScreenShader.reset(new Shader(VERT_SHADER_DEFAULT, FRAG_SHADER_EDGES));
+            break;
+        
+        default:
+            break;
+    }
+
+    return isUpdateOk;
 }
 
 void GlfwApp::pollKeyboard()

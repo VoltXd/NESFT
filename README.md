@@ -19,7 +19,7 @@ Run the following command :
 cmake -B build
 ```
 This will generate a makefile or a Visual Studio project (depending on your system).
-Then, you can either build the main target of the test target.
+Then, you can either build the main target or the test target.
 
 ### Compile on Linux
 ```shell
@@ -107,8 +107,11 @@ And [OneLoneCoder](https://www.youtube.com/@javidx9)\
 [OpenAL destroy computer audio FIX](https://stackoverflow.com/questions/9397681/openal-randomly-stops-playing-some-sounds-can-only-fix-with-reboot)\
 [Sound latency (just don't use 165463 sound buffers please...)](https://en.sfml-dev.org/forums/index.php?topic=3929.0)
 
+### OpenGL
+[Learn OpenGL](https://learnopengl.com/)
+
 ### Libraries
 Check out [libraries](libraries) folder.
-## License
 
+## License
 MIT License. See [LICENSE](LICENSE) file.

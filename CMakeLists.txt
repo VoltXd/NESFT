@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.14)
 project(nesft LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_BUILD_TYPE Release)
 
 # Source & Header location
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
@@ -53,6 +54,18 @@ if(MSVC)
 else()
   set_source_files_properties(${SOURCE_FILES} ${HEADER_FILES} PROPERTIES COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Werror")
 endif()
+
+# Copy shader target
+ADD_CUSTOM_TARGET(
+        copy_shader_files
+        ${CMAKE_COMMAND}
+        -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -D DESTINATION_DIR=${CMAKE_CURRENT_BINARY_DIR} 
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/CopyFile.cmake
+        COMMENT "Copying Files for target: ${PROJECT_NAME}" VERBATIM 
+        )
+
+ADD_DEPENDENCIES ( ${PROJECT_NAME} copy_shader_files )
 
 
 

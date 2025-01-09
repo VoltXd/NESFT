@@ -67,6 +67,16 @@ public:
     inline void setErrorMessage(const std::string& errorMessage) { mErrorMessage = errorMessage; }
 
 private:
+    // Initialisation
+    void initAudio();
+    void initVideo();
+    void initInputs();
+
+    void initVao();
+    void initShader();
+    void initTexture(GLuint& textureObject);
+    void initFbo();
+
     // Main menu bar
     void drawMainMenuBar();
     void drawMenuFile();
@@ -89,6 +99,7 @@ private:
     bool drawErrorWindow();
 
     void updateFiltering(uint8_t filteringIdx);
+    bool updateShader(uint8_t shaderIdx);
 
     void pollKeyboard();
     void pollGamepads();
@@ -128,6 +139,17 @@ private:
         "Linear"
     };
     const char* mCurrentFiltering;
+    static constexpr const char* SHADER_ITEMS[] = 
+    {
+        "Default",
+        "Custom",
+        "Negative",
+        "Grayscale",
+        "Sharpen",
+        "Edges"
+    };
+    const char* mCurrentShaderStr;
+    std::string mShaderErrorMessage;
     
     bool mIsInputSettingsWindowOpen;
     bool mIsKeyboardEnabled;
@@ -150,10 +172,10 @@ private:
     static constexpr float SCREEN_VERTICES[] = 
     {
         // Position     // TexCoords
-        -1.0f, -1.0f,   0.0f, 1.0f,
-         1.0f, -1.0f,   1.0f, 1.0f,
-         1.0f,  1.0f,   1.0f, 0.0f,
-        -1.0f,  1.0f,   0.0f, 0.0f
+        -1.0f, -1.0f,   0.0f, 0.0f,
+         1.0f, -1.0f,   1.0f, 0.0f,
+         1.0f,  1.0f,   1.0f, 1.0f,
+        -1.0f,  1.0f,   0.0f, 1.0f
     };
 
     static constexpr unsigned int SCREEN_INDICES[] = 
@@ -170,6 +192,8 @@ private:
     GLuint mScreenVao;
     GLuint mScreenVbo;
     GLuint mScreenEbo;
+    GLuint mScreenFbo;
+    GLuint mPixelTexture;
     GLuint mScreenTexture;
     std::unique_ptr<Shader> mScreenShader;
 

@@ -155,7 +155,7 @@ void GlfwApp::initInputs()
     // Gamepads
     for (int i = 0; i < 16; i++)
     {
-        mGamepadsDeadZone[i] = 0.2;
+        mGamepadsDeadZone[i] = 0.2f;
         mAreGamepadsEnabled[i] = true;
         mAreGamepadsPlayer1Selected[i] = true;
         mAreGamepadsLayoutAlternative[i] = false;
@@ -268,7 +268,7 @@ void GlfwApp::draw(const picture_t &pictureBuffer)
     // Bind screen vao & shader
     mScreenShader->use();
     mScreenShader->setInt("screenTexture", 0);
-    mScreenShader->setFloat("time", glfwGetTime());
+    mScreenShader->setFloat("time", (float)glfwGetTime());
     glBindVertexArray(mScreenVao);       
     glViewport(0, 0, PPU_OUTPUT_WIDTH, PPU_OUTPUT_HEIGHT);   
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -1135,22 +1135,22 @@ static void keyCallback(GLFWwindow *window, int key, int scancode, int action, i
             return;
         }
 
-        // Window
-        if ((action == GLFW_PRESS) && (key == GLFW_KEY_ESCAPE))
-        {
-            renderer->switchPauseState();
-            return;
-        }
-
         // Change key mapping
         keycode_t* keyToChange = renderer->getKeyToChange();
         if (keyToChange != nullptr)
         {
             // Change key mapping if not escape
             if (key != GLFW_KEY_ESCAPE)
-                *keyToChange = key;
+                *keyToChange = (keycode_t)key;
 
             renderer->clearKeyToChange();
+            return;
+        }
+
+        // Window
+        if ((action == GLFW_PRESS) && (key == GLFW_KEY_ESCAPE))
+        {
+            renderer->switchPauseState();
             return;
         }
     }

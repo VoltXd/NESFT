@@ -50,12 +50,13 @@ void fftMagnitude(const std::array<float, S>& signal, std::array<float, S>& spec
     // Copy signal to complex array
 	std::array<complex, S> x;
 	for (u32 i = 0; i < S; i++)
-        x[i] = signal[i];
+        x[i].real(signal[i]);
 
 	// DFT
-	unsigned int N = S, k = N, n;
-	float thetaT = 3.14159265358979323846264338328f / N;
-	complex phiT = complex(cosf(thetaT), -sinf(thetaT)), T;
+	unsigned int k = S;
+	unsigned int n;
+	constexpr float THETA_T = 3.14159265358979323846264338328f / S;
+	complex phiT = complex(cosf(THETA_T), -sinf(THETA_T)), T;
 	while (k > 1)
 	{
 		n = k;
@@ -64,7 +65,7 @@ void fftMagnitude(const std::array<float, S>& signal, std::array<float, S>& spec
 		T = 1.0L;
 		for (unsigned int l = 0; l < k; l++)
 		{
-			for (unsigned int a = l; a < N; a += n)
+			for (unsigned int a = l; a < S; a += n)
 			{
 				unsigned int b = a + k;
 				complex t = x[a] - x[b];
@@ -75,8 +76,8 @@ void fftMagnitude(const std::array<float, S>& signal, std::array<float, S>& spec
 		}
 	}
 	// Decimate
-	unsigned int m = (unsigned int)log2(N);
-	for (unsigned int a = 0; a < N; a++)
+	unsigned int m = (unsigned int)log2(S);
+	for (unsigned int a = 0; a < S; a++)
 	{
 		unsigned int b = a;
 		// Reverse bits
